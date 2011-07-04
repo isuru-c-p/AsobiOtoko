@@ -1,7 +1,7 @@
 #ifndef __z80__ 
 #define __z80__
 #include "stdint.h"
-
+#include "mmu.h"
 
 /* constants */
 #define MEMORYSIZE 65536
@@ -31,6 +31,7 @@ typedef struct _z80 {
 	uint16_t pc;
 	uint16_t sp;
 	uint8_t f;
+	MMU mmu;
 } z80;
 
 

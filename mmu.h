@@ -43,15 +43,13 @@ typedef struct _mmu {
 
 /* functions */
 
-void initMMU();
+void initMMU(MMU * pmmu);
 
-uint8_t rb(int address);
-uint16_t rw(int address);
+uint8_t rb(MMU * pmmu,uint16_t address);
+uint16_t rw(MMU * pmmu,uint16_t address);
 
-void wb(int address, int val);
-void ww(int address, int val);
+void wb(MMU * pmmu,uint16_t address, uint8_t val);
+void ww(MMU * pmmu,uint16_t address, uint16_t val);
 
-/* mmu */
-MMU mmu;
 
 #endif
