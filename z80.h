@@ -13,13 +13,12 @@
 
 /*Data types*/
 
-typedef struct _HlByte {
+typedef struct _HlByte { /*TODO check endianness */
 	uint8_t h;
 	uint8_t l;
 } HlByte;
 
 typedef struct _z80 {
-
 	uint8_t a;
 	uint8_t b;
 	uint8_t c;
@@ -29,6 +28,7 @@ typedef struct _z80 {
 		uint16_t hl;
 		HlByte hlByte;
 	};
+	uint16_t pc;
 	uint16_t sp;
 	uint8_t f;
 	uint8_t memory[MEMORYSIZE];
