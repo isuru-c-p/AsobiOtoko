@@ -18,13 +18,14 @@
 #define REGF 5
 #define REGH 6
 #define REGL 7
-#define PC 8
-#define SP 9
+#define PC 0
+#define SP 1
 
 /*Data types*/
 
 typedef struct _z80 {
-	uint8_t registers[10];
+	uint8_t registers[8];
+	uint16_t registers16[2];
 	/*uint8_t a;
 	uint8_t b;
 	uint8_t c;

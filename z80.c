@@ -29,6 +29,34 @@ initZ80(z80*pz80){
 }
 
 
+void INC_n(z80*pz80, int reg)
+{
+	pz80->registers[reg]++;
+	pz80->registers[REGF] = buildStatusFlag((pz80->registers[reg]==0), 0, ((pz80->registers[reg] & 0xff) == 0), getFlag(pz80->registers[REGF], CARRY));
+}
+
+void INC_nn(z80*pz80, int h, int l)
+{
+	if(pz80->registers[l] == 0xff)
+		pz80->registers[h]++;
+	pz80->registers[l]++;
+	pz80->registers[REGF] = buildStatusFlag((pz80->registers[h]==0) && (pz80->registers[l]==0), 0, (pz80->registers[l] == 0), getFlag(pz80->registers[REGF], CARRY));
+}
+
+void DEC_n(z80*pz80, int reg)
+{
+	pz80->registers[reg]--;
+	pz80->registers[REGF] = buildStatusFlag((pz80->registers[reg]==0), 1, ((pz80->registers[reg] & 0xff) == 0xff), getFlag(pz80->registers[REGF], CARRY));
+}
+
+void DEC_nn(z80*pz80, int h, int l)
+{
+	if(pz80->registers[l] == 0x0)
+		pz80->registers[h]--;
+	pz80->registers[l]--;
+	pz80->registers[REGF] = buildStatusFlag((pz80->registers[h]==0) && (pz80->registers[l]==0), 1, (pz80->registers[l] == 0xff), getFlag(pz80->registers[REGF], CARRY));
+}
+
 
 void 
 dispatchInstruction(z80 * pz80,uint8_t opcode, int secondary){
@@ -1600,14 +1628,17 @@ i_LD__BC__A(z80 * pz80){
 /* Increment 16-bit BC */
 void
 i_INC_BC(z80 * pz80){
+INC_nn(pz80, REGB, REGC);
 }
 /* Increment B */
 void
 i_INC_B(z80 * pz80){
+INC_n(pz80, REGB);
 }
 /* Decrement B */
 void
 i_DEC_B(z80 * pz80){
+DEC_n(pz80, REGB);
 }
 /* Load 8-bit immediate into B */
 void
@@ -1632,14 +1663,17 @@ i_LD_A__BC_(z80 * pz80){
 /* Decrement 16-bit BC */
 void
 i_DEC_BC(z80 * pz80){
+DEC_nn(pz80, REGB, REGC);
 }
 /* Increment C */
 void
 i_INC_C(z80 * pz80){
+INC_n(pz80, REGC);
 }
 /* Decrement C */
 void
 i_DEC_C(z80 * pz80){
+DEC_n(pz80, REGC);
 }
 /* Load 8-bit immediate into C */
 void
@@ -1664,14 +1698,17 @@ i_LD__DE__A(z80 * pz80){
 /* Increment 16-bit DE */
 void
 i_INC_DE(z80 * pz80){
+INC_nn(pz80, REGD, REGE);
 }
 /* Increment D */
 void
 i_INC_D(z80 * pz80){
+INC_n(pz80, REGD);
 }
 /* Decrement D */
 void
 i_DEC_D(z80 * pz80){
+DEC_n(pz80, REGD);
 }
 /* Load 8-bit immediate into D */
 void
@@ -1696,14 +1733,17 @@ i_LD_A__DE_(z80 * pz80){
 /* Decrement 16-bit DE */
 void
 i_DEC_DE(z80 * pz80){
+DEC_nn(pz80, REGD, REGE);
 }
 /* Increment E */
 void
 i_INC_E(z80 * pz80){
+INC_n(pz80, REGE);
 }
 /* Decrement E */
 void
 i_DEC_E(z80 * pz80){
+DEC_n(pz80, REGE);
 }
 /* Load 8-bit immediate into E */
 void
@@ -1728,14 +1768,17 @@ i_LDI__HL__A(z80 * pz80){
 /* Increment 16-bit HL */
 void
 i_INC_HL(z80 * pz80){
+INC_nn(pz80, REGH, REGL);
 }
 /* Increment H */
 void
 i_INC_H(z80 * pz80){
+INC_n(pz80, REGH);
 }
 /* Decrement H */
 void
 i_DEC_H(z80 * pz80){
+DEC_n(pz80, REGH);
 }
 /* Load 8-bit immediate into H */
 void
@@ -1760,14 +1803,17 @@ i_LDI_A__HL_(z80 * pz80){
 /* Decrement 16-bit HL */
 void
 i_DEC_HL(z80 * pz80){
+DEC_nn(pz80, REGH, REGL);
 }
 /* Increment L */
 void
 i_INC_L(z80 * pz80){
+INC_n(pz80, REGL);
 }
 /* Decrement L */
 void
 i_DEC_L(z80 * pz80){
+DEC_n(pz80, REGL);
 }
 /* Load 8-bit immediate into L */
 void
@@ -1792,14 +1838,22 @@ i_LDD__HL__A(z80 * pz80){
 /* Increment 16-bit HL */
 void
 i_INC_SP(z80 * pz80){
+pz80->registers16[SP]++;
+pz80->registers[REGF] = buildStatusFlag((pz80->registers16[SP] == 0), 0, ((pz80->registers16[SP] & 0xffff) == 0), getFlag(pz80->registers[REGF], CARRY));
 }
 /* Increment value pointed by HL */
 void
 i_INC__HL_(z80 * pz80){
+uint8_t newVal = rb(&(pz80->mmu),(pz80->registers[REGH] << 8) + pz80->registers[REGL]) + 1;
+wb(&(pz80->mmu),(pz80->registers[REGH] << 8) + pz80->registers[REGL], newVal);
+pz80->registers[REGF] = buildStatusFlag((newVal == 0), 0, ((newVal & 0xff) == 0), getFlag(pz80->registers[REGF], CARRY));
 }
 /* Decrement value pointed by HL */
 void
 i_DEC__HL_(z80 * pz80){
+uint8_t newVal = rb(&(pz80->mmu),(pz80->registers[REGH] << 8) + pz80->registers[REGL]) - 1;
+wb(&(pz80->mmu),(pz80->registers[REGH] << 8) + pz80->registers[REGL], newVal);
+pz80->registers[REGF] = buildStatusFlag((newVal == 0), 0, ((newVal & 0xff) == 0xff), getFlag(pz80->registers[REGF], CARRY));
 }
 /* Load 8-bit immediate into address pointed by HL */
 void
@@ -1824,14 +1878,18 @@ i_LDD_A__HL_(z80 * pz80){
 /* Decrement 16-bit SP */
 void
 i_DEC_SP(z80 * pz80){
+pz80->registers16[SP]--;
+pz80->registers[REGF] = buildStatusFlag((pz80->registers16[SP] == 0), 0, ((pz80->registers16[SP] & 0xffff) == 0xffff), getFlag(pz80->registers[REGF], CARRY));
 }
 /* Increment A */
 void
 i_INC_A(z80 * pz80){
+INC_n(pz80, REGA);
 }
 /* Decrement A */
 void
 i_DEC_A(z80 * pz80){
+DEC_n(pz80, REGA);
 }
 /* Load 8-bit immediate into A */
 void
