@@ -25,6 +25,7 @@ buildStatusFlag(int zero, int sub, int halfcarry,int carry){
 void 
 initZ80(z80*pz80){
 	bzero((void*)pz80,sizeof(z80));
+	initMMU(&(pz80->mmu));
 }
 
 
