@@ -57,6 +57,29 @@ void DEC_nn(z80*pz80, int h, int l)
 	pz80->registers[REGF] = buildStatusFlag((pz80->registers[h]==0) && (pz80->registers[l]==0), 1, (pz80->registers[l] == 0xff), getFlag(pz80->registers[REGF], CARRY));
 }
 
+void ADC_A_n(z80*pz80, int src)
+{
+	uint8_t carry = getFlag(pz80->registers[REGF], CARRY);
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + pz80->registers[src] + carry)==0), 0, (((pz80->registers[REGA] & 0xff) + (pz80->registers[src] & 0xff) + carry) > 0xff), (pz80->registers[REGA] + pz80->registers[src] + carry) > 0xffff);
+	pz80->registers[REGA] = pz80->registers[REGA] + pz80->registers[src] + carry;
+}
+
+void ADC_A_nn_mem(z80*pz80, int srcH, int srcL)
+{
+	uint8_t carry = getFlag(pz80->registers[REGF], CARRY);
+	uint8_t val = rb(&(pz80->mmu), (pz80->registers[srcH] << 8) + pz80->registers[srcL]);
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + val + carry)==0), 0, (((pz80->registers[REGA] & 0xff) + (val & 0xff) + carry) > 0xff), (pz80->registers[REGA] + val + carry) > 0xffff);
+	pz80->registers[REGA] = pz80->registers[REGA] + val + carry;
+}
+
+void ADC_A_immediate(z80*pz80)
+{
+	uint8_t carry = getFlag(pz80->registers[REGF], CARRY);
+	uint8_t val = rb(&(pz80->mmu), pz80->registers16[PC]+1);
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + val + carry)==0), 0, (((pz80->registers[REGA] & 0xff) + (val & 0xff) + carry) > 0xff), (pz80->registers[REGA] + val + carry) > 0xffff);
+	pz80->registers[REGA] = pz80->registers[REGA] + val + carry;
+}
+
 void ADD_A_n(z80*pz80, int src)
 {
 	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + pz80->registers[src])==0), 0, (((pz80->registers[REGA] & 0xff) + (pz80->registers[src] & 0xff)) > 0xff), (pz80->registers[REGA] + pz80->registers[src]) > 0xffff);
@@ -2245,34 +2268,42 @@ ADD_A_n(pz80, REGA);
 /* Add B and carry flag to A */
 void
 i_ADC_A_B(z80 * pz80){
+ADC_A_n(pz80, REGB);
 }
 /* Add C and carry flag to A */
 void
 i_ADC_A_C(z80 * pz80){
+ADC_A_n(pz80, REGC);
 }
 /* Add D and carry flag to A */
 void
 i_ADC_A_D(z80 * pz80){
+ADC_A_n(pz80, REGD);
 }
 /* Add E and carry flag to A */
 void
 i_ADC_A_E(z80 * pz80){
+ADC_A_n(pz80, REGE);
 }
 /* Add H and carry flag to A */
 void
 i_ADC_A_H(z80 * pz80){
+ADC_A_n(pz80, REGH);
 }
 /* Add and carry flag L to A */
 void
 i_ADC_A_L(z80 * pz80){
+ADC_A_n(pz80, REGL);
 }
 /* Add value pointed by HL and carry flag to A */
 void
 i_ADC_A__HL_(z80 * pz80){
+ADC_A_nn_mem(pz80, REGH, REGL);
 }
 /* Add A and carry flag to A */
 void
 i_ADC_A_A(z80 * pz80){
+ADC_A_n(pz80, REGA);
 }
 /* Subtract B from A */
 void
@@ -2526,6 +2557,7 @@ i_CALL_nn(z80 * pz80){
 /* Add 8-bit immediate and carry to A */
 void
 i_ADC_A_n(z80 * pz80){
+ADC_A_immediate(pz80);
 }
 /* Call routine at address 0008h */
 void
