@@ -530,12 +530,10 @@ for opcodeTable,prefix in [(opcodeTable1,"i_"),(opcodeTable2,"i2_")]:
 switch = """
 	switch(opcode){
 %s
-		default:
-			//should never happen
 	}
 """
 
-switchEntry = "\t\tcase %s:\n\t\t\t%s(pz80);\n\t\t\tbreak;\n"
+switchEntry = "\t\tcase %s:\n\t\t\t%s(pz80);\n\t\t\treturn;\n"
 switchbody = ""
 for byte,title,comment in list1:
 	switchbody += switchEntry%(byte,title)	
