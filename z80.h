@@ -44,22 +44,24 @@ typedef struct _z80 {
 
 /* functions defined as macros */
 
-#define setFlag(X,FLAG) (X | (1<<(FLAG)))
+#define setFlag(X,FLAG) (X |= (1<<(FLAG)))
 #define getFlag(X,FLAG) (X & (1<<(FLAG)))
 
-#define nibbleSwap(X) ((X >> 4 & 0b00001111) + (X << 4 & 0b11110000))
+#define nibbleSwap(X) (((X) >> 4 & 0b00001111) + ((X) << 4 & 0b11110000))
 
-#define getRegister8(pz80,X) (pz80->registers[X])
-#define getRegister16(pz80,H,L) ((pz80->registers[H] << 8) + pz80->registers[L])
+#define getRegister8(pz80,X) ((pz80)->registers[(X)])
+#define getRegister16(pz80,H,L) (((pz80)->registers[(H)] << 8) + (pz80)->registers[(L)])
 
-#define setRegister8(pz80,X,val) (pz80->registers[X] = val)
-#define setRegister16(pz80,H,L,val) (pz80->registers[H] = (val >> 8) & 255; pz80->registers[L] = val & 255)
+#define setRegister8(pz80,X,val) ((pz80)->registers[(X)] = (val))
+#define setRegister16(pz80,H,L,val) ((pz80)->registers[(H)] = ((val) >> 8) & 255; (pz80)->registers[(L)] = (val) & 255)
 
 /* general purpose functions */
 	
-	uint8_t buildStatusFlag(int zero, int sub, int halfcarry,int carry);
+uint8_t 
+buildStatusFlag(int zero, int sub, int halfcarry,int carry);
 
 /* opcode functions here */
+//////////////////////////////////////////////////////////////////////
 /* No Operation */
 void
 i_NOP(z80 * pz80);

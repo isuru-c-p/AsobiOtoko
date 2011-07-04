@@ -8,13 +8,13 @@ uint8_t
 buildStatusFlag(int zero, int sub, int halfcarry,int carry){
 	uint8_t ret = 0;
 	if(zero)
-		ret = setFlag(ret,ZERO);
+		setFlag(ret,ZERO);
 	if(sub)
-		ret = setFlag(ret,SUB);
+		setFlag(ret,SUB);
 	if(halfcarry)
-		ret = setFlag(ret,HALFCARRY);
+		setFlag(ret,HALFCARRY);
 	if(carry)
-		ret = setFlag(ret,CARRY);
+		setFlag(ret,CARRY);
 	return ret;
 }
 
