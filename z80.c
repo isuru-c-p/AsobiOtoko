@@ -57,6 +57,49 @@ void DEC_nn(z80*pz80, int h, int l)
 	pz80->registers[REGF] = buildStatusFlag((pz80->registers[h]==0) && (pz80->registers[l]==0), 1, (pz80->registers[l] == 0xff), getFlag(pz80->registers[REGF], CARRY));
 }
 
+void ADD_A_n(z80*pz80, int src)
+{
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + pz80->registers[src])==0), 0, (((pz80->registers[REGA] & 0xff) + (pz80->registers[src] & 0xff)) > 0xff), (pz80->registers[REGA] + pz80->registers[src]) > 0xffff);
+	pz80->registers[REGA] = pz80->registers[REGA] + pz80->registers[src];
+}
+
+void ADD_A_nn_mem(z80*pz80, int srcH, int srcL)
+{
+	uint8_t val = rb(&(pz80->mmu), (pz80->registers[srcH] << 8) + pz80->registers[srcL]);
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + val)==0), 0, (((pz80->registers[REGA] & 0xff) + (val & 0xff)) > 0xff), (pz80->registers[REGA] + val) > 0xffff);
+	pz80->registers[REGA] = pz80->registers[REGA] + val;
+}
+
+void ADD_A_immediate(z80*pz80)
+{
+	uint8_t val = rb(&(pz80->mmu), pz80->registers16[PC]+1);
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + val)==0), 0, (((pz80->registers[REGA] & 0xff) + (val & 0xff)) > 0xff), (pz80->registers[REGA] + val) > 0xffff);
+	pz80->registers[REGA] = pz80->registers[REGA] + val;
+}
+
+void ADD_HL_nn(z80*pz80, int srcH, int srcL)
+{
+	uint8_t val = getRegister16(pz80, srcH, srcL);
+	uint8_t hl_val = getRegister16(pz80, REGH, REGL);
+	pz80->registers[REGF] = buildStatusFlag(((hl_val + val)==0), 0, (((hl_val & 0xffff) + (val & 0xffff)) > 0xffff), (hl_val + val) > 0xffff);
+	setRegister16(pz80, REGH, REGL, (hl_val + val));
+}
+
+void ADD_HL_SP(z80*pz80)
+{
+	uint8_t val = pz80->registers16[SP];
+	uint8_t hl_val = getRegister16(pz80, REGH, REGL);
+	pz80->registers[REGF] = buildStatusFlag(((hl_val + val)==0), 0, (((hl_val & 0xffff) + (val & 0xffff)) > 0xffff), (hl_val + val) > 0xffff);
+	setRegister16(pz80, REGH, REGL, (hl_val + val));
+}
+
+void ADD_SP_d(z80*pz80)
+{
+	uint8_t val = rb(&(pz80->mmu), pz80->registers16[PC]+1);
+	// TODO: 8-bit signed addition
+	
+}
+
 
 void 
 dispatchInstruction(z80 * pz80,uint8_t opcode, int secondary){
@@ -1655,6 +1698,7 @@ i_LD__nn__SP(z80 * pz80){
 /* Add 16-bit BC to HL */
 void
 i_ADD_HL_BC(z80 * pz80){
+ADD_HL_nn(pz80, REGB, REGC);
 }
 /* Load A from address pointed to by BC */
 void
@@ -1725,6 +1769,7 @@ i_JR_n(z80 * pz80){
 /* Add 16-bit DE to HL */
 void
 i_ADD_HL_DE(z80 * pz80){
+ADD_HL_nn(pz80, REGD, REGE);
 }
 /* Load A from address pointed to by DE */
 void
@@ -1795,6 +1840,7 @@ i_JR_Z_n(z80 * pz80){
 /* Add 16-bit HL to HL */
 void
 i_ADD_HL_HL(z80 * pz80){
+ADD_HL_nn(pz80, REGH, REGL);
 }
 /* Load A from address pointed to by HL, and increment HL */
 void
@@ -1870,6 +1916,7 @@ i_JR_C_n(z80 * pz80){
 /* Add 16-bit SP to HL */
 void
 i_ADD_HL_SP(z80 * pz80){
+ADD_HL_SP(pz80);
 }
 /* Load A from address pointed to by HL, and decrement HL */
 void
@@ -2158,34 +2205,42 @@ i_LD_A_A(z80 * pz80){
 /* Add B to A */
 void
 i_ADD_A_B(z80 * pz80){
+ADD_A_n(pz80, REGB);
 }
 /* Add C to A */
 void
 i_ADD_A_C(z80 * pz80){
+ADD_A_n(pz80, REGC);
 }
 /* Add D to A */
 void
 i_ADD_A_D(z80 * pz80){
+ADD_A_n(pz80, REGD);
 }
 /* Add E to A */
 void
 i_ADD_A_E(z80 * pz80){
+ADD_A_n(pz80, REGE);
 }
 /* Add H to A */
 void
 i_ADD_A_H(z80 * pz80){
+ADD_A_n(pz80, REGH);
 }
 /* Add L to A */
 void
 i_ADD_A_L(z80 * pz80){
+ADD_A_n(pz80, REGL);
 }
 /* Add value pointed by HL to A */
 void
 i_ADD_A__HL_(z80 * pz80){
+ADD_A_nn_mem(pz80, REGH, REGL);
 }
 /* Add A to A */
 void
 i_ADD_A_A(z80 * pz80){
+ADD_A_n(pz80, REGA);
 }
 /* Add B and carry flag to A */
 void
@@ -2438,6 +2493,7 @@ i_PUSH_BC(z80 * pz80){
 /* Add 8-bit immediate to A */
 void
 i_ADD_A_n(z80 * pz80){
+ADD_A_immediate(pz80);
 }
 /* Call routine at address 0000h */
 void
@@ -2574,6 +2630,7 @@ i_RST_20(z80 * pz80){
 /* Add signed 8-bit immediate to SP */
 void
 i_ADD_SP_d(z80 * pz80){
+ADD_SP_d(pz80);
 }
 /* Jump to 16-bit value pointed by HL */
 void

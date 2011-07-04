@@ -54,7 +54,7 @@ typedef struct _z80 {
 #define getRegister16(pz80,H,L) (((pz80)->registers[(H)] << 8) + (pz80)->registers[(L)])
 
 #define setRegister8(pz80,X,val) ((pz80)->registers[(X)] = (val))
-#define setRegister16(pz80,H,L,val) ((pz80)->registers[(H)] = ((val) >> 8) & 255; (pz80)->registers[(L)] = (val) & 255)
+#define setRegister16(pz80,H,L,val) (pz80)->registers[(H)] = (((val) >> 8) & 255); (pz80)->registers[(L)] = ((val) & 255)
 
 /* general purpose functions */
 	
