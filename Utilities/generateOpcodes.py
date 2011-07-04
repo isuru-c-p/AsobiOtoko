@@ -514,11 +514,51 @@ opcodeTable2 = """<td><abbr title="Rotate B left with carry">RLC B</abbr></td>
 
 import re
 
-for opcodeTable in [opcodeTable1,opcodeTable2]: 
-	for prefix in ["i_","i2_"]:
+list1 = []
+list2 = []
+
+for opcodeTable,prefix in [(opcodeTable1,"i_"),(opcodeTable2,"i2_")]: 
 		for num,line in enumerate(opcodeTable.split('\n')):
 			comment = re.search('title="([^"]+)"',line).group(1)
 			title = prefix+re.search(">([^<]+)</abbr",line).group(1).replace("(","_").replace(")","_").replace(" ","_").replace(",","_")
-			print "0x%2X"%num,title,comment
+			tup = ("0x%02X"%num,title,comment)
+			if prefix == "i_":
+				list1.append(tup)
+			else:
+				list2.append(tup)
+				
+switch = """
+	switch(opcode){
+%s
+		default:
+			//should never happen
+	}
+"""
+
+switchEntry = "\t\tcase %s:\n\t\t\t%s(pz80);\n\t\t\tbreak;\n"
+switchbody = ""
+for byte,title,comment in list1:
+	switchbody += switchEntry%(byte,title)	
+switch1 = switch%switchbody
+
+switchbody = ""
+for byte,title,comment in list2:
+	switchbody += switchEntry%(byte,title)	
+switch2 = switch%switchbody
+
+import itertools
+headerdefs = ""
+functions = ""
+for byte,title,comment in itertools.chain(list1,list2):
+	headerdefs +="/* %(comment)s */\nvoid\n%(title)s(z80 * pz80);\n"%locals()
+	functions += "/* %(comment)s */\nvoid\n%(title)s(z80 * pz80){\n}\n"%locals()
+print switch1
+print "/********************/"
+print switch2
+print "/********************/"
+print headerdefs
+print "/********************/"
+print functions
+print "/********************/"
 
 
