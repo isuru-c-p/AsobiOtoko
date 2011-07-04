@@ -519,6 +519,6 @@ for opcodeTable in [opcodeTable1,opcodeTable2]:
 		for num,line in enumerate(opcodeTable.split('\n')):
 			comment = re.search('title="([^"]+)"',line).group(1)
 			title = prefix+re.search(">([^<]+)</abbr",line).group(1).replace("(","_").replace(")","_").replace(" ","_").replace(",","_")
-			print "%2X"%num,title,comment
+			print "0x%2X"%num,title,comment
 
 
