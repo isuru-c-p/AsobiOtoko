@@ -31,7 +31,6 @@ typedef struct _z80 {
 	uint16_t pc;
 	uint16_t sp;
 	uint8_t f;
-	uint8_t memory[MEMORYSIZE];
 } z80;
 
 
