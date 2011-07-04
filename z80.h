@@ -10,16 +10,22 @@
 #define SUB 6
 #define ZERO 7
 
+#define REGA 0
+#define REGB 1
+#define REGC 2
+#define REGD 3
+#define REGE 4
+#define REGF 5
+#define REGH 6
+#define REGL 7
+#define PC 8
+#define SP 9
 
 /*Data types*/
 
-typedef struct _HlByte { /*TODO check endianness */
-	uint8_t h;
-	uint8_t l;
-} HlByte;
-
 typedef struct _z80 {
-	uint8_t a;
+	uint8_t registers[10];
+	/*uint8_t a;
 	uint8_t b;
 	uint8_t c;
 	uint8_t d;
@@ -30,10 +36,9 @@ typedef struct _z80 {
 	};
 	uint16_t pc;
 	uint16_t sp;
-	uint8_t f;
+	uint8_t f;*/
 	MMU mmu;
 } z80;
-
 
 
 
@@ -44,6 +49,11 @@ typedef struct _z80 {
 
 #define nibbleSwap(X) ((X >> 4 & 0b00001111) + (X << 4 & 0b11110000))
 
+#define getRegister8(pz80,X) (pz80->registers[X])
+#define getRegister16(pz80,H,L) ((pz80->registers[H] << 8) + pz80->registers[L])
+
+#define setRegister8(pz80,X,val) (pz80->registers[X] = val)
+#define setRegister16(pz80,H,L,val) (pz80->registers[H] = (val >> 8) & 255; pz80->registers[L] = val & 255)
 
 /* general purpose functions */
 	
