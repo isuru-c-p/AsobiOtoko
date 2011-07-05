@@ -39,6 +39,7 @@ typedef struct _z80 {
 	uint16_t sp;
 	uint8_t f;*/
 	MMU mmu;
+	int tcycles;
 } z80;
 
 
@@ -57,6 +58,12 @@ typedef struct _z80 {
 #define setRegister16(pz80,H,L,val) (pz80)->registers[(H)] = (((val) >> 8) & 255); (pz80)->registers[(L)] = ((val) & 255)
 
 #define getImmediate(pz80) (rb(&((pz80)->mmu), (pz80)->registers16[PC] + 1))
+
+#define loadRegFromMemory8(pz80, reg, address) ((pz80)->registers[(reg)] = rb(&((pz80)->mmu), (address)))
+#define loadRegFromMemory16(pz80, regH, regL, address) loadRegFromMemory8((pz80), (regL), (address)); loadRegFromMemory8((pz80), (regH), (address+1))
+
+#define incPC(pz80, n) ((pz80)->registers16[PC] += (n))
+
 
 /* general purpose functions */
 	

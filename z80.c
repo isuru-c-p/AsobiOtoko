@@ -243,6 +243,19 @@ void CP_A_immediate(z80*pz80)
 	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - val) == 0), 1, ((val & 0xff) > (pz80->registers[REGA] & 0xff)), (val > pz80->registers[REGA])); 
 }
 
+void LD_nn_immediate(z80*pz80, int regH, int regL)
+{
+	loadRegFromMemory16(pz80, pz80->registers16[PC]+1, regH, regL);
+	pz80->tcycles = 12;
+	incPC(pz80, 3);
+}
+
+void LD_SP_HL(z80*pz80)
+{
+	pz80->registers16[SP] = (pz80->registers[REGH] << 8) + pz80->registers[REGL];
+	pz80->tcycles = 8;
+	incPC(pz80, 1);
+}
 
 
 
