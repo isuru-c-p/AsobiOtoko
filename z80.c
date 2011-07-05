@@ -298,8 +298,7 @@ void LD_n_n(z80*pz80, int reg1, int reg2)
 
 void LD_n_nn_mem(z80*pz80, int reg1, int nH, int nL)
 {
-	pz80->registers[REGMEM] = rb(&(pz80->mmu), ((uint16_t)(pz80->registers[nH]) << 8) + (uint16_t)pz80->registers[nL]);
-	pz80->registers[reg1] = pz80->registers[REGMEM];
+	pz80->registers[reg1] = rb(&(pz80->mmu), ((uint16_t)(pz80->registers[nH]) << 8) + (uint16_t)pz80->registers[nL]);
 	pz80->tcycles = 8;
 	incPC(pz80, 1);
 }
@@ -339,6 +338,61 @@ void LD_immediate_mem_n(z80*pz80, int n)
 	pz80->tcycles = 16;
 	incPC(pz80, 3);
 }
+
+void LDH_immediate_A(z80*pz80)
+{
+	wb(&(pz80->mmu), 0xff00 + getImmediate(pz80), pz80->registers[REGA]);
+	pz80->tcycles = 12;
+	incPC(pz80, 2);
+}
+
+void LDH_A_immediate(z80*pz80)
+{
+	pz80->registers[REGA] = rb(&(pz80->mmu), 0xff00 + getImmediate(pz80));
+	pz80->tcycles = 12;
+	incPC(pz80, 2);
+}
+
+void LDD_A_HL_mem(z80*pz80)
+{
+	LD_n_nn_mem(pz80, REGA, REGH, REGL);
+	DEC_nn(pz80, REGH, REGL);
+	pz80->tcycles = 8;
+	incPC(pz80, 1);
+}
+
+void LDD_HL_mem_A(z80*pz80)
+{
+	LD_nn_mem_n(pz80, REGH, REGL, REGA);
+	DEC_nn(pz80, REGH, REGL);
+	pz80->tcycles = 8;
+	incPC(pz80, 1);
+}
+
+void LDI_A_HL_mem(z80*pz80)
+{
+	LD_n_nn_mem(pz80, REGA, REGH, REGL);
+	INC_nn(pz80, REGH, REGL);
+	pz80->tcycles = 8;
+	incPC(pz80, 1);
+}
+
+void LDI_HL_mem_A(z80*pz80)
+{
+	LD_nn_mem_n(pz80, REGH, REGL, REGA);
+	INC_nn(pz80, REGH, REGL);
+	pz80->tcycles = 8;
+	incPC(pz80, 1);
+}
+
+void LD_C_mem_A(z80*pz80)
+{
+	wb(&(pz80->mmu), (0xff00 + pz80->registers[REGC]),pz80->registers[REGA]);
+	pz80->tcycles = 8;
+	incPC(pz80, 1);
+}
+
+
 
 void
 SRL_n(z80*pz80, int reg){
