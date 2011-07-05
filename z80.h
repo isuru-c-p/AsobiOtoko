@@ -61,6 +61,9 @@ buildStatusFlag(int zero, int sub, int halfcarry,int carry);
 void 
 loadRegMemFromHL(z80*pz80);
 
+void 
+saveRegMemToHL(z80*pz80);
+
 /* opcode functions here */
 //////////////////////////////////////////////////////////////////////
 /* No Operation */

@@ -33,6 +33,12 @@ void loadRegMemFromHL(z80*pz80){
 	pz80->registers[REGMEM] = rb(&(pz80->mmu),addr);
 }
 
+void 
+saveRegMemToHL(z80*pz80){
+	uint16_t addr = getRegister16(pz80,REGH,REGL);
+	wb(&(pz80->mmu),addr,pz80->registers[REGMEM]);
+}
+
 
 void INC_n(z80*pz80, int reg)
 {
@@ -280,6 +286,7 @@ void
 SRL_HL(z80*pz80){
 	loadRegMemFromHL(pz80);
 	SRL_n(pz80,REGMEM);
+	saveRegMemToHL(pz80);
 }
 
 void
@@ -303,6 +310,7 @@ void
 SRA_HL(z80*pz80){
 	loadRegMemFromHL(pz80);
 	SRA_n(pz80,REGMEM);
+	saveRegMemToHL(pz80);
 }
 
 
@@ -323,6 +331,87 @@ void
 SLA_HL(z80*pz80){
 	loadRegMemFromHL(pz80);
 	SLA_n(pz80,REGMEM);
+	saveRegMemToHL(pz80);
+}
+
+
+void RR_n(z80*pz80,int reg){
+	uint8_t newFlag = 0;
+	uint8_t byte = pz80->registers[reg];
+	uint8_t newbyte =  (byte>>1);
+	if(getFlag(pz80->registers[REGF],CARRY))
+		newbyte+=(1<< 7);
+	if(byte&1)
+		setFlag(newFlag,CARRY);
+	if(newbyte==0)
+		setFlag(newFlag,ZERO);
+	pz80->registers[REGF] = newFlag;
+	pz80->registers[reg] = newbyte;
+}
+
+void RR_HL(z80*pz80){
+	loadRegMemFromHL(pz80);
+	RR_n(pz80,REGMEM);
+	saveRegMemToHL(pz80);
+}
+
+void RRC_n(z80*pz80,int reg){
+	uint8_t newFlag = 0;
+	uint8_t byte = pz80->registers[reg];
+	uint8_t newbyte =  (byte>>1);
+	if(byte&1){
+		setFlag(newFlag,CARRY);
+		newbyte+=  1<<7 ;
+	}
+	if(newbyte==0)
+		setFlag(newFlag,ZERO);
+	pz80->registers[REGF] = newFlag;
+	pz80->registers[reg] = newbyte;
+}
+
+void RRC_HL(z80*pz80){
+	loadRegMemFromHL(pz80);
+	RRC_n(pz80,REGMEM);
+	saveRegMemToHL(pz80);
+}
+
+void RL_n(z80*pz80,int reg){
+	uint8_t newFlag = 0;
+	uint8_t byte = pz80->registers[reg];
+	uint8_t newbyte =  (byte<<1)+ getFlag(pz80->registers[REGF],CARRY);
+	if(byte&(1<<7)) // if MSB
+		setFlag(newFlag,CARRY);
+	if(newbyte==0)
+		setFlag(newFlag,ZERO);
+	pz80->registers[REGF] = newFlag;
+	pz80->registers[reg] = newbyte;
+}
+
+void RL_HL(z80*pz80){
+	loadRegMemFromHL(pz80);
+	RL_n(pz80,REGMEM);
+	saveRegMemToHL(pz80);
+}
+
+
+void RLC_n(z80*pz80,int reg){
+	uint8_t newFlag = 0;
+	uint8_t byte = pz80->registers[reg];
+	uint8_t newbyte =  (byte<<1);
+	if(byte&(1<<7)){
+		newbyte+= 1;
+		setFlag(newFlag,CARRY);
+	}
+	if(newbyte==0)
+		setFlag(newFlag,ZERO);
+	pz80->registers[REGF] = newFlag;
+	pz80->registers[reg] = newbyte;
+}
+
+void RLC_HL(z80*pz80){
+	loadRegMemFromHL(pz80);
+	RLC_n(pz80,REGMEM);
+	saveRegMemToHL(pz80);
 }
 
 
@@ -3065,130 +3154,162 @@ i_RST_38(z80 * pz80){
 /* Rotate B left with carry */
 void
 i2_RLC_B(z80 * pz80){
+	RLC_n(pz80,REGB);
 }
 /* Rotate C left with carry */
 void
 i2_RLC_C(z80 * pz80){
+	RLC_n(pz80,REGC);
 }
 /* Rotate D left with carry */
 void
 i2_RLC_D(z80 * pz80){
+	RLC_n(pz80,REGD);
 }
 /* Rotate E left with carry */
 void
 i2_RLC_E(z80 * pz80){
+	RLC_n(pz80,REGE);
 }
 /* Rotate H left with carry */
 void
 i2_RLC_H(z80 * pz80){
+	RLC_n(pz80,REGH);
 }
 /* Rotate L left with carry */
 void
 i2_RLC_L(z80 * pz80){
+	RLC_n(pz80,REGL);
 }
 /* Rotate value pointed by HL left with carry */
 void
 i2_RLC__HL_(z80 * pz80){
+	RLC_HL(pz80);
 }
 /* Rotate A left with carry */
 void
 i2_RLC_A(z80 * pz80){
+	RLC_n(pz80,REGA);
 }
 /* Rotate B right with carry */
 void
 i2_RRC_B(z80 * pz80){
+	RRC_n(pz80,REGB);
 }
 /* Rotate C right with carry */
 void
 i2_RRC_C(z80 * pz80){
+	RRC_n(pz80,REGC);
 }
 /* Rotate D right with carry */
 void
 i2_RRC_D(z80 * pz80){
+	RRC_n(pz80,REGD);
 }
 /* Rotate E right with carry */
 void
 i2_RRC_E(z80 * pz80){
+	RRC_n(pz80,REGE);
 }
 /* Rotate H right with carry */
 void
 i2_RRC_H(z80 * pz80){
+	RRC_n(pz80,REGH);
 }
 /* Rotate L right with carry */
 void
 i2_RRC_L(z80 * pz80){
+	RRC_n(pz80,REGL);
 }
 /* Rotate value pointed by HL right with carry */
 void
 i2_RRC__HL_(z80 * pz80){
+	RRC_HL(pz80);
 }
 /* Rotate A right with carry */
 void
 i2_RRC_A(z80 * pz80){
+	RRC_n(pz80,REGA);
 }
 /* Rotate B left */
 void
 i2_RL_B(z80 * pz80){
+	RL_n(pz80,REGB);
 }
 /* Rotate C left */
 void
 i2_RL_C(z80 * pz80){
+	RL_n(pz80,REGC);
 }
 /* Rotate D left */
 void
 i2_RL_D(z80 * pz80){
+	RL_n(pz80,REGD);
 }
 /* Rotate E left */
 void
 i2_RL_E(z80 * pz80){
+	RL_n(pz80,REGE);
 }
 /* Rotate H left */
 void
 i2_RL_H(z80 * pz80){
+	RL_n(pz80,REGH);
 }
 /* Rotate L left */
 void
 i2_RL_L(z80 * pz80){
+	RL_n(pz80,REGL);
 }
 /* Rotate value pointed by HL left */
 void
 i2_RL__HL_(z80 * pz80){
+	RL_HL(pz80);
 }
 /* Rotate A left */
 void
 i2_RL_A(z80 * pz80){
+	RL_n(pz80,REGA);
 }
 /* Rotate B right */
 void
 i2_RR_B(z80 * pz80){
+	RR_n(pz80,REGB);
 }
 /* Rotate C right */
 void
 i2_RR_C(z80 * pz80){
+	RR_n(pz80,REGC);
 }
 /* Rotate D right */
 void
 i2_RR_D(z80 * pz80){
+	RR_n(pz80,REGD);
 }
 /* Rotate E right */
 void
 i2_RR_E(z80 * pz80){
+	RR_n(pz80,REGE);
 }
 /* Rotate H right */
 void
 i2_RR_H(z80 * pz80){
+	RR_n(pz80,REGH);
 }
 /* Rotate L right */
 void
 i2_RR_L(z80 * pz80){
+	RR_n(pz80,REGL);
 }
 /* Rotate value pointed by HL right */
 void
 i2_RR__HL_(z80 * pz80){
+	RR_HL(pz80);
 }
 /* Rotate A right */
 void
 i2_RR_A(z80 * pz80){
+	RR_n(pz80,REGA);
 }
 /* Shift B left preserving sign */
 void
