@@ -28,6 +28,7 @@ typedef struct _z80 {
 	uint8_t registers[9]; //ensure this size matches up with the defines above
 	uint16_t registers16[2];
 	MMU mmu;
+	uint8_t ime; // interrupt enable
 	int tcycles;
 	int doSecondaryOpcode;
 } z80;
@@ -47,7 +48,7 @@ typedef struct _z80 {
 #define setRegister16(pz80,H,L,val) (pz80)->registers[(H)] = (((val) >> 8) & 255); (pz80)->registers[(L)] = ((val) & 255)
 
 #define getImmediate(pz80) (rb(&((pz80)->mmu), (pz80)->registers16[PC] + 1))
-#define getImmediate16(pz80) ((((uint16_t)rb(&((pz80)->mmu), (pz80)->registers16[PC] + 1)) << 8) + (rb(&((pz80)->mmu), (pz80)->registers16[PC] + 2)))
+#define getImmediate16(pz80) ((((uint16_t)rb(&((pz80)->mmu), (pz80)->registers16[PC] + 2)) << 8) + (rb(&((pz80)->mmu), (pz80)->registers16[PC] + 1)))
 
 #define loadRegFromMemory8(pz80, reg, address) ((pz80)->registers[(reg)] = rb(&((pz80)->mmu), (address)))
 #define loadRegFromMemory16(pz80, regH, regL, address) loadRegFromMemory8((pz80), (regL), (address)); loadRegFromMemory8((pz80), (regH), (address+1))

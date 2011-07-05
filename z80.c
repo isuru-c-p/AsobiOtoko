@@ -395,7 +395,276 @@ void LD_SP_nn(z80*pz80)
 	incPC(pz80, 3);
 }
 
+void JP_nn(z80*pz80)
+{
+	pz80->registers16[PC] = getImmediate16(pz80);	
+	pz80->tcycles = 12;
+}
 
+void JP_NZ_nn(z80*pz80)
+{
+	if(!getFlag(pz80->registers[REGF], ZERO))
+	{
+		JP_nn(pz80);
+	}
+	else
+	{
+		// TODO: T cycles if jump isn't taken
+		incPC(pz80, 3);
+	}
+}
+
+void JP_Z_nn(z80*pz80)
+{
+	if(getFlag(pz80->registers[REGF], ZERO))
+	{
+		JP_nn(pz80);
+	}
+	else
+	{
+		// TODO: T cycles if jump isn't taken
+		incPC(pz80, 3);
+	}	
+}
+
+void JP_NC_nn(z80*pz80)
+{
+	if(!getFlag(pz80->registers[REGF], CARRY))
+	{
+		JP_nn(pz80);
+	}
+	else
+	{
+		// TODO: T cycles if jump isn't taken
+		incPC(pz80, 3);
+	}
+}
+
+void JP_C_nn(z80*pz80)
+{
+	if(getFlag(pz80->registers[REGF], CARRY))
+	{
+		JP_nn(pz80);
+	}
+	else
+	{
+		// TODO: T cycles if jump isn't taken
+		incPC(pz80, 3);
+	}	
+}
+
+void JP_HL(z80*pz80)
+{
+	pz80->registers16[PC] = (((uint16_t)pz80->registers[REGH]) << 8) + (uint16_t)pz80->registers[REGL];
+	pz80->tcycles = 4;
+	incPC(pz80, 1);
+}
+
+void JR_n(z80*pz80)
+{
+	int rjump = getImmediate(pz80);
+	if(rjump > 127)
+		rjump = -((~rjump + 1) & 255);
+	pz80->registers16[PC] += rjump;
+	pz80->tcycles = 8;
+	incPC(pz80, 2);
+}
+
+void JR_NZ_n(z80*pz80)
+{
+	if(!getFlag(pz80->registers[REGF], ZERO))
+	{
+		JR_n(pz80);
+	}
+	else
+	{
+		// TODO: T cycles if jump isn't taken
+		incPC(pz80, 2);
+	}
+}
+
+void JR_Z_n(z80*pz80)
+{
+	if(getFlag(pz80->registers[REGF], ZERO))
+	{
+		JR_n(pz80);
+	}
+	else
+	{
+		// TODO: T cycles if jump isn't taken
+		incPC(pz80, 2);
+	}
+}
+
+void JR_NC_n(z80*pz80)
+{
+	if(!getFlag(pz80->registers[REGF], CARRY))
+	{
+		JR_n(pz80);
+	}
+	else
+	{
+		// TODO: T cycles if jump isn't taken
+		incPC(pz80, 2);
+	}
+}
+
+void JR_C_n(z80*pz80)
+{
+	if(getFlag(pz80->registers[REGF], CARRY))
+	{
+		JR_n(pz80);
+	}
+	else
+	{
+		// TODO: T cycles if jump isn't taken
+		incPC(pz80, 2);
+	}
+}
+
+void push(z80*pz80, uint8_t val)
+{
+	pz80->registers16[SP]--;
+	wb(&(pz80->mmu), pz80->registers16[SP], val);
+}
+
+uint8_t pop(z80*pz80)
+{
+	pz80->registers[SP]++;
+	return rb(&(pz80->mmu), pz80->registers[SP] - 1);
+}
+
+void CALL_nn(z80*pz80)
+{
+	push(pz80, pz80->registers16[PC] >> 8);
+	push(pz80, pz80->registers16[PC] & 255);
+	pz80->registers16[PC] = getImmediate16(pz80);
+	pz80->tcycles = 12;
+}
+
+void CALL_NZ_nn(z80*pz80)
+{
+	if(!getFlag(pz80->registers[REGF], ZERO))
+	{
+		CALL_nn(pz80);
+	}
+	else
+	{
+		pz80->tcycles = 12;
+		incPC(pz80, 3);
+	}
+}
+
+void CALL_Z_nn(z80*pz80)
+{
+	if(getFlag(pz80->registers[REGF], ZERO))
+	{
+		CALL_nn(pz80);
+	}
+	else
+	{
+		pz80->tcycles = 12;
+		incPC(pz80, 3);
+	}
+}
+
+void CALL_NC_nn(z80*pz80)
+{
+	if(!getFlag(pz80->registers[REGF], CARRY))
+	{
+		CALL_nn(pz80);
+	}
+	else
+	{
+		pz80->tcycles = 12;
+		incPC(pz80, 3);
+	}
+}
+
+void CALL_C_nn(z80*pz80)
+{
+	if(getFlag(pz80->registers[REGF], CARRY))
+	{
+		CALL_nn(pz80);
+	}
+	else
+	{
+		pz80->tcycles = 12;
+		incPC(pz80, 3);
+	}
+}
+
+void RST_n(z80*pz80, int n)
+{
+	push(pz80, pz80->registers16[PC] >> 8);
+	push(pz80, pz80->registers16[PC] & 255);
+	pz80->registers16[PC] = n;
+	pz80->tcycles = 32;
+}
+
+void RET(z80*pz80)
+{
+	pz80->registers16[PC] = (((uint16_t)pop(pz80)) << 8) + (uint16_t)pop(pz80);
+	pz80->tcycles = 8;
+}
+
+void RET_NZ(z80*pz80)
+{
+	if(!getFlag(pz80->registers[REGF], ZERO))
+	{
+		RET(pz80);
+	}
+	else
+	{
+		pz80->tcycles = 8; // ?
+		incPC(pz80, 1);
+	}
+}
+
+void RET_Z(z80*pz80)
+{
+	if(getFlag(pz80->registers[REGF], ZERO))
+	{
+		RET(pz80);
+	}
+	else
+	{
+		pz80->tcycles = 8; // ?
+		incPC(pz80, 1);
+	}
+}
+
+void RET_NC(z80*pz80)
+{
+	if(!getFlag(pz80->registers[REGF], CARRY))
+	{
+		RET(pz80);
+	}
+	else
+	{
+		pz80->tcycles = 8; // ?
+		incPC(pz80, 1);
+	}
+}
+
+void RET_C(z80*pz80)
+{
+	if(getFlag(pz80->registers[REGF], CARRY))
+	{
+		RET(pz80);
+	}
+	else
+	{
+		pz80->tcycles = 8; // ?
+		incPC(pz80, 1);
+	}
+}
+
+void RETI(z80*pz80)
+{
+	RET(pz80);
+	pz80->ime = 1;
+}
 
 void
 SRL_n(z80*pz80, int reg){
