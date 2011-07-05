@@ -268,6 +268,77 @@ void LD_SP_HL(z80*pz80)
 	incPC(pz80, 1);
 }
 
+void LDHL_SP_immediate(z80*pz80)
+{
+	int val = getImmediate(pz80);
+	if(val > 127)
+	{
+		val = -((~val + 1) & 255);
+	}
+	pz80->registers[REGF] = buildStatusFlag(0, 0, (((pz80->registers16[SP] & 0xff) + val) > 0xff), (((unsigned int)(pz80->registers16[SP])+(unsigned int)(val)) > 0xffff));
+	setRegister16(pz80, REGH, REGL, (pz80->registers16[SP]+val));
+	pz80->tcycles = 12;
+	incPC(pz80, 2);
+}
+
+void LD_nn_SP(z80*pz80)
+{
+	uint16_t addr = getImmediate16(pz80);
+	ww(&(pz80->mmu), addr, pz80->registers16[SP]);
+	pz80->tcycles = 20;
+	incPC(pz80, 3);
+}
+
+void LD_n_n(z80*pz80, int reg1, int reg2)
+{
+	pz80->registers[reg1] = pz80->registers[reg2];
+	pz80->tcycles = 4;
+	incPC(pz80, 1);
+}
+
+void LD_n_nn_mem(z80*pz80, int reg1, int nH, int nL)
+{
+	pz80->registers[REGMEM] = rb(&(pz80->mmu), ((uint16_t)(pz80->registers[nH]) << 8) + (uint16_t)pz80->registers[nL]);
+	pz80->registers[reg1] = pz80->registers[REGMEM];
+	pz80->tcycles = 8;
+	incPC(pz80, 1);
+}
+
+void LD_nn_mem_n(z80*pz80, int nH, int nL, int reg2)
+{
+	wb(&(pz80->mmu), ((uint16_t)(pz80->registers[nH]) << 8) + (uint16_t)pz80->registers[nL], pz80->registers[reg2]); 
+	pz80->tcycles = 8;
+	incPC(pz80, 1);
+}
+
+void LD_nn_mem_immediate(z80*pz80, int nH, int nL)
+{
+	uint8_t val = getImmediate(pz80);
+	wb(&(pz80->mmu), ((uint16_t)(pz80->registers[nH]) << 8) + (uint16_t)pz80->registers[nL], val); 
+	pz80->tcycles = 12;
+	incPC(pz80, 2);
+}
+
+void LD_n_immediate_mem(z80*pz80, int n)
+{
+	pz80->registers[n] = rb(&(pz80->mmu),getImmediate16(pz80));
+	pz80->tcycles = 16;
+	incPC(pz80, 3);	
+}
+
+void LD_n_immediate(z80*pz80, int n)
+{
+	pz80->registers[n] = getImmediate(pz80);
+	pz80->tcycles = 8;
+	incPC(pz80, 2);		
+}
+
+void LD_immediate_mem_n(z80*pz80, int n)
+{
+	wb(&(pz80->mmu), getImmediate16(pz80), pz80->registers[n]);
+	pz80->tcycles = 16;
+	incPC(pz80, 3);
+}
 
 void
 SRL_n(z80*pz80, int reg){
@@ -464,7 +535,7 @@ void nibbleSwap(z80*pz80,int reg){
 		return;
 	}
 	 pz80->registers[REGF] = 0;
-	 pz80->registers[reg] = ( (byte >> 4) & 0b00001111) | ( (byte << 4) & 0b11110000 );
+	 pz80->registers[reg] = ( (byte >> 4) & 0x0f/*0b00001111*/) | ( (byte << 4) & 0xf0/*0b11110000*/ );
 	pz80->tcycles = 8;
 	incPC(pz80, 1);
 }
