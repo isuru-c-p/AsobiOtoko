@@ -30,7 +30,7 @@ typedef struct _z80 {
 	MMU mmu;
 	uint8_t ime; // interrupt enable
 	int tcycles;
-	int doSecondaryOpcode;
+	//int doSecondaryOpcode;
 } z80;
 
 

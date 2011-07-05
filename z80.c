@@ -985,7 +985,7 @@ void executeNextInstruction(z80 * pz80){
 	MMU * pmmu = &(pz80->mmu);
 	uint16_t insAddress =  pz80->registers16[PC];
 	uint8_t	instruction = rb(pmmu,insAddress);
-	dispatchInstruction(pz80,instruction,pz80->doSecondaryOpcode);
+	dispatchInstruction(pz80,instruction,0/*pz80->doSecondaryOpcode*/);
 }
 
 
