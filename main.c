@@ -27,6 +27,15 @@ main (int argc, char *argv[]){
 	initZ80(&pz80);
 	loadROM(&pz80, argv[1]);
 	
+	while(pz80.registers16[PC] < 0x100)
+	{
+		//printf("PC: %d\n", pz80.registers16[PC]);
+		executeNextInstruction(&pz80);
+	}
+	
+	printf("Finished executing BIOS\n");
+	pz80.mmu.bios_enabled = 0;
+	
 	for(;;)
 	{
 		//printf("PC: %d\n", pz80.registers16[PC]);

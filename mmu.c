@@ -15,6 +15,7 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 			{
 				return pmmu->cartridge[address];
 			}
+			break;
 			
 		// cartridge	
 		case 0x1 :
@@ -25,24 +26,29 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 		case 0x6 :
 		case 0x7 :
 			return pmmu->cartridge[address];
+			break;
 		
 		// VRAM
 		case 0x8 : case 0x9 :
 			// TODO: GPU
 			//return gpu.vram;
-			return pmmu->memory[address];
+			return pmmu->gpu.vram[address];
+			break;
 		
 		// External RAM
 		case 0xA : case 0xB :
 			return pmmu->eram[address - 0xA000];
+			break;
 		
 		// Working RAM
 		case 0xC : case 0xD : 
 			return pmmu->wram[address - 0xC000];
+			break;
 		
 		// Working RAM shadow
 		case 0xE : 
 			return pmmu->wram[address - 0xE000];
+			break;
 			
 		case 0xF :
 			// Working RAM shadow
@@ -60,12 +66,17 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 			else if (address <= 0xFF7F)
 			{
 				// TODO : Memory mapped IO
+				if((address & 0xf0) == 0x40)
+				{
+					return gpu_rb(&(pmmu->gpu), address);
+				}
 				return pmmu->memory[address - 0xFF00];
 			}
 			else
 			{
 				return pmmu->zram[address - 0xFF80];
 			}
+			break;
 			
 	}
 
@@ -86,6 +97,7 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 			{
 				pmmu->cartridge[address] = val;
 			}
+			break;
 			
 		// cartridge	
 		case 0x1 :
@@ -96,24 +108,29 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 		case 0x6 :
 		case 0x7 :
 			pmmu->cartridge[address] = val;
-		
+			break;
+			
 		// VRAM
 		case 0x8 : case 0x9 :
 			// TODO: GPU
 			//return gpu.vram;
-			pmmu->memory[address] = val;
+			pmmu->gpu.vram[address] = val;
+			break;
 		
 		// External RAM
 		case 0xA : case 0xB :
 			pmmu->eram[address - 0xA000] = val;
+			break;
 		
 		// Working RAM
 		case 0xC : case 0xD : 
 			pmmu->wram[address - 0xC000] = val;
+			break;
 		
 		// Working RAM shadow
 		case 0xE : 
 			pmmu->wram[address - 0xE000] = val;
+			break;
 			
 		case 0xF :
 			// Working RAM shadow
@@ -131,12 +148,18 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 			else if (address <= 0xFF7F)
 			{
 				// TODO : Memory mapped IO
+				if((address & 0xf0) == 0x40)
+				{
+					gpu_wb(&(pmmu->gpu), address, val);
+					return;
+				}
 				pmmu->memory[address - 0xFF00] = val;
 			}
 			else
 			{
 				pmmu->zram[address - 0xFF80] = val;
 			}
+			break;
 			
 	}
 }

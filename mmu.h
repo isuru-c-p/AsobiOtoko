@@ -1,6 +1,7 @@
 #ifndef __mmu__
 #define __mmu__
 #include "stdint.h"
+#include "gpu.h"
 
 /* CONSTANTS */
 #define MEMORYSIZE 65536
@@ -39,6 +40,7 @@ typedef struct _mmu {
 	uint8_t oam[OAM_SIZE];
 	uint8_t bios[BIOS_SIZE];
 	uint8_t cartridge[CARTRIDGE_SIZE];
+	GPU gpu;
 } MMU;
 
 /* functions */

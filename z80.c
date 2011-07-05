@@ -986,6 +986,7 @@ void executeNextInstruction(z80 * pz80){
 	uint16_t insAddress =  pz80->registers16[PC];
 	uint8_t	instruction = rb(pmmu,insAddress);
 	dispatchInstruction(pz80,instruction,0/*pz80->doSecondaryOpcode*/);
+	gpu_step(&(pz80->mmu.gpu), pz80->tcycles);
 }
 
 
