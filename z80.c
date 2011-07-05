@@ -674,6 +674,14 @@ void PUSH_nn(z80*pz80, int nH, int nL)
 	incPC(pz80, 1);
 }
 
+void POP_nn(z80*pz80, int nH, int nL)
+{
+	pz80->registers[nL] = pop(pz80);
+	pz80->registers[nH] = pop(pz80);
+	pz80->tcycles = 12;
+	incPC(pz80, 1);
+}
+
 void
 SRL_n(z80*pz80, int reg){
 	uint8_t newFlag = 0;
@@ -2521,6 +2529,7 @@ LD_n_immediate(pz80, REGB);
 /* Rotate A left with carry */
 void
 i_RLC_A(z80 * pz80){
+RLC_n(pz80,REGA);
 }
 /* Save SP to given address */
 void
@@ -2560,6 +2569,7 @@ LD_n_immediate(pz80, REGC);
 /* Rotate A right with carry */
 void
 i_RRC_A(z80 * pz80){
+RRC_n(pz80,REGA);
 }
 /* Stop processor */
 void
@@ -2598,6 +2608,7 @@ LD_n_immediate(pz80, REGD);
 /* Rotate A left */
 void
 i_RL_A(z80 * pz80){
+RL_n(pz80,REGA);
 }
 /* Relative jump by signed immediate */
 void
@@ -2637,6 +2648,7 @@ LD_n_immediate(pz80, REGE);
 /* Rotate A right */
 void
 i_RR_A(z80 * pz80){
+RR_n(pz80,REGA);
 }
 /* Relative jump by signed immediate if last result was not zero */
 void
@@ -2676,6 +2688,12 @@ LD_n_immediate(pz80, REGH);
 /* Adjust A for BCD addition */
 void
 i_DAA(z80 * pz80){
+uint8_t oldA = pz80->registers[REGA];
+if((pz80->registers[REGA] & 0xf) > 9)
+	pz80->registers[REGA] += 6;
+pz80->registers[REGF] = buildStatusFlag((pz80->registers[REGA] == 0), getFlag(pz80->registers[REGF], SUB), 0, (oldA > pz80->registers[REGA]));
+pz80->tcycles = 4;
+incPC(pz80, 1);
 }
 /* Relative jump by signed immediate if last result was zero */
 void
@@ -2715,6 +2733,9 @@ LD_n_immediate(pz80, REGL);
 /* Complement (logical NOT) on A */
 void
 i_CPL(z80 * pz80){
+pz80->registers[REGA] = ~pz80->registers[REGA];
+pz80->tcycles = 4;
+incPC(pz80, 1);
 }
 /* Relative jump by signed immediate if last result caused no carry */
 void
@@ -2736,6 +2757,8 @@ void
 i_INC_SP(z80 * pz80){
 pz80->registers16[SP]++;
 pz80->registers[REGF] = buildStatusFlag((pz80->registers16[SP] == 0), 0, ((pz80->registers16[SP] & 0xffff) == 0), getFlag(pz80->registers[REGF], CARRY));
+pz80->tcycles = 8;
+incPC(pz80, 1);
 }
 /* Increment value pointed by HL */
 void
@@ -2743,6 +2766,8 @@ i_INC__HL_(z80 * pz80){
 uint8_t newVal = rb(&(pz80->mmu),(pz80->registers[REGH] << 8) + pz80->registers[REGL]) + 1;
 wb(&(pz80->mmu),(pz80->registers[REGH] << 8) + pz80->registers[REGL], newVal);
 pz80->registers[REGF] = buildStatusFlag((newVal == 0), 0, ((newVal & 0xff) == 0), getFlag(pz80->registers[REGF], CARRY));
+pz80->tcycles = 12;
+incPC(pz80, 1);
 }
 /* Decrement value pointed by HL */
 void
@@ -2750,6 +2775,8 @@ i_DEC__HL_(z80 * pz80){
 uint8_t newVal = rb(&(pz80->mmu),(pz80->registers[REGH] << 8) + pz80->registers[REGL]) - 1;
 wb(&(pz80->mmu),(pz80->registers[REGH] << 8) + pz80->registers[REGL], newVal);
 pz80->registers[REGF] = buildStatusFlag((newVal == 0), 0, ((newVal & 0xff) == 0xff), getFlag(pz80->registers[REGF], CARRY));
+pz80->tcycles = 12;
+incPC(pz80, 1);
 }
 /* Load 8-bit immediate into address pointed by HL */
 void
@@ -2802,6 +2829,9 @@ LD_n_immediate(pz80, REGA);
 /* Clear carry flag */
 void
 i_CCF(z80 * pz80){
+pz80->registers[REGF] = buildStatusFlag(getFlag(pz80->registers[REGF], ZERO), 0, 0, !getFlag(pz80->registers[REGF], CARRY));
+pz80->tcycles = 4;
+incPC(pz80, 1);
 }
 /* Copy B to B */
 void
@@ -3450,6 +3480,7 @@ RET_NZ(pz80);
 /* Pop 16-bit value from stack into BC */
 void
 i_POP_BC(z80 * pz80){
+POP_nn(pz80, REGB, REGC);
 }
 /* Absolute jump to 16-bit location if last result was not zero */
 void
@@ -3528,6 +3559,7 @@ RET_NC(pz80);
 /* Pop 16-bit value from stack into DE */
 void
 i_POP_DE(z80 * pz80){
+POP_nn(pz80, REGD, REGE);
 }
 /* Absolute jump to 16-bit location if last result caused no carry */
 void
@@ -3604,6 +3636,7 @@ LDH_immediate_A(pz80);
 /* Pop 16-bit value from stack into HL */
 void
 i_POP_HL(z80 * pz80){
+POP_nn(pz80, REGH, REGL);
 }
 /* Save A at address pointed to by (FF00h + C) */
 void
@@ -3678,6 +3711,7 @@ LDH_A_immediate(pz80);
 /* Pop 16-bit value from stack into AF */
 void
 i_POP_AF(z80 * pz80){
+POP_nn(pz80, REGA, REGF);
 }
 /* Operation removed in this CPU */
 //void
@@ -3686,6 +3720,9 @@ i_POP_AF(z80 * pz80){
 /* DIsable interrupts */
 void
 i_DI(z80 * pz80){
+pz80->ime = 0; // TODO: in real GB, interrupts are disabled after next instruction.
+pz80->tcycles = 4;
+incPC(pz80, 1);
 }
 /* Operation removed in this CPU */
 //void
@@ -3724,6 +3761,9 @@ LD_n_immediate_mem(pz80, REGA);
 /* Enable interrupts */
 void
 i_EI(z80 * pz80){
+pz80->ime = 1; // TODO: real GB interrupts are enabled after next instruction
+pz80->tcycles = 4;
+incPC(pz80, 1);
 }
 /* Operation removed in this CPU */
 //void
