@@ -26,5 +26,12 @@ main (int argc, char *argv[]){
 	z80 pz80;
 	initZ80(&pz80);
 	loadROM(&pz80, argv[1]);
+	
+	for(;;)
+	{
+		//printf("PC: %d\n", pz80.registers16[PC]);
+		executeNextInstruction(&pz80);
+	}
+	
 	return 0;
 }

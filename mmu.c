@@ -155,4 +155,5 @@ void initMMU(MMU * pmmu)
 	bzero((void*)pmmu,sizeof(MMU));
 	uint8_t bios[BIOS_SIZE] = BIOS;
 	memcpy(bios, pmmu->bios, BIOS_SIZE);
+	pmmu->bios_enabled = 1;
 }
