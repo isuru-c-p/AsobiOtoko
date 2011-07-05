@@ -3564,259 +3564,322 @@ i2_BIT_7_A(z80 * pz80){
 /* Clear (reset) bit 0 of B */
 void
 i2_RES_0_B(z80 * pz80){
+	Reset_Bit(pz80,REGB,0);
 }
 /* Clear (reset) bit 0 of C */
 void
 i2_RES_0_C(z80 * pz80){
+	Reset_Bit(pz80,REGC,0);
 }
 /* Clear (reset) bit 0 of D */
 void
 i2_RES_0_D(z80 * pz80){
+	Reset_Bit(pz80,REGD,0);
 }
 /* Clear (reset) bit 0 of E */
 void
 i2_RES_0_E(z80 * pz80){
+	Reset_Bit(pz80,REGE,0);
 }
 /* Clear (reset) bit 0 of H */
 void
 i2_RES_0_H(z80 * pz80){
+	Reset_Bit(pz80,REGH,0);
 }
 /* Clear (reset) bit 0 of L */
 void
 i2_RES_0_L(z80 * pz80){
+	Reset_Bit(pz80,REGL,0);
 }
 /* Clear (reset) bit 0 of value pointed by HL */
 void
 i2_RES_0__HL_(z80 * pz80){
+	Reset_HLBit(pz80,0);
 }
 /* Clear (reset) bit 0 of A */
 void
 i2_RES_0_A(z80 * pz80){
+	Reset_Bit(pz80,REGA,0);
 }
 /* Clear (reset) bit 1 of B */
 void
 i2_RES_1_B(z80 * pz80){
+	Reset_Bit(pz80,REGB,1);
 }
 /* Clear (reset) bit 1 of C */
 void
 i2_RES_1_C(z80 * pz80){
+	Reset_Bit(pz80,REGC,1);
 }
 /* Clear (reset) bit 1 of D */
 void
 i2_RES_1_D(z80 * pz80){
+	Reset_Bit(pz80,REGD,1);
 }
 /* Clear (reset) bit 1 of E */
 void
 i2_RES_1_E(z80 * pz80){
+	Reset_Bit(pz80,REGE,1);
 }
 /* Clear (reset) bit 1 of H */
 void
 i2_RES_1_H(z80 * pz80){
+	Reset_Bit(pz80,REGH,1);
 }
 /* Clear (reset) bit 1 of L */
 void
 i2_RES_1_L(z80 * pz80){
+	Reset_Bit(pz80,REGL,1);
 }
 /* Clear (reset) bit 1 of value pointed by HL */
 void
 i2_RES_1__HL_(z80 * pz80){
+	Reset_HLBit(pz80,1);
 }
 /* Clear (reset) bit 1 of A */
 void
 i2_RES_1_A(z80 * pz80){
+	Reset_Bit(pz80,REGA,1);
 }
 /* Clear (reset) bit 2 of B */
 void
 i2_RES_2_B(z80 * pz80){
+	Reset_Bit(pz80,REGB,2);
 }
 /* Clear (reset) bit 2 of C */
 void
 i2_RES_2_C(z80 * pz80){
+	Reset_Bit(pz80,REGC,2);
 }
 /* Clear (reset) bit 2 of D */
 void
 i2_RES_2_D(z80 * pz80){
+	Reset_Bit(pz80,REGD,2);
 }
 /* Clear (reset) bit 2 of E */
 void
 i2_RES_2_E(z80 * pz80){
+	Reset_Bit(pz80,REGE,2);
 }
 /* Clear (reset) bit 2 of H */
 void
 i2_RES_2_H(z80 * pz80){
+	Reset_Bit(pz80,REGH,2);
 }
 /* Clear (reset) bit 2 of L */
 void
 i2_RES_2_L(z80 * pz80){
+	Reset_Bit(pz80,REGL,2);
 }
 /* Clear (reset) bit 2 of value pointed by HL */
 void
 i2_RES_2__HL_(z80 * pz80){
+	Reset_HLBit(pz80,2);
 }
 /* Clear (reset) bit 2 of A */
 void
 i2_RES_2_A(z80 * pz80){
+	Reset_Bit(pz80,REGA,2);
 }
 /* Clear (reset) bit 3 of B */
 void
 i2_RES_3_B(z80 * pz80){
+	Reset_Bit(pz80,REGB,3);
 }
 /* Clear (reset) bit 3 of C */
 void
 i2_RES_3_C(z80 * pz80){
+	Reset_Bit(pz80,REGC,3);
 }
 /* Clear (reset) bit 3 of D */
 void
 i2_RES_3_D(z80 * pz80){
+	Reset_Bit(pz80,REGD,3);
 }
 /* Clear (reset) bit 3 of E */
 void
 i2_RES_3_E(z80 * pz80){
+	Reset_Bit(pz80,REGE,3);
 }
 /* Clear (reset) bit 3 of H */
 void
 i2_RES_3_H(z80 * pz80){
+	Reset_Bit(pz80,REGH,3);
 }
 /* Clear (reset) bit 3 of L */
 void
 i2_RES_3_L(z80 * pz80){
+	Reset_Bit(pz80,REGA,3);
 }
 /* Clear (reset) bit 3 of value pointed by HL */
 void
 i2_RES_3__HL_(z80 * pz80){
+	Reset_HLBit(pz80,3);
 }
 /* Clear (reset) bit 3 of A */
 void
 i2_RES_3_A(z80 * pz80){
+	Reset_Bit(pz80,REGA,3);
 }
 /* Clear (reset) bit 4 of B */
 void
 i2_RES_4_B(z80 * pz80){
+	Reset_Bit(pz80,REGB,4);
 }
 /* Clear (reset) bit 4 of C */
 void
 i2_RES_4_C(z80 * pz80){
+	Reset_Bit(pz80,REGC,4);
 }
 /* Clear (reset) bit 4 of D */
 void
 i2_RES_4_D(z80 * pz80){
+	Reset_Bit(pz80,REGD,4);
 }
 /* Clear (reset) bit 4 of E */
 void
 i2_RES_4_E(z80 * pz80){
+	Reset_Bit(pz80,REGE,4);
 }
 /* Clear (reset) bit 4 of H */
 void
 i2_RES_4_H(z80 * pz80){
+	Reset_Bit(pz80,REGH,4);
 }
 /* Clear (reset) bit 4 of L */
 void
 i2_RES_4_L(z80 * pz80){
+	Reset_Bit(pz80,REGL,4);
 }
 /* Clear (reset) bit 4 of value pointed by HL */
 void
 i2_RES_4__HL_(z80 * pz80){
+	Reset_HLBit(pz80,4);
 }
 /* Clear (reset) bit 4 of A */
 void
 i2_RES_4_A(z80 * pz80){
+	Reset_Bit(pz80,REGA,4);
 }
 /* Clear (reset) bit 5 of B */
 void
 i2_RES_5_B(z80 * pz80){
+	Reset_Bit(pz80,REGB,5);
 }
 /* Clear (reset) bit 5 of C */
 void
 i2_RES_5_C(z80 * pz80){
+	Reset_Bit(pz80,REGC,5);
 }
 /* Clear (reset) bit 5 of D */
 void
 i2_RES_5_D(z80 * pz80){
+	Reset_Bit(pz80,REGD,5);
 }
 /* Clear (reset) bit 5 of E */
 void
 i2_RES_5_E(z80 * pz80){
+	Reset_Bit(pz80,REGE,5);
 }
 /* Clear (reset) bit 5 of H */
 void
 i2_RES_5_H(z80 * pz80){
+	Reset_Bit(pz80,REGH,5);
 }
 /* Clear (reset) bit 5 of L */
 void
 i2_RES_5_L(z80 * pz80){
+	Reset_Bit(pz80,REGL,5);
 }
 /* Clear (reset) bit 5 of value pointed by HL */
 void
 i2_RES_5__HL_(z80 * pz80){
+	Reset_HLBit(pz80,5);
 }
 /* Clear (reset) bit 5 of A */
 void
 i2_RES_5_A(z80 * pz80){
+	Reset_Bit(pz80,REGA,5);
 }
 /* Clear (reset) bit 6 of B */
 void
 i2_RES_6_B(z80 * pz80){
+	Reset_Bit(pz80,REGB,6);
 }
 /* Clear (reset) bit 6 of C */
 void
 i2_RES_6_C(z80 * pz80){
+	Reset_Bit(pz80,REGC,6);
 }
 /* Clear (reset) bit 6 of D */
 void
 i2_RES_6_D(z80 * pz80){
+	Reset_Bit(pz80,REGD,6);
 }
 /* Clear (reset) bit 6 of E */
 void
 i2_RES_6_E(z80 * pz80){
+	Reset_Bit(pz80,REGE,6);
 }
 /* Clear (reset) bit 6 of H */
 void
 i2_RES_6_H(z80 * pz80){
+	Reset_Bit(pz80,REGH,6);
 }
 /* Clear (reset) bit 6 of L */
 void
 i2_RES_6_L(z80 * pz80){
+	Reset_Bit(pz80,REGL,6);
 }
 /* Clear (reset) bit 6 of value pointed by HL */
 void
 i2_RES_6__HL_(z80 * pz80){
+	Reset_HLBit(pz80,6);
 }
 /* Clear (reset) bit 6 of A */
 void
 i2_RES_6_A(z80 * pz80){
+	Reset_Bit(pz80,REGA,6);
 }
 /* Clear (reset) bit 7 of B */
 void
 i2_RES_7_B(z80 * pz80){
+	Reset_Bit(pz80,REGB,7);
 }
 /* Clear (reset) bit 7 of C */
 void
 i2_RES_7_C(z80 * pz80){
+	Reset_Bit(pz80,REGC,7);
 }
 /* Clear (reset) bit 7 of D */
 void
 i2_RES_7_D(z80 * pz80){
+	Reset_Bit(pz80,REGD,7);
 }
 /* Clear (reset) bit 7 of E */
 void
 i2_RES_7_E(z80 * pz80){
+	Reset_Bit(pz80,REGE,7);
 }
 /* Clear (reset) bit 7 of H */
 void
 i2_RES_7_H(z80 * pz80){
+	Reset_Bit(pz80,REGH,7);
 }
 /* Clear (reset) bit 7 of L */
 void
 i2_RES_7_L(z80 * pz80){
+	Reset_Bit(pz80,REGL,7);
 }
 /* Clear (reset) bit 7 of value pointed by HL */
 void
 i2_RES_7__HL_(z80 * pz80){
+	Reset_HLBit(pz80,7);
 }
 /* Clear (reset) bit 7 of A */
 void
 i2_RES_7_A(z80 * pz80){
-	Reset_Bit(pz80,REGA,0);
+	Reset_Bit(pz80,REGA,7);
 }
 /* Set bit 0 of B */
 void
