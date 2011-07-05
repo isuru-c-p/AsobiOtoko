@@ -25,7 +25,9 @@ main (int argc, char *argv[]){
 	}
 	z80 pz80;
 	initZ80(&pz80);
+	
 	loadROM(&pz80, argv[1]);
+	
 	
 	while(pz80.registers16[PC] < 0x100)
 	{

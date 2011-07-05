@@ -2,6 +2,7 @@
 #include "mmu.h"
 
 #include "string.h" //bzero
+#include <stdio.h>
 
 
 uint8_t 
@@ -418,7 +419,7 @@ void LDD_A_HL_mem(z80*pz80)
 	LD_n_nn_mem(pz80, REGA, REGH, REGL);
 	DEC_nn(pz80, REGH, REGL);
 	pz80->tcycles = 8;
-	incPC(pz80, 1);
+	incPC(pz80, -1); // as DEC_nn and LD_nn_mem_n increase the pc by 1
 }
 
 void LDD_HL_mem_A(z80*pz80)
@@ -426,7 +427,7 @@ void LDD_HL_mem_A(z80*pz80)
 	LD_nn_mem_n(pz80, REGH, REGL, REGA);
 	DEC_nn(pz80, REGH, REGL);
 	pz80->tcycles = 8;
-	incPC(pz80, 1);
+	incPC(pz80, -1); // as DEC_nn and LD_nn_mem_n increase the pc by 1
 }
 
 void LDI_A_HL_mem(z80*pz80)
@@ -434,7 +435,7 @@ void LDI_A_HL_mem(z80*pz80)
 	LD_n_nn_mem(pz80, REGA, REGH, REGL);
 	INC_nn(pz80, REGH, REGL);
 	pz80->tcycles = 8;
-	incPC(pz80, 1);
+	incPC(pz80, -1); // as DEC_nn and LD_nn_mem_n increase the pc by 1
 }
 
 void LDI_HL_mem_A(z80*pz80)
@@ -442,7 +443,7 @@ void LDI_HL_mem_A(z80*pz80)
 	LD_nn_mem_n(pz80, REGH, REGL, REGA);
 	INC_nn(pz80, REGH, REGL);
 	pz80->tcycles = 8;
-	incPC(pz80, 1);
+	incPC(pz80, -1); // as DEC_nn and LD_nn_mem_n increase the pc by 1
 }
 
 void LD_C_mem_A(z80*pz80)
@@ -985,7 +986,9 @@ void executeNextInstruction(z80 * pz80){
 	MMU * pmmu = &(pz80->mmu);
 	uint16_t insAddress =  pz80->registers16[PC];
 	uint8_t	instruction = rb(pmmu,insAddress);
+	printf("PC: %x, Opcode: %x\n", insAddress, instruction);
 	dispatchInstruction(pz80,instruction,0/*pz80->doSecondaryOpcode*/);
+	//printf("Instruction dispatched\n");
 	gpu_step(&(pz80->mmu.gpu), pz80->tcycles);
 }
 
@@ -2718,7 +2721,7 @@ RR_n(pz80,REGA);
 /* Relative jump by signed immediate if last result was not zero */
 void
 i_JR_NZ_n(z80 * pz80){
-i_JR_NZ_n(pz80);
+JR_NZ_n(pz80);
 }
 /* Load 16-bit immediate into HL */
 void
@@ -3595,8 +3598,10 @@ JP_Z_nn(pz80);
 /* Extended operations (two-byte instruction code) */
 void
 i_Ext_ops(z80 * pz80){
+printf("i_Ext_ops\n");
 incPC(pz80, 1);
 uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]);
+printf("PC: %x, Opcode2: %x\n", pz80->registers16[PC], op);
 dispatchInstruction(pz80, op, 1);
 }
 /* Call routine at 16-bit location if last result was zero */
