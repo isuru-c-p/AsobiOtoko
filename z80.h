@@ -56,6 +56,8 @@ typedef struct _z80 {
 #define setRegister8(pz80,X,val) ((pz80)->registers[(X)] = (val))
 #define setRegister16(pz80,H,L,val) (pz80)->registers[(H)] = (((val) >> 8) & 255); (pz80)->registers[(L)] = ((val) & 255)
 
+#define getImmediate(pz80) (rb(&((pz80)->mmu), (pz80)->registers16[PC] + 1))
+
 /* general purpose functions */
 	
 uint8_t 

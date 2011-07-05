@@ -75,7 +75,7 @@ void ADC_A_nn_mem(z80*pz80, int srcH, int srcL)
 void ADC_A_immediate(z80*pz80)
 {
 	uint8_t carry = getFlag(pz80->registers[REGF], CARRY);
-	uint8_t val = rb(&(pz80->mmu), pz80->registers16[PC]+1);
+	uint8_t val = getImmediate(pz80);
 	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + val + carry)==0), 0, (((pz80->registers[REGA] & 0xff) + (val & 0xff) + carry) > 0xff), (pz80->registers[REGA] + val + carry) > 0xffff);
 	pz80->registers[REGA] = pz80->registers[REGA] + val + carry;
 }
@@ -95,7 +95,7 @@ void ADD_A_nn_mem(z80*pz80, int srcH, int srcL)
 
 void ADD_A_immediate(z80*pz80)
 {
-	uint8_t val = rb(&(pz80->mmu), pz80->registers16[PC]+1);
+	uint8_t val = getImmediate(pz80);
 	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + val)==0), 0, (((pz80->registers[REGA] & 0xff) + (val & 0xff)) > 0xff), (pz80->registers[REGA] + val) > 0xffff);
 	pz80->registers[REGA] = pz80->registers[REGA] + val;
 }
@@ -138,7 +138,7 @@ void SUB_A_HL_mem(z80*pz80)
 
 void SUB_A_immediate(z80*pz80)
 {
-	uint8_t val = rb(&(pz80->mmu), pz80->registers16[PC]+1);
+	uint8_t val = getImmediate(pz80);
 	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - val) == 0), 1, ((val & 0xff) > (pz80->registers[REGA] & 0xff)), (val > pz80->registers[REGA])); 
 	pz80->registers[REGA] -= val;
 }
@@ -161,10 +161,89 @@ void SBC_A_HL_mem(z80*pz80)
 void SBC_A_immediate(z80*pz80)
 {
 	uint8_t carry = getFlag(pz80->registers[REGF], CARRY);
-	uint8_t val = rb(&(pz80->mmu), pz80->registers16[PC]+1);
+	uint8_t val = getImmediate(pz80);
 	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - val - carry) == 0), 1, (((val & 0xff) + carry) > (pz80->registers[REGA] & 0xff)), ((val + carry) > pz80->registers[REGA])); 
 	pz80->registers[REGA] -= (val + carry);
 }
+
+void AND_A_n(z80*pz80, int n)
+{
+	pz80->registers[REGA] &= pz80->registers[n];
+	pz80->registers[REGF] = buildStatusFlag((pz80->registers[REGA] == 0), 0, 1, 0);
+}
+
+void AND_A_HL_mem(z80*pz80)
+{
+	uint8_t val = rb(&(pz80->mmu), (pz80->registers[REGH] << 8) + pz80->registers[REGL]);
+	pz80->registers[REGA] &= val;
+	pz80->registers[REGF] = buildStatusFlag((pz80->registers[REGA] == 0), 0, 1, 0);
+}
+
+void AND_A_immediate(z80*pz80)
+{
+	uint8_t val = getImmediate(pz80);
+	pz80->registers[REGA] &= val;
+	pz80->registers[REGF] = buildStatusFlag((pz80->registers[REGA] == 0), 0, 1, 0);
+}
+
+void XOR_A_n(z80*pz80, int n)
+{
+	pz80->registers[REGA] ^= pz80->registers[n];
+	pz80->registers[REGF] = buildStatusFlag((pz80->registers[REGA] == 0), 0, 0, 0);
+}
+
+void XOR_A_HL_mem(z80*pz80)
+{
+	uint8_t val = rb(&(pz80->mmu), (pz80->registers[REGH] << 8) + pz80->registers[REGL]);
+	pz80->registers[REGA] ^= val;
+	pz80->registers[REGF] = buildStatusFlag((pz80->registers[REGA] == 0), 0, 0, 0);
+}
+
+void XOR_A_immediate(z80*pz80)
+{
+	uint8_t val = getImmediate(pz80);
+	pz80->registers[REGA] ^= val;
+	pz80->registers[REGF] = buildStatusFlag((pz80->registers[REGA] == 0), 0, 0, 0);
+}
+
+void OR_A_n(z80*pz80, int n)
+{
+	pz80->registers[REGA] |= pz80->registers[n];
+	pz80->registers[REGF] = buildStatusFlag((pz80->registers[REGA] == 0), 0, 0, 0);
+}
+
+void OR_A_HL_mem(z80*pz80)
+{
+	uint8_t val = rb(&(pz80->mmu), (pz80->registers[REGH] << 8) + pz80->registers[REGL]);
+	pz80->registers[REGA] |= val;
+	pz80->registers[REGF] = buildStatusFlag((pz80->registers[REGA] == 0), 0, 0, 0);
+}
+
+void OR_A_immediate(z80*pz80)
+{
+	uint8_t val = getImmediate(pz80);
+	pz80->registers[REGA] |= val;
+	pz80->registers[REGF] = buildStatusFlag((pz80->registers[REGA] == 0), 0, 0, 0);
+}
+
+void CP_A_n(z80*pz80, int n)
+{
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - pz80->registers[n]) == 0), 1, ((pz80->registers[n] & 0xff) > (pz80->registers[REGA] & 0xff)), (pz80->registers[n] > pz80->registers[REGA]));
+}
+
+void CP_A_HL_mem(z80*pz80) 
+{
+	uint8_t val = rb(&(pz80->mmu), (pz80->registers[REGH] << 8) + pz80->registers[REGL]);
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - val) == 0), 1, ((val & 0xff) > (pz80->registers[REGA] & 0xff)), (val > pz80->registers[REGA])); 
+}
+
+void CP_A_immediate(z80*pz80)
+{
+	uint8_t val = getImmediate(pz80);
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - val) == 0), 1, ((val & 0xff) > (pz80->registers[REGA] & 0xff)), (val > pz80->registers[REGA])); 
+}
+
+
 
 
 
@@ -2433,130 +2512,162 @@ SBC_A_n(pz80, REGA);
 /* Logical AND B against A */
 void
 i_AND_B(z80 * pz80){
+AND_A_n(pz80, REGB);
 }
 /* Logical AND C against A */
 void
 i_AND_C(z80 * pz80){
+AND_A_n(pz80, REGC);
 }
 /* Logical AND D against A */
 void
 i_AND_D(z80 * pz80){
+AND_A_n(pz80, REGD);
 }
 /* Logical AND E against A */
 void
 i_AND_E(z80 * pz80){
+AND_A_n(pz80, REGE);
 }
 /* Logical AND H against A */
 void
 i_AND_H(z80 * pz80){
+AND_A_n(pz80, REGH);
 }
 /* Logical AND L against A */
 void
 i_AND_L(z80 * pz80){
+AND_A_n(pz80, REGL);
 }
 /* Logical AND value pointed by HL against A */
 void
 i_AND__HL_(z80 * pz80){
+AND_A_HL_mem(pz80);
 }
 /* Logical AND A against A */
 void
 i_AND_A(z80 * pz80){
+AND_A_n(pz80, REGA);
 }
 /* Logical XOR B against A */
 void
 i_XOR_B(z80 * pz80){
+XOR_A_n(pz80, REGB);
 }
 /* Logical XOR C against A */
 void
 i_XOR_C(z80 * pz80){
+XOR_A_n(pz80, REGC);
 }
 /* Logical XOR D against A */
 void
 i_XOR_D(z80 * pz80){
+XOR_A_n(pz80, REGD);
 }
 /* Logical XOR E against A */
 void
 i_XOR_E(z80 * pz80){
+XOR_A_n(pz80, REGE);
 }
 /* Logical XOR H against A */
 void
 i_XOR_H(z80 * pz80){
+XOR_A_n(pz80, REGH);
 }
 /* Logical XOR L against A */
 void
 i_XOR_L(z80 * pz80){
+XOR_A_n(pz80, REGL);
 }
 /* Logical XOR value pointed by HL against A */
 void
 i_XOR__HL_(z80 * pz80){
+XOR_A_HL_mem(pz80);
 }
 /* Logical XOR A against A */
 void
 i_XOR_A(z80 * pz80){
+XOR_A_n(pz80, REGA);
 }
 /* Logical OR B against A */
 void
 i_OR_B(z80 * pz80){
+OR_A_n(pz80, REGB);
 }
 /* Logical OR C against A */
 void
 i_OR_C(z80 * pz80){
+OR_A_n(pz80, REGC);
 }
 /* Logical OR D against A */
 void
 i_OR_D(z80 * pz80){
+OR_A_n(pz80, REGD);
 }
 /* Logical OR E against A */
 void
 i_OR_E(z80 * pz80){
+OR_A_n(pz80, REGE);
 }
 /* Logical OR H against A */
 void
 i_OR_H(z80 * pz80){
+OR_A_n(pz80, REGH);
 }
 /* Logical OR L against A */
 void
 i_OR_L(z80 * pz80){
+OR_A_n(pz80, REGL);
 }
 /* Logical OR value pointed by HL against A */
 void
 i_OR__HL_(z80 * pz80){
+OR_A_HL_mem(pz80);
 }
 /* Logical OR A against A */
 void
 i_OR_A(z80 * pz80){
+OR_A_n(pz80, REGA);
 }
 /* Compare B against A */
 void
 i_CP_B(z80 * pz80){
+CP_A_n(pz80, REGB);
 }
 /* Compare C against A */
 void
 i_CP_C(z80 * pz80){
+CP_A_n(pz80, REGC);
 }
 /* Compare D against A */
 void
 i_CP_D(z80 * pz80){
+CP_A_n(pz80, REGD);
 }
 /* Compare E against A */
 void
 i_CP_E(z80 * pz80){
+CP_A_n(pz80, REGE);
 }
 /* Compare H against A */
 void
 i_CP_H(z80 * pz80){
+CP_A_n(pz80, REGH);
 }
 /* Compare L against A */
 void
 i_CP_L(z80 * pz80){
+CP_A_n(pz80, REGL);
 }
 /* Compare value pointed by HL against A */
 void
 i_CP__HL_(z80 * pz80){
+CP_A_HL_mem(pz80);
 }
 /* Compare A against A */
 void
 i_CP_A(z80 * pz80){
+CP_A_n(pz80, REGA);
 }
 /* Return if last result was not zero */
 void
@@ -2717,6 +2828,7 @@ i_PUSH_HL(z80 * pz80){
 /* Logical AND 8-bit immediate against A */
 void
 i_AND_n(z80 * pz80){
+AND_A_immediate(pz80);
 }
 /* Call routine at address 0020h */
 void
@@ -2750,6 +2862,7 @@ i_LD__nn__A(z80 * pz80){
 /* Logical XOR 8-bit immediate against A */
 void
 i_XOR_n(z80 * pz80){
+XOR_A_immediate(pz80);
 }
 /* Call routine at address 0028h */
 void
@@ -2782,6 +2895,7 @@ i_PUSH_AF(z80 * pz80){
 /* Logical OR 8-bit immediate against A */
 void
 i_OR_n(z80 * pz80){
+OR_A_immediate(pz80);
 }
 /* Call routine at address 0030h */
 void
@@ -2814,6 +2928,7 @@ i_EI(z80 * pz80){
 /* Compare 8-bit immediate against A */
 void
 i_CP_n(z80 * pz80){
+CP_A_immediate(pz80);
 }
 /* Call routine at address 0038h */
 void
