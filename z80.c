@@ -1262,9 +1262,11 @@ dispatchInstruction(z80 * pz80,uint8_t opcode, int secondary){
 				i_LDH__C__A(pz80);
 				return;
 			case 0xE3:
+				i_NOP(pz80);
 				//i_XX(pz80); not implemented
 				return;
 			case 0xE4:
+				i_NOP(pz80);
 				//i_XX(pz80); not implemented
 				return;
 			case 0xE5:
@@ -1286,12 +1288,15 @@ dispatchInstruction(z80 * pz80,uint8_t opcode, int secondary){
 				i_LD__nn__A(pz80);
 				return;
 			case 0xEB:
+				i_NOP(pz80);
 				//i_XX(pz80); not implemented
 				return;
 			case 0xEC:
+				i_NOP(pz80);
 				//i_XX(pz80); not implemented
 				return;
 			case 0xED:
+				i_NOP(pz80);
 				//i_XX(pz80); not implemented
 				return;
 			case 0xEE:
@@ -1307,12 +1312,14 @@ dispatchInstruction(z80 * pz80,uint8_t opcode, int secondary){
 				i_POP_AF(pz80);
 				return;
 			case 0xF2:
+				i_NOP(pz80);
 				//i_XX(pz80); not implemented
 				return;
 			case 0xF3:
 				i_DI(pz80);
 				return;
 			case 0xF4:
+				i_NOP(pz80);
 				//i_XX(pz80); not implemented
 				return;
 			case 0xF5:
@@ -1337,9 +1344,11 @@ dispatchInstruction(z80 * pz80,uint8_t opcode, int secondary){
 				i_EI(pz80);
 				return;
 			case 0xFC:
+				i_NOP(pz80);
 				//i_XX(pz80); not implemented
 				return;
 			case 0xFD:
+				i_NOP(pz80);
 				//i_XX(pz80); not implemented
 				return;
 			case 0xFE:
