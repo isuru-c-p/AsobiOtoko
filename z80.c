@@ -840,7 +840,10 @@ void RLC_HL(z80*pz80){
 
 
 void Test_Bit(z80*pz80, int reg,int bit){
-	pz80->registers[REGF] = buildStatusFlag(pz80->registers[reg] & (1 << bit) ,0,1, getFlag(pz80->registers[REGF],CARRY) );
+	pz80->registers[REGF] = buildStatusFlag( !((pz80->registers[reg]) & (1 << bit)) ,
+												0,
+												1,
+												getFlag(pz80->registers[REGF],CARRY) );
 	pz80->tcycles = 8;
 	incPC(pz80, 1);
 }

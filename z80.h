@@ -73,6 +73,9 @@ executeNextInstruction(z80 * pz80);
 void 
 dispatchInstruction(z80 * pz80,uint8_t opcode, int secondary);
 
+void
+initZ80(z80*pz80);
+
 /* opcode functions here */
 //////////////////////////////////////////////////////////////////////
 /* No Operation */
