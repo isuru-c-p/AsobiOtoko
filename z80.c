@@ -2595,6 +2595,7 @@ i_RL_A(z80 * pz80){
 /* Relative jump by signed immediate */
 void
 i_JR_n(z80 * pz80){
+JR_n(pz80);
 }
 /* Add 16-bit DE to HL */
 void
@@ -2633,6 +2634,7 @@ i_RR_A(z80 * pz80){
 /* Relative jump by signed immediate if last result was not zero */
 void
 i_JR_NZ_n(z80 * pz80){
+i_JR_NZ_n(pz80);
 }
 /* Load 16-bit immediate into HL */
 void
@@ -2671,6 +2673,7 @@ i_DAA(z80 * pz80){
 /* Relative jump by signed immediate if last result was zero */
 void
 i_JR_Z_n(z80 * pz80){
+JR_Z_n(pz80);
 }
 /* Add 16-bit HL to HL */
 void
@@ -2709,6 +2712,7 @@ i_CPL(z80 * pz80){
 /* Relative jump by signed immediate if last result caused no carry */
 void
 i_JR_NC_n(z80 * pz80){
+JR_NC_n(pz80);
 }
 /* Load 16-bit immediate into SP */
 void
@@ -2752,6 +2756,7 @@ i_SCF(z80 * pz80){
 /* Relative jump by signed immediate if last result caused carry */
 void
 i_JR_C_n(z80 * pz80){
+JR_C_n(pz80);
 }
 /* Add 16-bit SP to HL */
 void
@@ -3430,6 +3435,7 @@ CP_A_n(pz80, REGA);
 /* Return if last result was not zero */
 void
 i_RET_NZ(z80 * pz80){
+RET_NZ(pz80);
 }
 /* Pop 16-bit value from stack into BC */
 void
@@ -3438,14 +3444,17 @@ i_POP_BC(z80 * pz80){
 /* Absolute jump to 16-bit location if last result was not zero */
 void
 i_JP_NZ_nn(z80 * pz80){
+JP_NZ_nn(pz80);
 }
 /* Absolute jump to 16-bit location */
 void
 i_JP_nn(z80 * pz80){
+JP_nn(pz80);
 }
 /* Call routine at 16-bit location if last result was not zero */
 void
 i_CALL_NZ_nn(z80 * pz80){
+CALL_NZ_nn(pz80);
 }
 /* Push 16-bit BC onto stack */
 void
@@ -3459,18 +3468,22 @@ ADD_A_immediate(pz80);
 /* Call routine at address 0000h */
 void
 i_RST_0(z80 * pz80){
+RST_n(pz80, 0);
 }
 /* Return if last result was zero */
 void
 i_RET_Z(z80 * pz80){
+RET_Z(pz80);
 }
 /* Return to calling routine */
 void
 i_RET(z80 * pz80){
+RET(pz80);
 }
 /* Absolute jump to 16-bit location if last result was zero */
 void
 i_JP_Z_nn(z80 * pz80){
+JP_Z_nn(pz80);
 }
 /* Extended operations (two-byte instruction code) */
 void
@@ -3479,10 +3492,12 @@ i_Ext_ops(z80 * pz80){
 /* Call routine at 16-bit location if last result was zero */
 void
 i_CALL_Z_nn(z80 * pz80){
+CALL_Z_nn(pz80);
 }
 /* Call routine at 16-bit location */
 void
 i_CALL_nn(z80 * pz80){
+CALL_nn(pz80);
 }
 /* Add 8-bit immediate and carry to A */
 void
@@ -3492,10 +3507,12 @@ ADC_A_immediate(pz80);
 /* Call routine at address 0008h */
 void
 i_RST_8(z80 * pz80){
+RST_n(pz80, 0x8);
 }
 /* Return if last result caused no carry */
 void
 i_RET_NC(z80 * pz80){
+RET_NC(pz80);
 }
 /* Pop 16-bit value from stack into DE */
 void
@@ -3504,6 +3521,7 @@ i_POP_DE(z80 * pz80){
 /* Absolute jump to 16-bit location if last result caused no carry */
 void
 i_JP_NC_nn(z80 * pz80){
+JP_NC_nn(pz80);
 }
 /* Operation removed in this CPU */
 //void
@@ -3512,6 +3530,7 @@ i_JP_NC_nn(z80 * pz80){
 /* Call routine at 16-bit location if last result caused no carry */
 void
 i_CALL_NC_nn(z80 * pz80){
+CALL_NC_nn(pz80);
 }
 /* Push 16-bit DE onto stack */
 void
@@ -3525,18 +3544,22 @@ SUB_A_immediate(pz80);
 /* Call routine at address 0010h */
 void
 i_RST_10(z80 * pz80){
+RST_n(pz80, 0x10);
 }
 /* Return if last result caused carry */
 void
 i_RET_C(z80 * pz80){
+RET_C(pz80);
 }
 /* Enable interrupts and return to calling routine */
 void
 i_RETI(z80 * pz80){
+RETI(pz80);
 }
 /* Absolute jump to 16-bit location if last result caused carry */
 void
 i_JP_C_nn(z80 * pz80){
+JP_C_nn(pz80);
 }
 /* Operation removed in this CPU */
 //void
@@ -3545,6 +3568,7 @@ i_JP_C_nn(z80 * pz80){
 /* Call routine at 16-bit location if last result caused carry */
 void
 i_CALL_C_nn(z80 * pz80){
+CALL_C_nn(pz80);
 }
 /* Operation removed in this CPU */
 //void
@@ -3558,6 +3582,7 @@ SBC_A_immediate(pz80);
 /* Call routine at address 0018h */
 void
 i_RST_18(z80 * pz80){
+RST_n(pz80, 0x18);
 }
 /* Save A at address pointed to by (FF00h + 8-bit immediate) */
 void
@@ -3593,6 +3618,7 @@ AND_A_immediate(pz80);
 /* Call routine at address 0020h */
 void
 i_RST_20(z80 * pz80){
+RST_n(pz80, 0x20);
 }
 /* Add signed 8-bit immediate to SP */
 void
@@ -3602,6 +3628,7 @@ ADD_SP_d(pz80);
 /* Jump to 16-bit value pointed by HL */
 void
 i_JP__HL_(z80 * pz80){
+JP_HL(pz80);
 }
 /* Save A at given 16-bit address */
 void
@@ -3628,6 +3655,7 @@ XOR_A_immediate(pz80);
 /* Call routine at address 0028h */
 void
 i_RST_28(z80 * pz80){
+RST_n(pz80, 0x28);
 }
 /* Load A from address pointed to by (FF00h + 8-bit immediate) */
 void
@@ -3662,6 +3690,7 @@ OR_A_immediate(pz80);
 /* Call routine at address 0030h */
 void
 i_RST_30(z80 * pz80){
+RST_n(pz80, 0x30);
 }
 /* Add signed 8-bit immediate to SP and save result in HL */
 void
@@ -3698,6 +3727,7 @@ CP_A_immediate(pz80);
 /* Call routine at address 0038h */
 void
 i_RST_38(z80 * pz80){
+RST_n(pz80, 0x38);
 }
 /* Rotate B left with carry */
 void
