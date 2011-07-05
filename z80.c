@@ -123,6 +123,51 @@ void ADD_SP_d(z80*pz80)
 	
 }
 
+void SUB_A_n(z80*pz80, int n)
+{
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - pz80->registers[n]) == 0), 1, ((pz80->registers[n] & 0xff) > (pz80->registers[REGA] & 0xff)), (pz80->registers[n] > pz80->registers[REGA]));
+	pz80->registers[REGA] -= pz80->registers[n];
+}
+
+void SUB_A_HL_mem(z80*pz80) 
+{
+	uint8_t val = rb(&(pz80->mmu), (pz80->registers[REGH] << 8) + pz80->registers[REGL]);
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - val) == 0), 1, ((val & 0xff) > (pz80->registers[REGA] & 0xff)), (val > pz80->registers[REGA])); 
+	pz80->registers[REGA] -= val;
+}
+
+void SUB_A_immediate(z80*pz80)
+{
+	uint8_t val = rb(&(pz80->mmu), pz80->registers16[PC]+1);
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - val) == 0), 1, ((val & 0xff) > (pz80->registers[REGA] & 0xff)), (val > pz80->registers[REGA])); 
+	pz80->registers[REGA] -= val;
+}
+
+void SBC_A_n(z80*pz80, int n)
+{
+	uint8_t carry = getFlag(pz80->registers[REGF], CARRY);
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - pz80->registers[n] - carry) == 0), 1, (((pz80->registers[n] & 0xff) + carry) > (pz80->registers[REGA] & 0xff)), ((pz80->registers[n] + carry) > pz80->registers[REGA]));
+	pz80->registers[REGA] -= (pz80->registers[n] + carry);
+}
+
+void SBC_A_HL_mem(z80*pz80) 
+{
+	uint8_t carry = getFlag(pz80->registers[REGF], CARRY);
+	uint8_t val = rb(&(pz80->mmu), (pz80->registers[REGH] << 8) + pz80->registers[REGL]);
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - val - carry) == 0), 1, (((val & 0xff) + carry) > (pz80->registers[REGA] & 0xff)), ((val + carry) > pz80->registers[REGA])); 
+	pz80->registers[REGA] -= (val + carry);
+}
+
+void SBC_A_immediate(z80*pz80)
+{
+	uint8_t carry = getFlag(pz80->registers[REGF], CARRY);
+	uint8_t val = rb(&(pz80->mmu), pz80->registers16[PC]+1);
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - val - carry) == 0), 1, (((val & 0xff) + carry) > (pz80->registers[REGA] & 0xff)), ((val + carry) > pz80->registers[REGA])); 
+	pz80->registers[REGA] -= (val + carry);
+}
+
+
+
 
 void 
 dispatchInstruction(z80 * pz80,uint8_t opcode, int secondary){
@@ -2308,66 +2353,82 @@ ADC_A_n(pz80, REGA);
 /* Subtract B from A */
 void
 i_SUB_A_B(z80 * pz80){
+SUB_A_n(pz80, REGB);
 }
 /* Subtract C from A */
 void
 i_SUB_A_C(z80 * pz80){
+SUB_A_n(pz80, REGC);
 }
 /* Subtract D from A */
 void
 i_SUB_A_D(z80 * pz80){
+SUB_A_n(pz80, REGD);
 }
 /* Subtract E from A */
 void
 i_SUB_A_E(z80 * pz80){
+SUB_A_n(pz80, REGE);
 }
 /* Subtract H from A */
 void
 i_SUB_A_H(z80 * pz80){
+SUB_A_n(pz80, REGH);
 }
 /* Subtract L from A */
 void
 i_SUB_A_L(z80 * pz80){
+SUB_A_n(pz80, REGL);
 }
 /* Subtract value pointed by HL from A */
 void
 i_SUB_A__HL_(z80 * pz80){
+SUB_A_HL_mem(pz80);
 }
 /* Subtract A from A */
 void
 i_SUB_A_A(z80 * pz80){
+SUB_A_n(pz80, REGA);
 }
 /* Subtract B and carry flag from A */
 void
 i_SBC_A_B(z80 * pz80){
+SBC_A_n(pz80, REGB);
 }
 /* Subtract C and carry flag from A */
 void
 i_SBC_A_C(z80 * pz80){
+SBC_A_n(pz80, REGC);
 }
 /* Subtract D and carry flag from A */
 void
 i_SBC_A_D(z80 * pz80){
+SBC_A_n(pz80, REGD);
 }
 /* Subtract E and carry flag from A */
 void
 i_SBC_A_E(z80 * pz80){
+SBC_A_n(pz80, REGE);
 }
 /* Subtract H and carry flag from A */
 void
 i_SBC_A_H(z80 * pz80){
+SBC_A_n(pz80, REGH);
 }
 /* Subtract and carry flag L from A */
 void
 i_SBC_A_L(z80 * pz80){
+SBC_A_n(pz80, REGL);
 }
 /* Subtract value pointed by HL and carry flag from A */
 void
 i_SBC_A__HL_(z80 * pz80){
+SBC_A_HL_mem(pz80);
 }
 /* Subtract A and carry flag from A */
 void
 i_SBC_A_A(z80 * pz80){
+SBC_A_n(pz80, REGA);
 }
 /* Logical AND B against A */
 void
@@ -2590,6 +2651,7 @@ i_PUSH_DE(z80 * pz80){
 /* Subtract 8-bit immediate from A */
 void
 i_SUB_A_n(z80 * pz80){
+SUB_A_immediate(pz80);
 }
 /* Call routine at address 0010h */
 void
@@ -2622,6 +2684,7 @@ i_CALL_C_nn(z80 * pz80){
 /* Subtract 8-bit immediate and carry from A */
 void
 i_SBC_A_n(z80 * pz80){
+SBC_A_immediate(pz80);
 }
 /* Call routine at address 0018h */
 void
