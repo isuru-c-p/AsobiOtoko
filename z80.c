@@ -18,10 +18,6 @@ buildStatusFlag(int zero, int sub, int halfcarry,int carry){
 	return ret;
 }
 
-
-
-
-
 void 
 initZ80(z80*pz80){
 	bzero((void*)pz80,sizeof(z80));
@@ -634,6 +630,15 @@ void Set_HLBitToVal(z80*pz80,int bit,int val){
 	pz80->tcycles = 16;
 	//DO not incPC as sub function does this
 }
+
+
+void executeNextInstruction(z80 * pz80){
+	MMU * pmmu = &(pz80->mmu);
+	uint16_t insAddress =  cpu->registers16[PC];
+	uint8_t	instruction = rb(pmmu,insAddress);
+	dispatchInstruction(pz80,instruction,pz80->doSecondaryOpcode);
+}
+
 
 
 void 
@@ -4708,4 +4713,4 @@ i2_SET_7_A(z80 * pz80){
 
 
 
-
+z80 * pz80

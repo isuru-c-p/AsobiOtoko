@@ -29,6 +29,7 @@ typedef struct _z80 {
 	uint16_t registers16[2];
 	MMU mmu;
 	int tcycles;
+	int doSecondaryOpcode;
 } z80;
 
 
@@ -64,6 +65,9 @@ loadRegMemFromHL(z80*pz80);
 
 void 
 saveRegMemToHL(z80*pz80);
+
+void 
+executeNextInstruction(z80 * pz80);
 
 /* opcode functions here */
 //////////////////////////////////////////////////////////////////////
