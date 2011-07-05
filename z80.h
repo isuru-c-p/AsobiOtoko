@@ -18,13 +18,14 @@
 #define REGF 5
 #define REGH 6
 #define REGL 7
+#define REGMEM 8
 #define PC 0
 #define SP 1
 
 /*Data types*/
 
 typedef struct _z80 {
-	uint8_t registers[8];
+	uint8_t registers[9]; //ensure this size matches up with the defines above
 	uint16_t registers16[2];
 	MMU mmu;
 	int tcycles;
@@ -56,6 +57,9 @@ typedef struct _z80 {
 	
 uint8_t 
 buildStatusFlag(int zero, int sub, int halfcarry,int carry);
+
+void 
+loadRegMemFromHL(z80*pz80);
 
 /* opcode functions here */
 //////////////////////////////////////////////////////////////////////

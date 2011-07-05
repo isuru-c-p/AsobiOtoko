@@ -28,6 +28,11 @@ initZ80(z80*pz80){
 	initMMU(&(pz80->mmu));
 }
 
+void loadRegMemFromHL(z80*pz80){
+	uint16_t addr = getRegister16(pz80,REGH,REGL);
+	pz80->registers[REGMEM] = rb(&(pz80->mmu),addr);
+}
+
 
 void INC_n(z80*pz80, int reg)
 {
@@ -257,16 +262,78 @@ void LD_SP_HL(z80*pz80)
 	incPC(pz80, 1);
 }
 
+
+void
+SRL_n(z80*pz80, int reg){
+	uint8_t newFlag = 0;
+	uint8_t byte = pz80->registers[reg];
+	uint8_t newbyte = byte >> 1;
+	if(byte&1)
+		setFlag(newFlag,CARRY);
+	if(newbyte==0)
+		setFlag(newFlag,ZERO);
+	pz80->registers[REGF] = newFlag;
+	pz80->registers[reg] = newbyte;
+}
+
+void
+SRL_HL(z80*pz80){
+	loadRegMemFromHL(pz80);
+	SRL_n(pz80,REGMEM);
+}
+
+void
+SRA_n(z80*pz80, int reg){
+	uint8_t newFlag = 0;
+	uint8_t byte = pz80->registers[reg];
+	uint8_t newbyte = byte >> 1;
+	if(byte & (1<<7)) // MSB doesnt change
+		newbyte |= (1<<7);
+	if(byte&1)
+		setFlag(newFlag,CARRY);
+	if(newbyte==0)
+		setFlag(newFlag,ZERO);
+	pz80->registers[REGF] = newFlag;
+	pz80->registers[reg] = newbyte;
+}
+
+
+
+void
+SRA_HL(z80*pz80){
+	loadRegMemFromHL(pz80);
+	SRA_n(pz80,REGMEM);
+}
+
+
+void
+SLA_n(z80*pz80, int reg){
+	uint8_t newFlag = 0;
+	uint8_t byte = pz80->registers[reg];
+	uint8_t newbyte = byte << 1;
+	if(byte&(1<<7))
+		setFlag(newFlag,CARRY);
+	if(newbyte==0)
+		setFlag(newFlag,ZERO);
+	pz80->registers[REGF] = newFlag;
+	pz80->registers[reg] = newbyte;
+}
+
+void
+SLA_HL(z80*pz80){
+	loadRegMemFromHL(pz80);
+	SLA_n(pz80,REGMEM);
+}
+
+
 void Test_Bit(z80*pz80, int reg,int bit){
 	pz80->registers[REGF] = buildStatusFlag(pz80->registers[reg] & (1 << bit) ,0,1, getFlag(pz80->registers[REGF],CARRY) );
 	incPC(pz80,1);
 }
 
-void Test_HLBit(z80*pz80,int bit){
-	uint16_t addr = getRegister16(pz80,REGH,REGL);
-	uint16_t val = rb(&(pz80->mmu),addr);
-	pz80->registers[REGF] = buildStatusFlag( val & (1 << bit) ,0,1, getFlag(pz80->registers[REGF],CARRY) );
-	incPC(pz80,1);
+void Test_HLBit(z80*pz80,int bit){ 
+	loadRegMemFromHL(pz80);
+	Test_Bit(pz80,REGMEM,bit);
 }
 
 /* these two nibble swap functions dont use build status flag because most are fixed and this is much faster */
@@ -282,16 +349,8 @@ void nibbleSwap(z80*pz80,int reg){
 }
 
 void nibbleHLSwap(z80*pz80){
-	uint16_t addr = getRegister16(pz80,REGH,REGL);
-	uint16_t byte = rb(&(pz80->mmu),addr);
-	if(byte == 0){// no need to swap it if its zero
-		pz80->registers[REGF] = (1<<ZERO);
-		return;
-	}
-	pz80->registers[REGF] = 0;
-	byte = ( (byte >> 4) & 0b00001111) | ( (byte << 4) & 0b11110000 );
-	wb(&(pz80->mmu),addr,byte);
-	incPC(pz80,1);
+	loadRegMemFromHL(pz80);
+	nibbleSwap(pz80,REGMEM);
 }
 
 /* TODO possible optimisation seperate functions */
@@ -312,15 +371,8 @@ void Set_BitToVal(z80*pz80, int reg,int bit,int val){
 
 /* set and reset the same */
 void Set_HLBitToVal(z80*pz80,int bit,int val){
-	uint16_t addr = getRegister16(pz80,REGH,REGL);
-	MMU * pmmu = &(pz80->mmu);
-	uint8_t byte = rb(pmmu,addr);
-	if(val)
-		byte |= (1<<bit) ;
-	else
-		byte &= ~(1<<bit);
-	wb(pmmu,addr,byte);
-	incPC(pz80,1);
+	loadRegMemFromHL(pz80);
+	Set_BitToVal(pz80,REGMEM,bit,val);
 }
 
 
@@ -3141,66 +3193,82 @@ i2_RR_A(z80 * pz80){
 /* Shift B left preserving sign */
 void
 i2_SLA_B(z80 * pz80){
+	SLA_n(pz80,REGB);
 }
 /* Shift C left preserving sign */
 void
 i2_SLA_C(z80 * pz80){
+	SLA_n(pz80,REGC);
 }
 /* Shift D left preserving sign */
 void
 i2_SLA_D(z80 * pz80){
+	SLA_n(pz80,REGD);
 }
 /* Shift E left preserving sign */
 void
 i2_SLA_E(z80 * pz80){
+	SLA_n(pz80,REGE);
 }
 /* Shift H left preserving sign */
 void
 i2_SLA_H(z80 * pz80){
+	SLA_n(pz80,REGH);
 }
 /* Shift L left preserving sign */
 void
 i2_SLA_L(z80 * pz80){
+	SLA_n(pz80,REGL);
 }
 /* Shift value pointed by HL left preserving sign */
 void
 i2_SLA__HL_(z80 * pz80){
+	SLA_HL(pz80);
 }
 /* Shift A left preserving sign */
 void
 i2_SLA_A(z80 * pz80){
+	SLA_n(pz80,REGA);
 }
 /* Shift B right preserving sign */
 void
 i2_SRA_B(z80 * pz80){
+	SRA_n(pz80,REGB);
 }
 /* Shift C right preserving sign */
 void
 i2_SRA_C(z80 * pz80){
+	SRA_n(pz80,REGC);
 }
 /* Shift D right preserving sign */
 void
 i2_SRA_D(z80 * pz80){
+	SRA_n(pz80,REGD);
 }
 /* Shift E right preserving sign */
 void
 i2_SRA_E(z80 * pz80){
+	SRA_n(pz80,REGE);
 }
 /* Shift H right preserving sign */
 void
 i2_SRA_H(z80 * pz80){
+	SRA_n(pz80,REGH);
 }
 /* Shift L right preserving sign */
 void
 i2_SRA_L(z80 * pz80){
+	SRA_n(pz80,REGL);
 }
 /* Shift value pointed by HL right preserving sign */
 void
 i2_SRA__HL_(z80 * pz80){
+	SRA_HL(pz80);
 }
 /* Shift A right preserving sign */
 void
 i2_SRA_A(z80 * pz80){
+	SRA_n(pz80,REGA);
 }
 /* Swap nybbles in B */
 void
@@ -3245,34 +3313,42 @@ i2_SWAP_A(z80 * pz80){
 /* Shift B right */
 void
 i2_SRL_B(z80 * pz80){
+	SRL_n(pz80,REGB);
 }
 /* Shift C right */
 void
 i2_SRL_C(z80 * pz80){
+	SRL_n(pz80,REGC);
 }
 /* Shift D right */
 void
 i2_SRL_D(z80 * pz80){
+	SRL_n(pz80,REGD);
 }
 /* Shift E right */
 void
 i2_SRL_E(z80 * pz80){
+	SRL_n(pz80,REGE);
 }
 /* Shift H right */
 void
 i2_SRL_H(z80 * pz80){
+	SRL_n(pz80,REGH);
 }
 /* Shift L right */
 void
 i2_SRL_L(z80 * pz80){
+	SRL_n(pz80,REGL);
 }
 /* Shift value pointed by HL right */
 void
 i2_SRL__HL_(z80 * pz80){
+	SRL_HL(pz80);
 }
 /* Shift A right */
 void
 i2_SRL_A(z80 * pz80){
+	SRL_n(pz80,REGA);
 }
 /* Test bit 0 of B */
 void
