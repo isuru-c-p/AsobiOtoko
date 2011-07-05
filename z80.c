@@ -666,6 +666,14 @@ void RETI(z80*pz80)
 	pz80->ime = 1;
 }
 
+void PUSH_nn(z80*pz80, int nH, int nL)
+{
+	push(pz80, nL);
+	push(pz80, nH);
+	pz80->tcycles = 16;
+	incPC(pz80, 1);
+}
+
 void
 SRL_n(z80*pz80, int reg){
 	uint8_t newFlag = 0;
@@ -2755,6 +2763,9 @@ LD_nn_mem_immediate(pz80, REGH, REGL);
 /* Set carry flag */
 void
 i_SCF(z80 * pz80){
+pz80->registers[REGF] = buildStatusFlag(getFlag(pz80->registers[REGF], ZERO), 0, 0, 1);
+pz80->tcycles = 4;
+incPC(pz80, 1);
 }
 /* Relative jump by signed immediate if last result caused carry */
 void
@@ -3462,6 +3473,7 @@ CALL_NZ_nn(pz80);
 /* Push 16-bit BC onto stack */
 void
 i_PUSH_BC(z80 * pz80){
+PUSH_nn(pz80, REGB, REGC);
 }
 /* Add 8-bit immediate to A */
 void
@@ -3538,6 +3550,7 @@ CALL_NC_nn(pz80);
 /* Push 16-bit DE onto stack */
 void
 i_PUSH_DE(z80 * pz80){
+PUSH_nn(pz80, REGD, REGE);
 }
 /* Subtract 8-bit immediate from A */
 void
@@ -3612,6 +3625,7 @@ LD_C_mem_A(pz80);
 /* Push 16-bit HL onto stack */
 void
 i_PUSH_HL(z80 * pz80){
+PUSH_nn(pz80, REGH, REGL);
 }
 /* Logical AND 8-bit immediate against A */
 void
@@ -3684,6 +3698,7 @@ i_DI(z80 * pz80){
 /* Push 16-bit AF onto stack */
 void
 i_PUSH_AF(z80 * pz80){
+PUSH_nn(pz80, REGA, REGF);
 }
 /* Logical OR 8-bit immediate against A */
 void
