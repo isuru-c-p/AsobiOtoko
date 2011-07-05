@@ -392,6 +392,13 @@ void LD_C_mem_A(z80*pz80)
 	incPC(pz80, 1);
 }
 
+void LD_SP_nn(z80*pz80)
+{
+	pz80->registers16[SP] = getImmediate16(pz80);
+	pz80->tcycles = 12;
+	incPC(pz80, 3);
+}
+
 
 
 void
@@ -2200,10 +2207,12 @@ i_NOP(z80 * pz80){
 /* Load 16-bit immediate into BC */
 void
 i_LD_BC_nn(z80 * pz80){
+LD_nn_immediate(pz80, REGB, REGC);
 }
 /* Save A to address pointed by BC */
 void
 i_LD__BC__A(z80 * pz80){
+LD_nn_mem_n(pz80, REGB, REGC, REGA);
 }
 /* Increment 16-bit BC */
 void
@@ -2223,6 +2232,7 @@ DEC_n(pz80, REGB);
 /* Load 8-bit immediate into B */
 void
 i_LD_B_n(z80 * pz80){
+LD_n_immediate(pz80, REGB);
 }
 /* Rotate A left with carry */
 void
@@ -2231,6 +2241,7 @@ i_RLC_A(z80 * pz80){
 /* Save SP to given address */
 void
 i_LD__nn__SP(z80 * pz80){
+LD_nn_SP(pz80);
 }
 /* Add 16-bit BC to HL */
 void
@@ -2240,6 +2251,7 @@ ADD_HL_nn(pz80, REGB, REGC);
 /* Load A from address pointed to by BC */
 void
 i_LD_A__BC_(z80 * pz80){
+LD_n_nn_mem(pz80, REGA, REGB, REGC);
 }
 /* Decrement 16-bit BC */
 void
@@ -2259,6 +2271,7 @@ DEC_n(pz80, REGC);
 /* Load 8-bit immediate into C */
 void
 i_LD_C_n(z80 * pz80){
+LD_n_immediate(pz80, REGC);
 }
 /* Rotate A right with carry */
 void
@@ -2271,10 +2284,12 @@ i_STOP(z80 * pz80){
 /* Load 16-bit immediate into DE */
 void
 i_LD_DE_nn(z80 * pz80){
+LD_nn_immediate(pz80, REGD, REGE);
 }
 /* Save A to address pointed by DE */
 void
 i_LD__DE__A(z80 * pz80){
+LD_nn_mem_n(pz80, REGD, REGE, REGA);
 }
 /* Increment 16-bit DE */
 void
@@ -2294,6 +2309,7 @@ DEC_n(pz80, REGD);
 /* Load 8-bit immediate into D */
 void
 i_LD_D_n(z80 * pz80){
+LD_n_immediate(pz80, REGD);
 }
 /* Rotate A left */
 void
@@ -2311,6 +2327,7 @@ ADD_HL_nn(pz80, REGD, REGE);
 /* Load A from address pointed to by DE */
 void
 i_LD_A__DE_(z80 * pz80){
+LD_n_nn_mem(pz80, REGA, REGD, REGE);
 }
 /* Decrement 16-bit DE */
 void
@@ -2330,6 +2347,7 @@ DEC_n(pz80, REGE);
 /* Load 8-bit immediate into E */
 void
 i_LD_E_n(z80 * pz80){
+LD_n_immediate(pz80, REGE);
 }
 /* Rotate A right */
 void
@@ -2342,10 +2360,12 @@ i_JR_NZ_n(z80 * pz80){
 /* Load 16-bit immediate into HL */
 void
 i_LD_HL_nn(z80 * pz80){
+LD_nn_immediate(pz80, REGH, REGL);
 }
 /* Save A to address pointed by HL, and increment HL */
 void
 i_LDI__HL__A(z80 * pz80){
+LDI_HL_mem_A(pz80);
 }
 /* Increment 16-bit HL */
 void
@@ -2365,6 +2385,7 @@ DEC_n(pz80, REGH);
 /* Load 8-bit immediate into H */
 void
 i_LD_H_n(z80 * pz80){
+LD_n_immediate(pz80, REGH);
 }
 /* Adjust A for BCD addition */
 void
@@ -2382,6 +2403,7 @@ ADD_HL_nn(pz80, REGH, REGL);
 /* Load A from address pointed to by HL, and increment HL */
 void
 i_LDI_A__HL_(z80 * pz80){
+LDI_A_HL_mem(pz80);
 }
 /* Decrement 16-bit HL */
 void
@@ -2401,6 +2423,7 @@ DEC_n(pz80, REGL);
 /* Load 8-bit immediate into L */
 void
 i_LD_L_n(z80 * pz80){
+LD_n_immediate(pz80, REGL);
 }
 /* Complement (logical NOT) on A */
 void
@@ -2413,10 +2436,12 @@ i_JR_NC_n(z80 * pz80){
 /* Load 16-bit immediate into SP */
 void
 i_LD_SP_nn(z80 * pz80){
+LD_SP_nn(pz80);
 }
 /* Save A to address pointed by HL, and decrement HL */
 void
 i_LDD__HL__A(z80 * pz80){
+LDD_HL_mem_A(pz80);
 }
 /* Increment 16-bit HL */
 void
@@ -2441,6 +2466,7 @@ pz80->registers[REGF] = buildStatusFlag((newVal == 0), 0, ((newVal & 0xff) == 0x
 /* Load 8-bit immediate into address pointed by HL */
 void
 i_LD__HL__n(z80 * pz80){
+LD_nn_mem_immediate(pz80, REGH, REGL);
 }
 /* Set carry flag */
 void
@@ -2458,6 +2484,7 @@ ADD_HL_SP(pz80);
 /* Load A from address pointed to by HL, and decrement HL */
 void
 i_LDD_A__HL_(z80 * pz80){
+LDD_A_HL_mem(pz80);
 }
 /* Decrement 16-bit SP */
 void
@@ -2478,6 +2505,7 @@ DEC_n(pz80, REGA);
 /* Load 8-bit immediate into A */
 void
 i_LD_A_n(z80 * pz80){
+LD_n_immediate(pz80, REGA);
 }
 /* Clear carry flag */
 void
@@ -2486,218 +2514,272 @@ i_CCF(z80 * pz80){
 /* Copy B to B */
 void
 i_LD_B_B(z80 * pz80){
+LD_n_n(pz80, REGB, REGB);
 }
 /* Copy C to B */
 void
 i_LD_B_C(z80 * pz80){
+LD_n_n(pz80, REGB, REGC);
 }
 /* Copy D to B */
 void
 i_LD_B_D(z80 * pz80){
+LD_n_n(pz80, REGB, REGD);
 }
 /* Copy E to B */
 void
 i_LD_B_E(z80 * pz80){
+LD_n_n(pz80, REGB, REGE);
 }
 /* Copy H to B */
 void
 i_LD_B_H(z80 * pz80){
+LD_n_n(pz80, REGB, REGH);
 }
 /* Copy L to B */
 void
 i_LD_B_L(z80 * pz80){
+LD_n_n(pz80, REGB, REGL);
 }
 /* Copy value pointed by HL to B */
 void
 i_LD_B__HL_(z80 * pz80){
+LD_n_nn_mem(pz80, REGB, REGH, REGL);
 }
 /* Copy A to B */
 void
 i_LD_B_A(z80 * pz80){
+LD_n_n(pz80, REGB, REGA);
 }
 /* Copy B to C */
 void
 i_LD_C_B(z80 * pz80){
+LD_n_n(pz80, REGC, REGB);
 }
 /* Copy C to C */
 void
 i_LD_C_C(z80 * pz80){
+LD_n_n(pz80, REGC, REGC);
 }
 /* Copy D to C */
 void
 i_LD_C_D(z80 * pz80){
+LD_n_n(pz80, REGC, REGD);
 }
 /* Copy E to C */
 void
 i_LD_C_E(z80 * pz80){
+LD_n_n(pz80, REGC, REGE);
 }
 /* Copy H to C */
 void
 i_LD_C_H(z80 * pz80){
+LD_n_n(pz80, REGC, REGH);
 }
 /* Copy L to C */
 void
 i_LD_C_L(z80 * pz80){
+LD_n_n(pz80, REGC, REGL);
 }
 /* Copy value pointed by HL to C */
 void
 i_LD_C__HL_(z80 * pz80){
+LD_n_nn_mem(pz80, REGC, REGH, REGL);
 }
 /* Copy A to C */
 void
 i_LD_C_A(z80 * pz80){
+LD_n_n(pz80, REGC, REGA);
 }
 /* Copy B to D */
 void
 i_LD_D_B(z80 * pz80){
+LD_n_n(pz80, REGD, REGB);
 }
 /* Copy C to D */
 void
 i_LD_D_C(z80 * pz80){
+LD_n_n(pz80, REGD, REGC);
 }
 /* Copy D to D */
 void
 i_LD_D_D(z80 * pz80){
+LD_n_n(pz80, REGD, REGD);
 }
 /* Copy E to D */
 void
 i_LD_D_E(z80 * pz80){
+LD_n_n(pz80, REGD, REGE);
 }
 /* Copy H to D */
 void
 i_LD_D_H(z80 * pz80){
+LD_n_n(pz80, REGD, REGH);
 }
 /* Copy L to D */
 void
 i_LD_D_L(z80 * pz80){
+LD_n_n(pz80, REGD, REGL);
 }
 /* Copy value pointed by HL to D */
 void
 i_LD_D__HL_(z80 * pz80){
+LD_n_nn_mem(pz80, REGD, REGH, REGL);
 }
 /* Copy A to D */
 void
 i_LD_D_A(z80 * pz80){
+LD_n_n(pz80, REGD, REGA);
 }
 /* Copy B to E */
 void
 i_LD_E_B(z80 * pz80){
+LD_n_n(pz80, REGE, REGB);
 }
 /* Copy C to E */
 void
 i_LD_E_C(z80 * pz80){
+LD_n_n(pz80, REGE, REGC);
 }
 /* Copy D to E */
 void
 i_LD_E_D(z80 * pz80){
+LD_n_n(pz80, REGE, REGD);
 }
 /* Copy E to E */
 void
 i_LD_E_E(z80 * pz80){
+LD_n_n(pz80, REGE, REGE);
 }
 /* Copy H to E */
 void
 i_LD_E_H(z80 * pz80){
+LD_n_n(pz80, REGE, REGH);
 }
 /* Copy L to E */
 void
 i_LD_E_L(z80 * pz80){
+LD_n_n(pz80, REGE, REGL);
 }
 /* Copy value pointed by HL to E */
 void
 i_LD_E__HL_(z80 * pz80){
+LD_n_nn_mem(pz80, REGE, REGH, REGL);
 }
 /* Copy A to E */
 void
 i_LD_E_A(z80 * pz80){
+LD_n_n(pz80, REGE, REGA);
 }
 /* Copy B to H */
 void
 i_LD_H_B(z80 * pz80){
+LD_n_n(pz80, REGH, REGB);
 }
 /* Copy C to H */
 void
 i_LD_H_C(z80 * pz80){
+LD_n_n(pz80, REGH, REGC);
 }
 /* Copy D to H */
 void
 i_LD_H_D(z80 * pz80){
+LD_n_n(pz80, REGH, REGD);
 }
 /* Copy E to H */
 void
 i_LD_H_E(z80 * pz80){
+LD_n_n(pz80, REGH, REGE);
 }
 /* Copy H to H */
 void
 i_LD_H_H(z80 * pz80){
+LD_n_n(pz80, REGH, REGH);
 }
 /* Copy L to H */
 void
 i_LD_H_L(z80 * pz80){
+LD_n_n(pz80, REGH, REGL);
 }
 /* Copy value pointed by HL to H */
 void
 i_LD_H__HL_(z80 * pz80){
+LD_n_nn_mem(pz80, REGH, REGH, REGL);
 }
 /* Copy A to H */
 void
 i_LD_H_A(z80 * pz80){
+LD_n_n(pz80, REGH, REGA);
 }
 /* Copy B to L */
 void
 i_LD_L_B(z80 * pz80){
+LD_n_n(pz80, REGL, REGB);
 }
 /* Copy C to L */
 void
 i_LD_L_C(z80 * pz80){
+LD_n_n(pz80, REGL, REGC);
 }
 /* Copy D to L */
 void
 i_LD_L_D(z80 * pz80){
+LD_n_n(pz80, REGL, REGD);
 }
 /* Copy E to L */
 void
 i_LD_L_E(z80 * pz80){
+LD_n_n(pz80, REGL, REGE);
 }
 /* Copy H to L */
 void
 i_LD_L_H(z80 * pz80){
+LD_n_n(pz80, REGL, REGH);
 }
 /* Copy L to L */
 void
 i_LD_L_L(z80 * pz80){
+LD_n_n(pz80, REGL, REGL);
 }
 /* Copy value pointed by HL to L */
 void
 i_LD_L__HL_(z80 * pz80){
+LD_n_nn_mem(pz80, REGL, REGH, REGL);
 }
 /* Copy A to L */
 void
 i_LD_L_A(z80 * pz80){
+LD_n_n(pz80, REGL, REGA);
 }
 /* Copy B to address pointed by HL */
 void
 i_LD__HL__B(z80 * pz80){
+LD_nn_mem_n(pz80, REGH, REGL, REGB);
 }
 /* Copy C to address pointed by HL */
 void
 i_LD__HL__C(z80 * pz80){
+LD_nn_mem_n(pz80, REGH, REGL, REGC);
 }
 /* Copy D to address pointed by HL */
 void
 i_LD__HL__D(z80 * pz80){
+LD_nn_mem_n(pz80, REGH, REGL, REGD);
 }
 /* Copy E to address pointed by HL */
 void
 i_LD__HL__E(z80 * pz80){
+LD_nn_mem_n(pz80, REGH, REGL, REGE);
 }
 /* Copy H to address pointed by HL */
 void
 i_LD__HL__H(z80 * pz80){
+LD_nn_mem_n(pz80, REGH, REGL, REGH);
 }
 /* Copy L to address pointed by HL */
 void
 i_LD__HL__L(z80 * pz80){
+LD_nn_mem_n(pz80, REGH, REGL, REGL);
 }
 /* Halt processor */
 void
@@ -2706,38 +2788,47 @@ i_HALT(z80 * pz80){
 /* Copy A to address pointed by HL */
 void
 i_LD__HL__A(z80 * pz80){
+LD_nn_mem_n(pz80, REGH, REGL, REGA);
 }
 /* Copy B to A */
 void
 i_LD_A_B(z80 * pz80){
+LD_n_n(pz80, REGA, REGB);
 }
 /* Copy C to A */
 void
 i_LD_A_C(z80 * pz80){
+LD_n_n(pz80, REGA, REGC);
 }
 /* Copy D to A */
 void
 i_LD_A_D(z80 * pz80){
+LD_n_n(pz80, REGA, REGD);
 }
 /* Copy E to A */
 void
 i_LD_A_E(z80 * pz80){
+LD_n_n(pz80, REGA, REGE);
 }
 /* Copy H to A */
 void
 i_LD_A_H(z80 * pz80){
+LD_n_n(pz80, REGA, REGH);
 }
 /* Copy L to A */
 void
 i_LD_A_L(z80 * pz80){
+LD_n_n(pz80, REGA, REGL);
 }
 /* Copy value pointed by HL to A */
 void
 i_LD_A__HL_(z80 * pz80){
+LD_n_nn_mem(pz80, REGA, REGH, REGL);
 }
 /* Copy A to A */
 void
 i_LD_A_A(z80 * pz80){
+LD_n_n(pz80, REGA, REGA);
 }
 /* Add B to A */
 void
@@ -3194,6 +3285,7 @@ i_RST_18(z80 * pz80){
 /* Save A at address pointed to by (FF00h + 8-bit immediate) */
 void
 i_LDH__n__A(z80 * pz80){
+LDH_immediate_A(pz80);
 }
 /* Pop 16-bit value from stack into HL */
 void
@@ -3202,6 +3294,7 @@ i_POP_HL(z80 * pz80){
 /* Save A at address pointed to by (FF00h + C) */
 void
 i_LDH__C__A(z80 * pz80){
+LD_C_mem_A(pz80);
 }
 /* Operation removed in this CPU */
 //void
@@ -3236,6 +3329,7 @@ i_JP__HL_(z80 * pz80){
 /* Save A at given 16-bit address */
 void
 i_LD__nn__A(z80 * pz80){
+LD_immediate_mem_n(pz80, REGA);
 }
 /* Operation removed in this CPU */
 //void
@@ -3261,6 +3355,7 @@ i_RST_28(z80 * pz80){
 /* Load A from address pointed to by (FF00h + 8-bit immediate) */
 void
 i_LDH_A__n_(z80 * pz80){
+LDH_A_immediate(pz80);
 }
 /* Pop 16-bit value from stack into AF */
 void
@@ -3294,14 +3389,17 @@ i_RST_30(z80 * pz80){
 /* Add signed 8-bit immediate to SP and save result in HL */
 void
 i_LDHL_SP_d(z80 * pz80){
+LDHL_SP_immediate(pz80);
 }
 /* Copy HL to SP */
 void
 i_LD_SP_HL(z80 * pz80){
+LD_SP_HL(pz80);
 }
 /* Load A from given 16-bit address */
 void
 i_LD_A__nn_(z80 * pz80){
+LD_n_immediate_mem(pz80, REGA);
 }
 /* Enable interrupts */
 void
