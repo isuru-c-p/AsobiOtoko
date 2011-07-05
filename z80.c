@@ -280,6 +280,8 @@ SRL_n(z80*pz80, int reg){
 		setFlag(newFlag,ZERO);
 	pz80->registers[REGF] = newFlag;
 	pz80->registers[reg] = newbyte;
+	pz80->tcycles = 8;
+	incPC(pz80, 1);
 }
 
 void
@@ -287,6 +289,7 @@ SRL_HL(z80*pz80){
 	loadRegMemFromHL(pz80);
 	SRL_n(pz80,REGMEM);
 	saveRegMemToHL(pz80);
+	pz80->tcycles = 16;
 }
 
 void
@@ -302,6 +305,8 @@ SRA_n(z80*pz80, int reg){
 		setFlag(newFlag,ZERO);
 	pz80->registers[REGF] = newFlag;
 	pz80->registers[reg] = newbyte;
+	pz80->tcycles = 8;
+	incPC(pz80, 1);
 }
 
 
@@ -311,6 +316,8 @@ SRA_HL(z80*pz80){
 	loadRegMemFromHL(pz80);
 	SRA_n(pz80,REGMEM);
 	saveRegMemToHL(pz80);
+	pz80->tcycles = 16;
+	//DO not incPC as sub function does this
 }
 
 
@@ -325,6 +332,8 @@ SLA_n(z80*pz80, int reg){
 		setFlag(newFlag,ZERO);
 	pz80->registers[REGF] = newFlag;
 	pz80->registers[reg] = newbyte;
+	pz80->tcycles = 8;
+	incPC(pz80, 1);
 }
 
 void
@@ -332,6 +341,8 @@ SLA_HL(z80*pz80){
 	loadRegMemFromHL(pz80);
 	SLA_n(pz80,REGMEM);
 	saveRegMemToHL(pz80);
+	pz80->tcycles = 16;
+	//DO not incPC as sub function does this
 }
 
 
@@ -347,12 +358,16 @@ void RR_n(z80*pz80,int reg){
 		setFlag(newFlag,ZERO);
 	pz80->registers[REGF] = newFlag;
 	pz80->registers[reg] = newbyte;
+	pz80->tcycles = 8;
+	incPC(pz80, 1);
 }
 
 void RR_HL(z80*pz80){
 	loadRegMemFromHL(pz80);
 	RR_n(pz80,REGMEM);
 	saveRegMemToHL(pz80);
+	pz80->tcycles = 16;
+	//DO not incPC as sub function does this
 }
 
 void RRC_n(z80*pz80,int reg){
@@ -367,12 +382,16 @@ void RRC_n(z80*pz80,int reg){
 		setFlag(newFlag,ZERO);
 	pz80->registers[REGF] = newFlag;
 	pz80->registers[reg] = newbyte;
+	pz80->tcycles = 8;
+	incPC(pz80, 1);
 }
 
 void RRC_HL(z80*pz80){
 	loadRegMemFromHL(pz80);
 	RRC_n(pz80,REGMEM);
 	saveRegMemToHL(pz80);
+	pz80->tcycles = 16;
+	//DO not incPC as sub function does this
 }
 
 void RL_n(z80*pz80,int reg){
@@ -385,12 +404,16 @@ void RL_n(z80*pz80,int reg){
 		setFlag(newFlag,ZERO);
 	pz80->registers[REGF] = newFlag;
 	pz80->registers[reg] = newbyte;
+	pz80->tcycles = 8;
+	incPC(pz80, 1);
 }
 
 void RL_HL(z80*pz80){
 	loadRegMemFromHL(pz80);
 	RL_n(pz80,REGMEM);
 	saveRegMemToHL(pz80);
+	pz80->tcycles = 16;
+	//DO not incPC as sub function does this
 }
 
 
@@ -406,23 +429,31 @@ void RLC_n(z80*pz80,int reg){
 		setFlag(newFlag,ZERO);
 	pz80->registers[REGF] = newFlag;
 	pz80->registers[reg] = newbyte;
+	pz80->tcycles = 8;
+	incPC(pz80, 1);
 }
 
 void RLC_HL(z80*pz80){
 	loadRegMemFromHL(pz80);
 	RLC_n(pz80,REGMEM);
 	saveRegMemToHL(pz80);
+	pz80->tcycles = 16;
+	//DO not incPC as sub function does this
 }
 
 
 void Test_Bit(z80*pz80, int reg,int bit){
 	pz80->registers[REGF] = buildStatusFlag(pz80->registers[reg] & (1 << bit) ,0,1, getFlag(pz80->registers[REGF],CARRY) );
-	incPC(pz80,1);
+	pz80->tcycles = 8;
+	incPC(pz80, 1);
 }
 
 void Test_HLBit(z80*pz80,int bit){ 
 	loadRegMemFromHL(pz80);
 	Test_Bit(pz80,REGMEM,bit);
+	saveRegMemToHL(pz80);
+	pz80->tcycles = 16;
+	//DO not incPC as sub function does this
 }
 
 /* these two nibble swap functions dont use build status flag because most are fixed and this is much faster */
@@ -434,17 +465,21 @@ void nibbleSwap(z80*pz80,int reg){
 	}
 	 pz80->registers[REGF] = 0;
 	 pz80->registers[reg] = ( (byte >> 4) & 0b00001111) | ( (byte << 4) & 0b11110000 );
-	 incPC(pz80,1);
+	pz80->tcycles = 8;
+	incPC(pz80, 1);
 }
 
 void nibbleHLSwap(z80*pz80){
 	loadRegMemFromHL(pz80);
 	nibbleSwap(pz80,REGMEM);
+	saveRegMemToHL(pz80);
+	pz80->tcycles = 16;
+	//DO not incPC as sub function does this
 }
 
 /* TODO possible optimisation seperate functions */
 #define Set_Bit(cpu,reg,bit) Set_BitToVal(cpu,reg,bit,1)
-#define Set_HLBit(cpu,bit) Set_HLBitToVal(cpu,bit,0)
+#define Set_HLBit(cpu,bit) Set_HLBitToVal(cpu,bit,1)
 #define Reset_Bit(cpu,reg,bit) Set_BitToVal(cpu,reg,bit,0)
 #define Reset_HLBit(cpu,bit) Set_HLBitToVal(cpu,bit,0)
 
@@ -454,7 +489,8 @@ void Set_BitToVal(z80*pz80, int reg,int bit,int val){
 		pz80->registers[reg] |= (1<<bit);
 	else
 		pz80->registers[reg] &= ~(1<<bit);
-	incPC(pz80,1);
+	pz80->tcycles = 8;
+	incPC(pz80, 1);
 }
 
 
@@ -462,6 +498,9 @@ void Set_BitToVal(z80*pz80, int reg,int bit,int val){
 void Set_HLBitToVal(z80*pz80,int bit,int val){
 	loadRegMemFromHL(pz80);
 	Set_BitToVal(pz80,REGMEM,bit,val);
+	saveRegMemToHL(pz80);
+	pz80->tcycles = 16;
+	//DO not incPC as sub function does this
 }
 
 
