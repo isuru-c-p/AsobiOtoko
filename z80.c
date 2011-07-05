@@ -3594,6 +3594,9 @@ JP_Z_nn(pz80);
 /* Extended operations (two-byte instruction code) */
 void
 i_Ext_ops(z80 * pz80){
+incPC(pz80, 1);
+uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]);
+dispatchInstruction(pz80, op, 1);
 }
 /* Call routine at 16-bit location if last result was zero */
 void
