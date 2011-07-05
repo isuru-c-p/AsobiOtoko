@@ -5,7 +5,7 @@
 
 #define VRAM_SIZE 0
 
-struct _gpu {
+typedef struct _gpu {
 	int mode;
 	uint8_t vram[VRAM_SIZE];
 	uint8_t SCX; //scrollX
