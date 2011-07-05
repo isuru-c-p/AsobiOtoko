@@ -69,6 +69,9 @@ saveRegMemToHL(z80*pz80);
 void 
 executeNextInstruction(z80 * pz80);
 
+void 
+dispatchInstruction(z80 * pz80,uint8_t opcode, int secondary);
+
 /* opcode functions here */
 //////////////////////////////////////////////////////////////////////
 /* No Operation */

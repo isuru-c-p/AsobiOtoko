@@ -632,9 +632,10 @@ void Set_HLBitToVal(z80*pz80,int bit,int val){
 }
 
 
+/* tcycles and pc are updated by instructions */
 void executeNextInstruction(z80 * pz80){
 	MMU * pmmu = &(pz80->mmu);
-	uint16_t insAddress =  cpu->registers16[PC];
+	uint16_t insAddress =  pz80->registers16[PC];
 	uint8_t	instruction = rb(pmmu,insAddress);
 	dispatchInstruction(pz80,instruction,pz80->doSecondaryOpcode);
 }
@@ -2208,6 +2209,8 @@ dispatchInstruction(z80 * pz80,uint8_t opcode, int secondary){
 /* No Operation */
 void
 i_NOP(z80 * pz80){
+	incPC(pz80,1);
+	pz80->tcycles = 4;
 }
 /* Load 16-bit immediate into BC */
 void
@@ -4710,7 +4713,3 @@ i2_SET_7_A(z80 * pz80){
 
 /********************/
 
-
-
-
-z80 * pz80
