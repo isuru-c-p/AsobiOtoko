@@ -885,11 +885,7 @@ void nibbleHLSwap(z80*pz80){
 	//DO not incPC as sub function does this
 }
 
-/* TODO possible optimisation seperate functions */
-#define Set_Bit(cpu,reg,bit) Set_BitToVal(cpu,reg,bit,1)
-#define Set_HLBit(cpu,bit) Set_HLBitToVal(cpu,bit,1)
-#define Reset_Bit(cpu,reg,bit) Set_BitToVal(cpu,reg,bit,0)
-#define Reset_HLBit(cpu,bit) Set_HLBitToVal(cpu,bit,0)
+
 
 /* set and reset the same */
 void Set_BitToVal(z80*pz80, int reg,int bit,int val){

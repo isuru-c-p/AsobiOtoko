@@ -37,11 +37,35 @@ void test_TestBit(){
 }
 
 
+void test_SetResetBit(){ // testing flags unaffected
+	z80 cpu;
+	initZ80(&cpu);
+	cpu.registers[REGF] = 0;
+	Set_Bit(&cpu,REGA,0);
+	assert(cpu.registers[REGA] == 0x01);
+	assert(cpu.registers[REGF] == 0);
+	cpu.registers[REGF] = 0xff;
+	Set_Bit(&cpu,REGA,7);
+	assert(cpu.registers[REGF] ==  0xff);
+	assert(cpu.registers[REGA] == 0x81);
+	cpu.registers[REGF] = 0;
+	Reset_Bit(&cpu,REGA,0);
+	assert(cpu.registers[REGA] == 0x80);
+	assert(cpu.registers[REGF] == 0);
+	cpu.registers[REGF] = 0xff;
+	Reset_Bit(&cpu,REGA,7);
+	assert(cpu.registers[REGF] ==  0xff);
+	assert(cpu.registers[REGA] == 0x00);
+}
+
+
+
 
 int 
 main (int argc, char *argv[])
 {
 	test_BuildStatusFlag();
 	test_TestBit();
+	test_SetResetBit();
 	return 0;
 }

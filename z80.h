@@ -55,6 +55,13 @@ typedef struct _z80 {
 
 #define incPC(pz80, n) ((pz80)->registers16[PC] += (n))
 
+/* TODO possible optimisation seperate functions */
+#define Set_Bit(cpu,reg,bit) Set_BitToVal(cpu,reg,bit,1)
+#define Set_HLBit(cpu,bit) Set_HLBitToVal(cpu,bit,1)
+#define Reset_Bit(cpu,reg,bit) Set_BitToVal(cpu,reg,bit,0)
+#define Reset_HLBit(cpu,bit) Set_HLBitToVal(cpu,bit,0)
+
+
 
 /* general purpose functions */
 	
@@ -75,6 +82,8 @@ dispatchInstruction(z80 * pz80,uint8_t opcode, int secondary);
 
 void
 initZ80(z80*pz80);
+
+void Set_BitToVal(z80*pz80, int reg,int bit,int val);
 
 /* opcode functions here */
 //////////////////////////////////////////////////////////////////////
