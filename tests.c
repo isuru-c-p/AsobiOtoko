@@ -4,6 +4,11 @@
 #include "assert.h"
 
 
+void Set_BitToVal(z80*pz80, int reg,int bit,int val);
+void Test_Bit(z80*pz80,int reg,int bit);
+
+
+
 void test_BuildStatusFlag(){
 	assert(buildStatusFlag(0,0,0,0) == 0);
 	assert(buildStatusFlag(1,1,1,1) == 0xf0);

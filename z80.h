@@ -83,7 +83,7 @@ dispatchInstruction(z80 * pz80,uint8_t opcode, int secondary);
 void
 initZ80(z80*pz80);
 
-void Set_BitToVal(z80*pz80, int reg,int bit,int val);
+
 
 /* opcode functions here */
 //////////////////////////////////////////////////////////////////////

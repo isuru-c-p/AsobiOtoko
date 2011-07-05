@@ -1,5 +1,6 @@
 #include "mmu.h"
 #include "string.h" //memcpy bzero
+#include "assert.h"
 
 uint8_t rb(MMU * pmmu,uint16_t address) {
 	switch (address >> 12)
@@ -68,7 +69,8 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 			
 	}
 
-	
+	assert(0); // should never execute
+	return 0;
 }
 
 void wb(MMU * pmmu,uint16_t address, uint8_t val) {
