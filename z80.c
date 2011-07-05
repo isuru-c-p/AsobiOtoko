@@ -473,7 +473,7 @@ void JP_NZ_nn(z80*pz80)
 	}
 	else
 	{
-		// TODO: T cycles if jump isn't taken
+		pz80->tcycles = 12;
 		incPC(pz80, 3);
 	}
 }
@@ -486,7 +486,7 @@ void JP_Z_nn(z80*pz80)
 	}
 	else
 	{
-		// TODO: T cycles if jump isn't taken
+		pz80->tcycles = 12;
 		incPC(pz80, 3);
 	}	
 }
@@ -499,7 +499,7 @@ void JP_NC_nn(z80*pz80)
 	}
 	else
 	{
-		// TODO: T cycles if jump isn't taken
+		pz80->tcycles = 12;
 		incPC(pz80, 3);
 	}
 }
@@ -512,7 +512,7 @@ void JP_C_nn(z80*pz80)
 	}
 	else
 	{
-		// TODO: T cycles if jump isn't taken
+		pz80->tcycles = 12;
 		incPC(pz80, 3);
 	}	
 }
@@ -542,7 +542,7 @@ void JR_NZ_n(z80*pz80)
 	}
 	else
 	{
-		// TODO: T cycles if jump isn't taken
+		pz80->tcycles = 8;
 		incPC(pz80, 2);
 	}
 }
@@ -555,7 +555,7 @@ void JR_Z_n(z80*pz80)
 	}
 	else
 	{
-		// TODO: T cycles if jump isn't taken
+		pz80->tcycles = 8;
 		incPC(pz80, 2);
 	}
 }
@@ -568,7 +568,7 @@ void JR_NC_n(z80*pz80)
 	}
 	else
 	{
-		// TODO: T cycles if jump isn't taken
+		pz80->tcycles = 8;
 		incPC(pz80, 2);
 	}
 }
@@ -581,7 +581,7 @@ void JR_C_n(z80*pz80)
 	}
 	else
 	{
-		// TODO: T cycles if jump isn't taken
+		pz80->tcycles = 8;
 		incPC(pz80, 2);
 	}
 }
