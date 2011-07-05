@@ -1,7 +1,7 @@
 #include "z80.h"
 #include "mmu.h"
 
-#include "strings.h" //bzero
+#include "string.h" //bzero
 
 
 uint8_t 
@@ -266,6 +266,31 @@ void Test_HLBit(z80*pz80,int bit){
 	uint16_t addr = getRegister16(pz80,REGH,REGL);
 	uint16_t val = rb(&(pz80->mmu),addr);
 	pz80->registers[REGF] = buildStatusFlag( val & (1 << bit) ,0,1, getFlag(pz80->registers[REGF],CARRY) );
+	incPC(pz80,1);
+}
+
+/* these two nibble swap functions dont use build status flag because most are fixed and this is much faster */
+void nibbleSwap(z80*pz80,int reg){
+	uint8_t byte = pz80->registers[reg];
+	if(byte == 0){// no need to swap it if its zero
+		pz80->registers[REGF] = (1<<ZERO);
+		return;
+	}
+	 pz80->registers[REGF] = 0;
+	 pz80->registers[reg] = ( (byte >> 4) & 0b00001111) | ( (byte << 4) & 0b11110000 );
+	 incPC(pz80,1);
+}
+
+void nibbleHLSwap(z80*pz80){
+	uint16_t addr = getRegister16(pz80,REGH,REGL);
+	uint16_t byte = rb(&(pz80->mmu),addr);
+	if(byte == 0){// no need to swap it if its zero
+		pz80->registers[REGF] = (1<<ZERO);
+		return;
+	}
+	pz80->registers[REGF] = 0;
+	byte = ( (byte >> 4) & 0b00001111) | ( (byte << 4) & 0b11110000 );
+	wb(&(pz80->mmu),addr,byte);
 	incPC(pz80,1);
 }
 
@@ -3180,34 +3205,42 @@ i2_SRA_A(z80 * pz80){
 /* Swap nybbles in B */
 void
 i2_SWAP_B(z80 * pz80){
+	nibbleSwap(pz80,REGB);
 }
 /* Swap nybbles in C */
 void
 i2_SWAP_C(z80 * pz80){
+	nibbleSwap(pz80,REGC);
 }
 /* Swap nybbles in D */
 void
 i2_SWAP_D(z80 * pz80){
+	nibbleSwap(pz80,REGD);
 }
 /* Swap nybbles in E */
 void
 i2_SWAP_E(z80 * pz80){
+	nibbleSwap(pz80,REGE);
 }
 /* Swap nybbles in H */
 void
 i2_SWAP_H(z80 * pz80){
+	nibbleSwap(pz80,REGH);
 }
 /* Swap nybbles in L */
 void
 i2_SWAP_L(z80 * pz80){
+	nibbleSwap(pz80,REGL);
 }
 /* Swap nybbles in value pointed by HL */
 void
 i2_SWAP__HL_(z80 * pz80){
+	nibbleHLSwap(pz80);
 }
 /* Swap nybbles in A */
 void
 i2_SWAP_A(z80 * pz80){
+	nibbleSwap(pz80,REGA);
 }
 /* Shift B right */
 void

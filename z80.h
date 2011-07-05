@@ -37,7 +37,6 @@ typedef struct _z80 {
 #define setFlag(X,FLAG) (X |= (1<<(FLAG)))
 #define getFlag(X,FLAG) (X & (1<<(FLAG)))
 
-#define nibbleSwap(X) (((X) >> 4 & 0b00001111) + ((X) << 4 & 0b11110000))
 
 #define getRegister8(pz80,X) ((pz80)->registers[(X)])
 #define getRegister16(pz80,H,L) ((((uint16_t)(pz80)->registers[(H)]) << 8) + (uint16_t)((pz80)->registers[(L)]))
