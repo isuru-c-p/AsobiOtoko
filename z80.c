@@ -257,8 +257,46 @@ void LD_SP_HL(z80*pz80)
 	incPC(pz80, 1);
 }
 
+void Test_Bit(z80*pz80, int reg,int bit){
+	pz80->registers[REGF] = buildStatusFlag(pz80->registers[reg] & (1 << bit) ,0,1, getFlag(pz80->registers[REGF],CARRY) );
+	incPC(pz80,1);
+}
+
+void Test_HLBit(z80*pz80,int bit){
+	uint16_t addr = getRegister16(pz80,REGH,REGL);
+	uint16_t val = rb(&(pz80->mmu),addr);
+	pz80->registers[REGF] = buildStatusFlag( val & (1 << bit) ,0,1, getFlag(pz80->registers[REGF],CARRY) );
+	incPC(pz80,1);
+}
+
+/* TODO possible optimisation seperate functions */
+#define Set_Bit(cpu,reg,bit) Set_BitToVal(cpu,reg,bit,1)
+#define Set_HLBit(cpu,bit) Set_HLBitToVal(cpu,bit,0)
+#define Reset_Bit(cpu,reg,bit) Set_BitToVal(cpu,reg,bit,0)
+#define Reset_HLBit(cpu,bit) Set_HLBitToVal(cpu,bit,0)
+
+/* set and reset the same */
+void Set_BitToVal(z80*pz80, int reg,int bit,int val){
+	if(val)
+		pz80->registers[reg] |= (1<<bit);
+	else
+		pz80->registers[reg] &= ~(1<<bit);
+	incPC(pz80,1);
+}
 
 
+/* set and reset the same */
+void Set_HLBitToVal(z80*pz80,int bit,int val){
+	uint16_t addr = getRegister16(pz80,REGH,REGL);
+	MMU * pmmu = &(pz80->mmu);
+	uint8_t byte = rb(pmmu,addr);
+	if(val)
+		byte |= (1<<bit) ;
+	else
+		byte &= ~(1<<bit);
+	wb(pmmu,addr,byte);
+	incPC(pz80,1);
+}
 
 
 void 
@@ -3206,258 +3244,322 @@ i2_SRL_A(z80 * pz80){
 /* Test bit 0 of B */
 void
 i2_BIT_0_B(z80 * pz80){
+	Test_Bit(pz80,REGB,0);
 }
 /* Test bit 0 of C */
 void
 i2_BIT_0_C(z80 * pz80){
+	Test_Bit(pz80,REGC,0);
 }
 /* Test bit 0 of D */
 void
 i2_BIT_0_D(z80 * pz80){
+	Test_Bit(pz80,REGD,0);
 }
 /* Test bit 0 of E */
 void
 i2_BIT_0_E(z80 * pz80){
+	Test_Bit(pz80,REGE,0);
 }
 /* Test bit 0 of H */
 void
 i2_BIT_0_H(z80 * pz80){
+	Test_Bit(pz80,REGH,0);
 }
 /* Test bit 0 of L */
 void
 i2_BIT_0_L(z80 * pz80){
+	Test_Bit(pz80,REGL,0);
 }
 /* Test bit 0 of value pointed by HL */
 void
 i2_BIT_0__HL_(z80 * pz80){
+	Test_HLBit(pz80,0);
 }
 /* Test bit 0 of A */
 void
 i2_BIT_0_A(z80 * pz80){
+	Test_Bit(pz80,REGA,0);
 }
 /* Test bit 1 of B */
 void
 i2_BIT_1_B(z80 * pz80){
+	Test_Bit(pz80,REGB,1);
 }
 /* Test bit 1 of C */
 void
 i2_BIT_1_C(z80 * pz80){
+	Test_Bit(pz80,REGC,1);
 }
 /* Test bit 1 of D */
 void
 i2_BIT_1_D(z80 * pz80){
+	Test_Bit(pz80,REGD,1);
 }
 /* Test bit 1 of E */
 void
 i2_BIT_1_E(z80 * pz80){
+	Test_Bit(pz80,REGE,1);
 }
 /* Test bit 1 of H */
 void
 i2_BIT_1_H(z80 * pz80){
+	Test_Bit(pz80,REGH,1);
 }
 /* Test bit 1 of L */
 void
 i2_BIT_1_L(z80 * pz80){
+	Test_Bit(pz80,REGL,1);
 }
 /* Test bit 1 of value pointed by HL */
 void
 i2_BIT_1__HL_(z80 * pz80){
+	Test_HLBit(pz80,1);
 }
 /* Test bit 1 of A */
 void
 i2_BIT_1_A(z80 * pz80){
+	Test_Bit(pz80,REGA,1);
 }
 /* Test bit 2 of B */
 void
 i2_BIT_2_B(z80 * pz80){
+	Test_Bit(pz80,REGB,2);
 }
 /* Test bit 2 of C */
 void
 i2_BIT_2_C(z80 * pz80){
+	Test_Bit(pz80,REGC,2);
 }
 /* Test bit 2 of D */
 void
 i2_BIT_2_D(z80 * pz80){
+	Test_Bit(pz80,REGD,2);
 }
 /* Test bit 2 of E */
 void
 i2_BIT_2_E(z80 * pz80){
+	Test_Bit(pz80,REGE,2);
 }
 /* Test bit 2 of H */
 void
 i2_BIT_2_H(z80 * pz80){
+	Test_Bit(pz80,REGH,2);
 }
 /* Test bit 2 of L */
 void
 i2_BIT_2_L(z80 * pz80){
+	Test_Bit(pz80,REGL,2);
 }
 /* Test bit 2 of value pointed by HL */
 void
 i2_BIT_2__HL_(z80 * pz80){
+	Test_HLBit(pz80,2);
 }
 /* Test bit 2 of A */
 void
 i2_BIT_2_A(z80 * pz80){
+	Test_Bit(pz80,REGA,2);
 }
 /* Test bit 3 of B */
 void
 i2_BIT_3_B(z80 * pz80){
+	Test_Bit(pz80,REGB,3);
 }
 /* Test bit 3 of C */
 void
 i2_BIT_3_C(z80 * pz80){
+	Test_Bit(pz80,REGC,3);
 }
 /* Test bit 3 of D */
 void
 i2_BIT_3_D(z80 * pz80){
+	Test_Bit(pz80,REGD,3);
 }
 /* Test bit 3 of E */
 void
 i2_BIT_3_E(z80 * pz80){
+	Test_Bit(pz80,REGE,3);
 }
 /* Test bit 3 of H */
 void
 i2_BIT_3_H(z80 * pz80){
+	Test_Bit(pz80,REGH,3);
 }
 /* Test bit 3 of L */
 void
 i2_BIT_3_L(z80 * pz80){
+	Test_Bit(pz80,REGL,3);
 }
 /* Test bit 3 of value pointed by HL */
 void
 i2_BIT_3__HL_(z80 * pz80){
+	Test_HLBit(pz80,3);
 }
 /* Test bit 3 of A */
 void
 i2_BIT_3_A(z80 * pz80){
+	Test_Bit(pz80,REGA,3);
 }
 /* Test bit 4 of B */
 void
 i2_BIT_4_B(z80 * pz80){
+	Test_Bit(pz80,REGB,4);
 }
 /* Test bit 4 of C */
 void
 i2_BIT_4_C(z80 * pz80){
+	Test_Bit(pz80,REGC,4);
 }
 /* Test bit 4 of D */
 void
 i2_BIT_4_D(z80 * pz80){
+	Test_Bit(pz80,REGD,4);
 }
 /* Test bit 4 of E */
 void
 i2_BIT_4_E(z80 * pz80){
+	Test_Bit(pz80,REGE,4);
 }
 /* Test bit 4 of H */
 void
 i2_BIT_4_H(z80 * pz80){
+	Test_Bit(pz80,REGH,4);
 }
 /* Test bit 4 of L */
 void
 i2_BIT_4_L(z80 * pz80){
+	Test_Bit(pz80,REGL,4);
 }
 /* Test bit 4 of value pointed by HL */
 void
 i2_BIT_4__HL_(z80 * pz80){
+	Test_HLBit(pz80,4);
 }
 /* Test bit 4 of A */
 void
 i2_BIT_4_A(z80 * pz80){
+	Test_Bit(pz80,REGA,4);
 }
 /* Test bit 5 of B */
 void
 i2_BIT_5_B(z80 * pz80){
+	Test_Bit(pz80,REGB,5);
 }
 /* Test bit 5 of C */
 void
 i2_BIT_5_C(z80 * pz80){
+	Test_Bit(pz80,REGC,5);
 }
 /* Test bit 5 of D */
 void
 i2_BIT_5_D(z80 * pz80){
+	Test_Bit(pz80,REGD,5);
 }
 /* Test bit 5 of E */
 void
 i2_BIT_5_E(z80 * pz80){
+	Test_Bit(pz80,REGE,5);
 }
 /* Test bit 5 of H */
 void
 i2_BIT_5_H(z80 * pz80){
+	Test_Bit(pz80,REGH,5);
 }
 /* Test bit 5 of L */
 void
 i2_BIT_5_L(z80 * pz80){
+	Test_Bit(pz80,REGL,5);
 }
 /* Test bit 5 of value pointed by HL */
 void
 i2_BIT_5__HL_(z80 * pz80){
+	Test_HLBit(pz80,5);
 }
 /* Test bit 5 of A */
 void
 i2_BIT_5_A(z80 * pz80){
+	Test_Bit(pz80,REGA,5);
 }
 /* Test bit 6 of B */
 void
 i2_BIT_6_B(z80 * pz80){
+	Test_Bit(pz80,REGB,6);
 }
 /* Test bit 6 of C */
 void
 i2_BIT_6_C(z80 * pz80){
+	Test_Bit(pz80,REGC,6);
 }
 /* Test bit 6 of D */
 void
 i2_BIT_6_D(z80 * pz80){
+	Test_Bit(pz80,REGD,6);
 }
 /* Test bit 6 of E */
 void
 i2_BIT_6_E(z80 * pz80){
+	Test_Bit(pz80,REGE,6);
 }
 /* Test bit 6 of H */
 void
 i2_BIT_6_H(z80 * pz80){
+	Test_Bit(pz80,REGH,6);
 }
 /* Test bit 6 of L */
 void
 i2_BIT_6_L(z80 * pz80){
+	Test_Bit(pz80,REGL,6);
 }
 /* Test bit 6 of value pointed by HL */
 void
 i2_BIT_6__HL_(z80 * pz80){
+	Test_HLBit(pz80,6);
 }
 /* Test bit 6 of A */
 void
 i2_BIT_6_A(z80 * pz80){
+	Test_Bit(pz80,REGA,6);
 }
 /* Test bit 7 of B */
 void
 i2_BIT_7_B(z80 * pz80){
+	Test_Bit(pz80,REGB,7);
 }
 /* Test bit 7 of C */
 void
 i2_BIT_7_C(z80 * pz80){
+	Test_Bit(pz80,REGC,7);
 }
 /* Test bit 7 of D */
 void
 i2_BIT_7_D(z80 * pz80){
+	Test_Bit(pz80,REGD,7);
 }
 /* Test bit 7 of E */
 void
 i2_BIT_7_E(z80 * pz80){
+	Test_Bit(pz80,REGE,7);
 }
 /* Test bit 7 of H */
 void
 i2_BIT_7_H(z80 * pz80){
+	Test_Bit(pz80,REGH,7);
 }
 /* Test bit 7 of L */
 void
 i2_BIT_7_L(z80 * pz80){
+	Test_Bit(pz80,REGL,7);
 }
 /* Test bit 7 of value pointed by HL */
 void
 i2_BIT_7__HL_(z80 * pz80){
+	Test_HLBit(pz80,7);
 }
 /* Test bit 7 of A */
 void
 i2_BIT_7_A(z80 * pz80){
+	Test_Bit(pz80,REGA,7);
 }
 /* Clear (reset) bit 0 of B */
 void
@@ -3714,262 +3816,327 @@ i2_RES_7__HL_(z80 * pz80){
 /* Clear (reset) bit 7 of A */
 void
 i2_RES_7_A(z80 * pz80){
+	Reset_Bit(pz80,REGA,0);
 }
 /* Set bit 0 of B */
 void
 i2_SET_0_B(z80 * pz80){
+	Set_Bit(pz80,REGB,0);
 }
 /* Set bit 0 of C */
 void
 i2_SET_0_C(z80 * pz80){
+	Set_Bit(pz80,REGC,0);
 }
 /* Set bit 0 of D */
 void
 i2_SET_0_D(z80 * pz80){
+	Set_Bit(pz80,REGD,0);
 }
 /* Set bit 0 of E */
 void
 i2_SET_0_E(z80 * pz80){
+	Set_Bit(pz80,REGE,0);
 }
 /* Set bit 0 of H */
 void
 i2_SET_0_H(z80 * pz80){
+	Set_Bit(pz80,REGH,0);
 }
 /* Set bit 0 of L */
 void
 i2_SET_0_L(z80 * pz80){
+	Set_Bit(pz80,REGL,0);
 }
 /* Set bit 0 of value pointed by HL */
 void
 i2_SET_0__HL_(z80 * pz80){
+	Set_HLBit(pz80,0);
 }
 /* Set bit 0 of A */
 void
 i2_SET_0_A(z80 * pz80){
+	Set_Bit(pz80,REGA,0);
 }
 /* Set bit 1 of B */
 void
 i2_SET_1_B(z80 * pz80){
+	Set_Bit(pz80,REGB,1);
 }
 /* Set bit 1 of C */
 void
 i2_SET_1_C(z80 * pz80){
+	Set_Bit(pz80,REGC,1);
 }
 /* Set bit 1 of D */
 void
 i2_SET_1_D(z80 * pz80){
+	Set_Bit(pz80,REGD,1);
 }
 /* Set bit 1 of E */
 void
 i2_SET_1_E(z80 * pz80){
+	Set_Bit(pz80,REGE,1);
 }
 /* Set bit 1 of H */
 void
 i2_SET_1_H(z80 * pz80){
+	Set_Bit(pz80,REGH,1);
 }
 /* Set bit 1 of L */
 void
 i2_SET_1_L(z80 * pz80){
+	Set_Bit(pz80,REGL,1);
 }
 /* Set bit 1 of value pointed by HL */
 void
 i2_SET_1__HL_(z80 * pz80){
+	Set_HLBit(pz80,1);
 }
 /* Set bit 1 of A */
 void
 i2_SET_1_A(z80 * pz80){
+	Set_Bit(pz80,REGA,1);
 }
 /* Set bit 2 of B */
 void
 i2_SET_2_B(z80 * pz80){
+	Set_Bit(pz80,REGB,2);
 }
 /* Set bit 2 of C */
 void
 i2_SET_2_C(z80 * pz80){
+	Set_Bit(pz80,REGC,2);
 }
 /* Set bit 2 of D */
 void
 i2_SET_2_D(z80 * pz80){
+	Set_Bit(pz80,REGD,2);
 }
 /* Set bit 2 of E */
 void
 i2_SET_2_E(z80 * pz80){
+	Set_Bit(pz80,REGE,2);
 }
 /* Set bit 2 of H */
 void
 i2_SET_2_H(z80 * pz80){
+	Set_Bit(pz80,REGH,2);
 }
 /* Set bit 2 of L */
 void
 i2_SET_2_L(z80 * pz80){
+	Set_Bit(pz80,REGL,2);
 }
 /* Set bit 2 of value pointed by HL */
 void
 i2_SET_2__HL_(z80 * pz80){
+	Set_HLBit(pz80,2);
 }
 /* Set bit 2 of A */
 void
 i2_SET_2_A(z80 * pz80){
+	Set_Bit(pz80,REGA,2);
 }
 /* Set bit 3 of B */
 void
 i2_SET_3_B(z80 * pz80){
+	Set_Bit(pz80,REGB,3);
 }
 /* Set bit 3 of C */
 void
 i2_SET_3_C(z80 * pz80){
+	Set_Bit(pz80,REGC,3);
 }
 /* Set bit 3 of D */
 void
 i2_SET_3_D(z80 * pz80){
+	Set_Bit(pz80,REGD,3);
 }
 /* Set bit 3 of E */
 void
 i2_SET_3_E(z80 * pz80){
+	Set_Bit(pz80,REGE,3);
 }
 /* Set bit 3 of H */
 void
 i2_SET_3_H(z80 * pz80){
+	Set_Bit(pz80,REGH,3);
 }
 /* Set bit 3 of L */
 void
 i2_SET_3_L(z80 * pz80){
+	Set_Bit(pz80,REGL,3);
 }
 /* Set bit 3 of value pointed by HL */
 void
 i2_SET_3__HL_(z80 * pz80){
+	Set_HLBit(pz80,3);
 }
 /* Set bit 3 of A */
 void
 i2_SET_3_A(z80 * pz80){
+	Set_Bit(pz80,REGA,3);
 }
 /* Set bit 4 of B */
 void
 i2_SET_4_B(z80 * pz80){
+	Set_Bit(pz80,REGB,4);
 }
 /* Set bit 4 of C */
 void
 i2_SET_4_C(z80 * pz80){
+	Set_Bit(pz80,REGC,4);
 }
 /* Set bit 4 of D */
 void
 i2_SET_4_D(z80 * pz80){
+	Set_Bit(pz80,REGD,4);
 }
 /* Set bit 4 of E */
 void
 i2_SET_4_E(z80 * pz80){
+	Set_Bit(pz80,REGE,4);
 }
 /* Set bit 4 of H */
 void
 i2_SET_4_H(z80 * pz80){
+	Set_Bit(pz80,REGH,4);
 }
 /* Set bit 4 of L */
 void
 i2_SET_4_L(z80 * pz80){
+	Set_Bit(pz80,REGL,4);
 }
 /* Set bit 4 of value pointed by HL */
 void
 i2_SET_4__HL_(z80 * pz80){
+	Set_HLBit(pz80,4);
 }
 /* Set bit 4 of A */
 void
 i2_SET_4_A(z80 * pz80){
+	Set_Bit(pz80,REGA,4);
 }
 /* Set bit 5 of B */
 void
 i2_SET_5_B(z80 * pz80){
+	Set_Bit(pz80,REGB,5);
 }
 /* Set bit 5 of C */
 void
 i2_SET_5_C(z80 * pz80){
+	Set_Bit(pz80,REGC,5);
 }
 /* Set bit 5 of D */
 void
 i2_SET_5_D(z80 * pz80){
+	Set_Bit(pz80,REGD,5);
 }
 /* Set bit 5 of E */
 void
 i2_SET_5_E(z80 * pz80){
+	Set_Bit(pz80,REGE,5);
 }
 /* Set bit 5 of H */
 void
 i2_SET_5_H(z80 * pz80){
+	Set_Bit(pz80,REGH,5);
 }
 /* Set bit 5 of L */
 void
 i2_SET_5_L(z80 * pz80){
+	Set_Bit(pz80,REGL,5);
 }
 /* Set bit 5 of value pointed by HL */
 void
 i2_SET_5__HL_(z80 * pz80){
+	Set_HLBit(pz80,5);
 }
 /* Set bit 5 of A */
 void
 i2_SET_5_A(z80 * pz80){
+	Set_Bit(pz80,REGA,5);
 }
 /* Set bit 6 of B */
 void
 i2_SET_6_B(z80 * pz80){
+	Set_Bit(pz80,REGB,6);
 }
 /* Set bit 6 of C */
 void
 i2_SET_6_C(z80 * pz80){
+	Set_Bit(pz80,REGC,6);
 }
 /* Set bit 6 of D */
 void
 i2_SET_6_D(z80 * pz80){
+	Set_Bit(pz80,REGD,6);
 }
 /* Set bit 6 of E */
 void
 i2_SET_6_E(z80 * pz80){
+	Set_Bit(pz80,REGE,6);
 }
 /* Set bit 6 of H */
 void
 i2_SET_6_H(z80 * pz80){
+	Set_Bit(pz80,REGH,6);
 }
 /* Set bit 6 of L */
 void
 i2_SET_6_L(z80 * pz80){
+	Set_Bit(pz80,REGL,6);
 }
 /* Set bit 6 of value pointed by HL */
 void
 i2_SET_6__HL_(z80 * pz80){
+	Set_HLBit(pz80,6);
 }
 /* Set bit 6 of A */
 void
 i2_SET_6_A(z80 * pz80){
+	Set_Bit(pz80,REGA,6);
 }
 /* Set bit 7 of B */
 void
 i2_SET_7_B(z80 * pz80){
+	Set_Bit(pz80,REGB,7);
 }
 /* Set bit 7 of C */
 void
 i2_SET_7_C(z80 * pz80){
+	Set_Bit(pz80,REGC,7);
 }
 /* Set bit 7 of D */
 void
 i2_SET_7_D(z80 * pz80){
+	Set_Bit(pz80,REGD,7);
 }
 /* Set bit 7 of E */
 void
 i2_SET_7_E(z80 * pz80){
+	Set_Bit(pz80,REGE,7);
 }
 /* Set bit 7 of H */
 void
 i2_SET_7_H(z80 * pz80){
+	Set_Bit(pz80,REGH,7);
 }
 /* Set bit 7 of L */
 void
 i2_SET_7_L(z80 * pz80){
+	Set_Bit(pz80,REGL,7);
 }
 /* Set bit 7 of value pointed by HL */
 void
 i2_SET_7__HL_(z80 * pz80){
+	Set_HLBit(pz80,7);
 }
 /* Set bit 7 of A */
 void
 i2_SET_7_A(z80 * pz80){
+	Set_Bit(pz80,REGA,7);
 }
 
 /********************/
