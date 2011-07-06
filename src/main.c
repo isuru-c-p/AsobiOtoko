@@ -23,8 +23,16 @@ int loadROM(z80* pz80, char* path)
 }
 
 int
+parseCommandLine(int argc, char ** argv){
+	/* TODO fill in global config vars based on parsing */
+	return argc == 2 ? 0 : -1;
+}
+
+int
 main (int argc, char *argv[]){
-	if(argc != 2)
+
+	
+	if(parseCommandLine(argc,argv) == -1)
 	{
 		puts(PACKAGE_STRING);
 		printf("Usage: %s [path to ROM]\n",argv[0]);
