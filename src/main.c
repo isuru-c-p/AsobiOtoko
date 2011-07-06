@@ -39,6 +39,7 @@ main (int argc, char *argv[]){
 	}
 	
 	int Continue = 1;
+	printf("WARNING patching out bios checksum...\n");
 	wb(&(z80_cpu.mmu),0x00fa, 0x00);/*checksum bypass patch*/
 	wb(&(z80_cpu.mmu),0x00fb, 0x00);
 	wb(&(z80_cpu.mmu),0x00fc, 0x00);
