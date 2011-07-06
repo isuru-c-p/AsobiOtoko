@@ -185,4 +185,5 @@ void initMMU(MMU * pmmu)
 	uint8_t bios[BIOS_SIZE] = __BIOS__ ;
 	memcpy(pmmu->bios, bios, BIOS_SIZE);
 	pmmu->bios_enabled = 1;
+	initGPU(&(pmmu->gpu));
 }

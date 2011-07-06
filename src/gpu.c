@@ -1,4 +1,5 @@
 #include "gpu.h"
+#include "SDL_Helper.h"
 #include <stdio.h>
 
 uint8_t gpu_rb(GPU*pgpu, uint16_t addr) {
@@ -56,7 +57,7 @@ void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val) {
 		// SCY
 		case 0xFF42:
 			pgpu->SCY = val;
-			printf("ScrollY: %d\n", pgpu->SCY);
+			//printf("ScrollY: %d\n", pgpu->SCY);
 			return;
 		// SCX
 		case 0xFF43:
@@ -150,14 +151,15 @@ void writeScanline(GPU*pgpu)
 		//	printf("Pixel*: %d\n", pixel);
 		
 		// lols CLI printout
-		if (pixel != 255)
+		/*if (pixel != 255)
 		{
 			printf("*");
 		}
 		else
 		{
 			printf(" ");
-		}
+		}*/
+		DrawPixel(xOffset, pgpu->LY, pixel);
 		
 		if(((start_x+xOffset) % 8) == 7)
 		{
@@ -174,13 +176,14 @@ void writeScanline(GPU*pgpu)
 	}
 	
 	// lols CLI printout
-	printf("\n");
+	//printf("\n");
 	
 	return;
 }
 
 void renderScreen(GPU*pgpu)
 {
+	RenderScreen();
 	return;
 }
 
@@ -245,5 +248,9 @@ void gpu_step(GPU*pgpu, int tcycles)
 
 void initGPU(GPU*pgpu)
 {
+	if(!init_graphics())
+	{
+		printf("Init graphics failed.\n");
+	}
 	return;
 }
