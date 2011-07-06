@@ -26,7 +26,7 @@
 #define SERIALINT 3
 #define TOVF 2
 #define LCDCINT 1
-#define VBLNKINT 0
+#define VBLANKINT 0
 
 
 
@@ -45,8 +45,10 @@ typedef struct _z80 {
 
 
 /* functions defined as macros */
-
-#define getInterruptEnabled(pz80, flag) (((pz80)->mmu.rb(0xffff) >> (flag)) & 0x1)
+	
+#define getInterruptEnabled(pz80, flag) ((rb(&(pz80)->mmu,0xffff) >> (flag)) & 0x1)
+#define getInterruptPending(pz80, flag) ((rb(&(pz80)->mmu,0xff0f) >> (flag)) & 0x1)
+#define setInterruptPending(pz80, flag) ((wb(&(pz80)->mmu,0xff0f,rb(&(pz80)->mmu,0xff0f)|1<<(flag))))
 
 #define setFlag(X,FLAG) (X |= (1<<(FLAG)))
 #define getFlag(X,FLAG) (X & (1<<(FLAG)))
@@ -66,7 +68,6 @@ typedef struct _z80 {
 
 #define incPC(pz80, n) ((pz80)->registers16[PC] += (n))
 
-/* TODO possible optimisation seperate functions */
 #define Set_Bit(cpu,reg,bit) Set_BitToVal(cpu,reg,bit,1)
 #define Set_HLBit(cpu,bit) Set_HLBitToVal(cpu,bit,1)
 #define Reset_Bit(cpu,reg,bit) Set_BitToVal(cpu,reg,bit,0)
@@ -88,8 +89,16 @@ extern
 void 
 saveRegMemToHL(z80*pz80);
 
+void push(z80*pz80, uint8_t val);
+
+void
+triggerInterrupt(z80*pz80,int interrupt);
+
 void 
 executeNextInstruction(z80 * pz80);
+
+void 
+checkAndTriggerInterrupts(z80* pz80);
 
 void 
 dispatchInstruction(z80 * pz80,uint8_t opcode, int secondary);

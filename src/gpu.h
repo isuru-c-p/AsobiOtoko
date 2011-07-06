@@ -42,6 +42,7 @@ typedef struct _gpu {
 	uint8_t WX;
 	uint8_t buffer[SCREEN_BUFF_SIZE];
 	int clock;
+	int vsyncPending;
 } GPU;
 
 uint8_t gpu_rb(GPU*pgpu, uint16_t addr);

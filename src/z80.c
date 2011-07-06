@@ -26,6 +26,69 @@ initZ80(z80*pz80){
 	initMMU(&(pz80->mmu));
 }
 
+
+void 
+checkAndTriggerInterrupts(z80* pz80){
+
+	if(pz80->mmu.gpu.vsyncPending)
+		setInterruptPending(pz80,VBLANKINT);
+	/*TODO set all pending interrupts*/
+	//unsure of whether the pending flag if should be set
+	//when the ime or enabled flags are not set
+
+
+	if(!pz80->ime){
+		return; /* interrupts globally disabled */
+	}
+
+	//priorities are in page 40 of GBCPU manual
+
+	if(getInterruptPending(pz80,VBLANKINT) && getInterruptEnabled(pz80,VBLANKINT)){
+		triggerInterrupt(pz80,VBLANKINT);
+		return;
+	}
+	
+	//TODO other interrupts
+}
+
+
+void 
+triggerInterrupt(z80*pz80,int interrupt){
+
+	pz80->ime = 0; //must reset master interrupt flag
+
+	uint8_t interruptStatus = rb(&(pz80->mmu),0xFF0F); //address 0xFF0F  corresponding bit
+											   //must be cleared.
+	wb(&(pz80->mmu),0xFF0F,interruptStatus&~(1<<interrupt));
+
+	//interrupt service routine addresses are in page 40 of GBCPU manual
+	uint16_t address = 0;
+	switch(interrupt){
+		case VBLANKINT:
+			address = 0x0040;
+			break;
+		case LCDCINT:
+			address = 0x0048;
+			break;
+		case TOVF:
+			address = 0x0050;
+			break;
+		case SERIALINT:
+			address = 0x0058;
+			break;
+		case P0_P13_INT:
+			address = 0x0060;
+			break;
+	}
+
+	
+	push(pz80, (pz80->registers16[PC]) >> 8);
+	push(pz80, (pz80->registers16[PC]) & 255);
+	pz80->registers16[PC] = address;
+
+}
+
+
 inline
 void loadRegMemFromHL(z80*pz80){
 	uint16_t addr = getRegister16(pz80,REGH,REGL);
