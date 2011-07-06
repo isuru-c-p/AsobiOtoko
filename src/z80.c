@@ -30,8 +30,8 @@ initZ80(z80*pz80){
 void 
 checkAndTriggerInterrupts(z80* pz80){
 
-	if(pz80->mmu.gpu.vsyncPending){
-		pz80->mmu.gpu.vsyncPending = 0; //this gets set in gpu step
+	if(pz80->mmu.gpu.vblankPending){
+		pz80->mmu.gpu.vblankPending = 0; //this gets set in gpu step
 										//we must disable it here to 
 										//avoid serving it twice
 		setInterruptPending(pz80,VBLANKINT);
