@@ -1,7 +1,7 @@
 #include "z80.h"
 #include "config.h"
 #include <stdio.h>
-#include "SDL/SDL.h"
+#include "SDL_Helper.h"
 
 int loadROM(z80* pz80, char* path)
 {
@@ -19,20 +19,6 @@ int loadROM(z80* pz80, char* path)
 	
 	fclose(fp);
 	return 0;
-}
-
-/*TODO probably gonna need to be made more portable etc*/
-void ProcessInput(z80*pz80,int * cont){
-		static	SDL_Event event;
-		SDL_PollEvent(&event);
-		switch(event.type){
-			case SDL_KEYDOWN:
-			case SDL_KEYUP:
-				break;
-			case SDL_QUIT:
-				*cont = 0;
-				break;
-		}
 }
 
 int
@@ -56,7 +42,7 @@ main (int argc, char *argv[]){
 	{
 		//printf("PC: %d\n", pz80.registers16[PC]);
 		executeNextInstruction(&z80_cpu);
-		ProcessInput(&z80_cpu,&Continue);
+		ProcessInput(&Continue);
 	}*/
 	
 	printf("Finished executing BIOS\n");
@@ -74,10 +60,10 @@ main (int argc, char *argv[]){
 	
 	while(Continue){
 		
-		//printf("PC: %d\n", pz80.registers16[PC]);
+		//printf("PC: %d\n", z80_cpu.registers16[PC]);
 		checkAndTriggerInterrupts(&z80_cpu);
 		executeNextInstruction(&z80_cpu);
-		ProcessInput(&z80_cpu,&Continue);
+		ProcessInput(&Continue);
 	}
 
 	

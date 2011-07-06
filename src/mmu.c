@@ -1,6 +1,7 @@
 #include "mmu.h"
 #include "string.h" //memcpy bzero
 #include "assert.h"
+#include "io.h"
 #include <stdio.h>
 
 uint8_t rb(MMU * pmmu,uint16_t address) {
@@ -67,7 +68,11 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 			else if (address <= 0xFF7F)
 			{
 				// TODO : Memory mapped IO
-				if((address & 0xf0) == 0x40)
+				if(address == 0xff00)
+				{
+					return readP1();
+				}
+				else if((address & 0xf0) == 0x40)
 				{
 					return gpu_rb(&(pmmu->gpu), address);
 				}
@@ -154,7 +159,11 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 			else if (address <= 0xFF7F)
 			{
 				// TODO : Memory mapped IO
-				if((address & 0xf0) == 0x40)
+				if(address == 0xff00)
+				{
+					writeP1(val);
+				}
+				else if((address & 0xf0) == 0x40)
 				{
 					gpu_wb(&(pmmu->gpu), address, val);
 					return;
