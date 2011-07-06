@@ -86,6 +86,7 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 }
 
 void wb(MMU * pmmu,uint16_t address, uint8_t val) {
+	//printf("Address: %x, Val: %x\n", address, val);
 	switch (address >> 12)
 	{
 		// cartridge / bios
@@ -115,6 +116,10 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 		case 0x8 : case 0x9 :
 			// TODO: GPU
 			//return gpu.vram;
+			/*if(address < 0x9800)
+				printf("Tiledata update: %x, val: %d\n", address, val);
+			if(address >= 0x9800)
+				printf("Tilemap update: %x, val: %d\n", address, val);*/
 			pmmu->gpu.vram[address - 0x8000] = val;
 			break;
 		

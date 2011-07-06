@@ -97,8 +97,8 @@ void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val) {
 uint8_t getPixelColor(GPU*pgpu, uint8_t pixel)
 {
 	uint8_t mappedPixel = (pgpu->BGP >> (2*pixel)) & 0x3;
-	if(mappedPixel != 0)
-		printf("Pixel: %d\n", mappedPixel);
+	//if(mappedPixel != 0)
+	//	printf("Pixel: %d\n", mappedPixel);
 	switch(mappedPixel)
 	{
 		case 0:
@@ -123,18 +123,22 @@ void writeScanline(GPU*pgpu)
 	int y = pgpu->LY + pgpu->SCY;
 	int tileX = (x >> 3); // divide by 8
 	int tileY = (y >> 3); // divide by 8
-	uint16_t tileMapAddr = getLCDCBit(pgpu, BGMAP) ? 0x9800 : 0x9C00;
+	uint16_t tileMapAddr = !getLCDCBit(pgpu, BGMAP) ? 0x9800 : 0x9C00;
 	
 	tileMapAddr += ((tileY << 5) + tileX); // tileY*32 + tileX
+	//printf("TileMapAddr: %x\n", tileMapAddr);
 	int tileNo = pgpu->vram[tileMapAddr - 0x8000];
+	
 	if(!getLCDCBit(pgpu, BGWDATASEL) && tileNo < 127)
 	{
 		tileNo += 256;
 	}
+	//printf("tileNo: %d\n", tileNo);
 	
 	int start_x = (x % 8);
 	int start_y = (y % 8);
 	uint16_t rowAddress = tileNo*16 + start_y*2;
+	//printf("rowAddress: %x\n", 0x8000+rowAddress);
 	
 	int xOffset = 0;
 	
@@ -142,17 +146,18 @@ void writeScanline(GPU*pgpu)
 	{
 		uint8_t pixel = (getPixel(pgpu, rowAddress + 1, (start_x+xOffset)%8 ) << 1) + getPixel(pgpu, rowAddress, (start_x+xOffset)%8);
 		pixel = getPixelColor(pgpu, pixel);
-		
+		//if (pixel != 255)
+		//	printf("Pixel*: %d\n", pixel);
 		
 		// lols CLI printout
-		/*if (pixel != 255)
+		if (pixel != 255)
 		{
 			printf("*");
 		}
 		else
 		{
 			printf(" ");
-		}*/
+		}
 		
 		if(((start_x+xOffset) % 8) == 7)
 		{
@@ -162,12 +167,14 @@ void writeScanline(GPU*pgpu)
 			{
 				tileNo += 256;
 			}
+			//printf("tileNo: %d\n", tileNo);
 			rowAddress = tileNo*16 + start_y*2;
+			//printf("rowAddress: %d\n", rowAddress);
 		}
 	}
 	
 	// lols CLI printout
-	//printf("\n");
+	printf("\n");
 	
 	return;
 }

@@ -4,6 +4,7 @@
 #include "string.h" //bzero
 #include <stdio.h>
 
+//#define DEBUG
 
 uint8_t 
 buildStatusFlag(int zero, int sub, int halfcarry,int carry){
@@ -62,7 +63,7 @@ void DEC_n(z80*pz80, int reg)
 	pz80->tcycles = 4;
 	incPC(pz80, 1);
 	#ifdef DEBUG
-		printf("DEC_n, Register: %d, Result: %d ",reg, pz80->registers[reg]);
+		//printf("DEC_n, Register: %d, Result: %d ",reg, pz80->registers[reg]);
 	#endif
 }
 
@@ -315,12 +316,19 @@ void CP_A_immediate(z80*pz80)
 	uint8_t val = getImmediate(pz80);
 	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - val) == 0), 1, ((val & 0xff) > (pz80->registers[REGA] & 0xff)), (val > pz80->registers[REGA])); 
 	pz80->tcycles = 8;
+	
+	/*if(pz80->registers16[PC] == 102)
+	{
+		printf("A: %d, immediate: %d, zero: %d | ", pz80->registers[REGA], val, getFlag(pz80->registers[REGF], ZERO));
+	}*/
+	
 	incPC(pz80, 2);
 }
 
 void LD_nn_immediate(z80*pz80, int regH, int regL)
 {
-	loadRegFromMemory16(pz80, pz80->registers16[PC]+1, regH, regL);
+	loadRegFromMemory16(pz80, regH, regL, (pz80->registers16[PC]+1));
+	//printf("LD_nn_immediate, immediate: %x\n", (pz80->registers[regH] << 8) + (pz80->registers[regL]));
 	pz80->tcycles = 12;
 	incPC(pz80, 3);
 }
@@ -396,10 +404,10 @@ void LD_n_immediate(z80*pz80, int n)
 	incPC(pz80, 2);		
 	
 	#ifdef DEBUG
-		if(n == REGB)
+		/*if(n == REGB)
 		{
 			printf("LD_B_immediate, immediate: %d ", pz80->registers[n]);
-		}
+		}*/
 	#endif
 }
 
@@ -619,7 +627,7 @@ void CALL_nn(z80*pz80)
 	pz80->registers16[PC] = getImmediate16(pz80);
 	pz80->tcycles = 12;
 	#ifdef DEBUG
-		printf("CALL_nn, address: %x\n", pz80->registers16[PC]);
+		//printf("CALL_nn, address: %x\n", pz80->registers16[PC]);
 	#endif
 }
 
@@ -1005,7 +1013,7 @@ void executeNextInstruction(z80 * pz80){
 	uint16_t insAddress =  pz80->registers16[PC];
 	uint8_t	instruction = rb(pmmu,insAddress);
 	#ifdef DEBUG
-		printf("PC: %d, Opcode: 0x%x\n", insAddress, instruction);
+		printf("PC: %d, Opcode: 0x%x\n", insAddress, instruction, pz80->registers16[SP]);
 	#endif
 	dispatchInstruction(pz80,instruction,0/*pz80->doSecondaryOpcode*/);
 	//printf("Instruction dispatched\n");
@@ -3622,7 +3630,7 @@ i_Ext_ops(z80 * pz80){
 incPC(pz80, 1);
 uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]);
 #ifdef DEBUG
-	printf("PC: %d, Opcode2: 0x%x\n", pz80->registers16[PC], op);
+	printf("PC: %d, Opcode: 0x%x\n", pz80->registers16[PC], op);
 #endif
 dispatchInstruction(pz80, op, 1);
 }
