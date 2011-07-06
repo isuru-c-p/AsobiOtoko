@@ -27,11 +27,11 @@ uint8_t gpu_rb(GPU*pgpu, uint16_t addr) {
 		case 0xFF47:
 			return pgpu->BGP;
 		// OBP0
-		//case 0xFF48:
-		//	return pgpu->OBP0;
+		case 0xFF48:
+			return pgpu->OBP0;
 		// OBP1
-		//case 0xFF49:
-		//  return pgpu->OBP1;
+		case 0xFF49:
+		  return pgpu->OBP1;
 		// WY
 		//case 0xFF4A:
 		//  return pgpu->WY;
@@ -76,13 +76,13 @@ void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val) {
 			pgpu->BGP = val;
 			return;
 		// OBP0
-		//case 0xFF48:
-		//	pgpu->OBP0 = val;
-		//  return;
+		case 0xFF48:
+			pgpu->OBP0 = val;
+		    return;
 		// OBP1
-		//case 0xFF49:
-		//  pgpu->OBP1 = val;
-		//  return;
+		case 0xFF49:
+		    pgpu->OBP1 = val;
+		    return;
 		// WY
 		//case 0xFF4A:
 		//  pgpu->WY = val;
@@ -122,6 +122,34 @@ uint8_t getPixelColor(GPU*pgpu, uint8_t pixel)
 	}
 	#endif
 	
+}
+
+uint8_t GetColor(GPU*pgpu, uint8_t pixel)
+{
+	switch(pixel)
+	{
+		case 0:
+			return 255;
+		case 1:
+			return 192;
+		case 2:
+			return 96;
+		case 3:
+			return 0;
+		printf("Error! Mapped pixel color is out of range: %x\n", pixel);
+	}
+	return 0;
+}
+
+uint8_t MapSpritePixel(GPU*pgpu, uint8_t pixel, uint8_t palette_sel)
+{
+	uint8_t palette = 0;
+	if(palette_sel == 0)
+		palette = pgpu->OBP0;
+	else if(palette_sel == 1)
+		palette = pgpu->OBP1;
+	uint8_t mappedPixel = (palette >> (2*pixel)) & 0x3;
+	return mappedPixel;
 }
 
 void writeScanline(GPU*pgpu)
@@ -169,7 +197,18 @@ void writeScanline(GPU*pgpu)
 			printf(" ");
 		}*/
 		//DrawPixel(xOffset, pgpu->LY, pixel);
-		pgpu->buffer[pgpu->LY*160 + xOffset] = pixel;
+		if(pgpu->sprite_line[xOffset] > 0x3)
+		{
+			pgpu->buffer[pgpu->LY*160 + xOffset] = GetColor(pgpu,(pgpu->sprite_line[xOffset] >> 1));
+		}
+		else if(pixel == 255)
+		{
+			pgpu->buffer[pgpu->LY*160 + xOffset] = GetColor(pgpu,pgpu->sprite_line[xOffset]);
+		}
+		else
+		{
+			pgpu->buffer[pgpu->LY*160 + xOffset] = pixel;//GetPixelVal(pixel);//pixel;
+		}
 		
 		if(((start_x+xOffset) & 0x7) == 7)
 		{
@@ -187,6 +226,56 @@ void writeScanline(GPU*pgpu)
 	
 	// lols CLI printout
 	//printf("\n");
+	
+	return;
+}
+
+void readOAM(GPU*pgpu)
+{
+	//uint8_t current_sprites[10];
+	//uint8_t sprite_posX[10] = {255};
+	//int nextSprite = 0;
+	int i, j;
+	uint8_t spriteYSize = getLCDCBit(pgpu,OBJSIZE) ? 16 : 8;
+	
+	bzero((void*)pgpu->sprite_line,sizeof(pgpu->sprite_line));
+	
+	for(i = 0; i < 40; i++)
+	{
+		uint8_t spriteX = getSpriteX(pgpu, i) - 8;
+		uint8_t spriteY = getSpriteY(pgpu, i) - 8;
+		
+		if((spriteX == -8) && (spriteY == -8))
+			continue;
+			
+		if(((pgpu->LY + pgpu->SCY) >= spriteY) && ((pgpu->LY + pgpu->SCY) <= (spriteY + spriteYSize)) && ((spriteX+8) >= (pgpu->SCX)) )
+		{
+			printf("Sprite at: %d,%d\n", spriteX, spriteY);
+			uint8_t sprite_no = getLCDCBit(pgpu,OBJSIZE) ? (getSpriteTile(pgpu, i) >> 1) : getSpriteTile(pgpu, i);
+			uint16_t sprite_addr = ((uint16_t)sprite_no * spriteYSize * 2) + (((pgpu->LY + pgpu->SCY) % spriteYSize) * 2);
+					
+			for(j= spriteX; j <= (spriteX+8); j++)
+			{
+				if(pgpu->sprite_line[j] == 0)
+				{
+					pgpu->sprite_line[j] = ((pgpu->vram[sprite_addr] >> j) & 0x1) + (((pgpu->vram[sprite_addr+1] >> j) & 0x1) << 1);
+					pgpu->sprite_line[j] = MapSpritePixel(pgpu, pgpu->sprite_line[j], getSpriteAttr(pgpu, i, SPRITE_PALETTE));
+					
+					if(!getSpriteAttr(pgpu, i, PRIORITY))
+					{
+						pgpu->sprite_line[j] = (pgpu->sprite_line[j] << 1);
+					}
+					printf("Sprite Line(%d): %x\n", j, pgpu->sprite_line[j]);
+				
+				}
+				
+				// TODO: implement sprite priority wrt to x pos
+				// (sprites with smaller x positions have higher priority)
+				
+				// TODO: implement sprite X and Y flip
+			}
+		}
+	}
 	
 	return;
 }
@@ -239,6 +328,7 @@ void gpu_step(GPU*pgpu, int tcycles)
 				}
 				else
 				{
+					readOAM(pgpu);
 					pgpu->mode = 2;
 					updateStat(pgpu);
 				}

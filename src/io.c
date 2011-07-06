@@ -43,6 +43,6 @@ uint8_t getButtons()
 		// anomaly
 		default:
 			printf("Invalid P14-P15 value: %d\n", ((P1 & 0x30) >> 4));
-			return P1;
+			return 0;
 	}
 }

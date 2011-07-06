@@ -10,6 +10,7 @@ void RenderScreen();
 void DrawPixel(int x, int y, int pixel);
 void Flip(uint8_t* buffer);
 void ProcessInput(int * cont);
+uint8_t GetPixelVal(int pixel);
 
 #define START_KEYCODE 0x28
 #define SELECT_KEYCODE 0xe5

@@ -24,6 +24,11 @@ int init_graphics()
 	return 1;
 }
 
+uint8_t GetPixelVal(int pixel)
+{	
+	return (uint8_t)SDL_MapRGB(screen->format, pixel, pixel, pixel);
+}
+
 void DrawPixel(int x, int y, int pixel)
 {
 	Uint32 color = SDL_MapRGB(screen->format, pixel, pixel, pixel);

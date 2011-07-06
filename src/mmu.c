@@ -153,7 +153,8 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 			else if (address <= 0xFE9F)
 			{
 				// TODO: sprite information
-				pmmu->memory[address - 0xFE00] = val;
+				printf("OAM access! address: %x\n", address);
+				pmmu->gpu.oam[address - 0xFE00] = val;
 			}
 			// Memory Mapped IO
 			else if (address <= 0xFF7F)

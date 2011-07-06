@@ -1,7 +1,6 @@
 #include "z80.h"
 #include "config.h"
 #include <stdio.h>
-#include "SDL_Helper.h"
 #include "debug.h"
 
 int loadROM(z80* pz80, char* path)
@@ -58,11 +57,10 @@ main (int argc, char *argv[]){
 		ProcessInput(&Continue);
 	}
 	
-	printCPU(&z80_cpu);
+	//printCPU(&z80_cpu);
 	z80_cpu.registers[REGF] != 0xb0;
 	printf("WARNING, possible error in bios or emulator - flags not as expected after bios\n");
-	
-					
+			
 	z80_cpu.mmu.bios_enabled = 0;
 	printf("Finished executing BIOS\n");
 	/*
