@@ -234,6 +234,7 @@ void gpu_step(GPU*pgpu, int tcycles)
 				{
 					renderScreen(pgpu);
 					pgpu->mode = 1;
+					pgpu->vblankPending = 1;
 					updateStat(pgpu);
 				}
 				else

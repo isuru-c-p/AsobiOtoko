@@ -43,10 +43,10 @@ main (int argc, char *argv[]){
 		printf("Usage: %s [path to ROM]\n",argv[0]);
 		return 0;
 	}
-	z80 pz80;
-	initZ80(&pz80);
+	z80 z80_cpu;
+	initZ80(&z80_cpu);
 	
-	if(loadROM(&pz80, argv[1]) == -1){
+	if(loadROM(&z80_cpu, argv[1]) == -1){
 		printf("Error loading rom %s\n",argv[1]);
 		return 1;
 	}
@@ -60,22 +60,23 @@ main (int argc, char *argv[]){
 	}
 	
 	printf("Finished executing BIOS\n");*/
-	pz80.mmu.bios_enabled = 0;
-	pz80.registers16[PC]=0x100;
-	pz80.registers16[SP]=0xFFFE;
-	pz80.registers[REGH] = 0x01;
-	pz80.registers[REGL] = 0x4D;
-	pz80.registers[REGC] = 0x13;
-	pz80.registers[REGE] = 0xD8;
-	pz80.registers[REGA] = 0x01;
-	wb(&(pz80.mmu),0xff40, 0x91);
+	z80_cpu.mmu.bios_enabled = 0;
+	z80_cpu.registers16[PC]=0x100;
+	z80_cpu.registers16[SP]=0xFFFE;
+	z80_cpu.registers[REGH] = 0x01;
+	z80_cpu.registers[REGL] = 0x4D;
+	z80_cpu.registers[REGC] = 0x13;
+	z80_cpu.registers[REGE] = 0xD8;
+	z80_cpu.registers[REGA] = 0x01;
+	wb(&(z80_cpu.mmu),0xff40, 0x91);
 	
 	
 	while(Continue){
 		
 		//printf("PC: %d\n", pz80.registers16[PC]);
-		executeNextInstruction(&pz80);
-		ProcessInput(&pz80,&Continue);
+		checkAndTriggerInterrupts(&z80_cpu);
+		executeNextInstruction(&z80_cpu);
+		ProcessInput(&z80_cpu,&Continue);
 	}
 
 	
