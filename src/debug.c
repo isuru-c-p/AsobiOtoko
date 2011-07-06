@@ -5,8 +5,8 @@ fprintCPU(FILE*out,z80*pz80){
 
 	fprintf(out,
 	"Registers\n"\
-	"\tA: %02x B: %02x C: %02x D: %02x\n"\
-	"E: %02x H: %02x L: %02x\n PC: %04x\n"\
+	"A: %02x B: %02x C: %02x D: %02x\n"\
+	"E: %02x H: %02x L: %02x\nPC: %04x\n"\
 	"Status Flags \n"\
 	"z: %d s: %d c: %d hc: %d \n"\
 	"ime %d \n",

@@ -51,7 +51,7 @@ typedef struct _z80 {
 #define setInterruptPending(pz80, flag) ((wb(&(pz80)->mmu,0xff0f,rb(&(pz80)->mmu,0xff0f)|1<<(flag))))
 
 #define setFlag(X,FLAG) (X |= (1<<(FLAG)))
-#define getFlag(X,FLAG) (X & (1<<(FLAG)))
+#define getFlag(X,FLAG) ((X >> (FLAG)) &1)
 
 
 #define getRegister8(pz80,X) ((pz80)->registers[(X)])
