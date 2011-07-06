@@ -22,7 +22,7 @@ int loadROM(z80* pz80, char* path)
 }
 
 /*TODO probably gonna need to be made more portable etc*/
-void ProcessInput(z80*pz80){
+void ProcessInput(z80*pz80,int * cont){
 		static	SDL_Event event;
 		SDL_PollEvent(&event);
 		switch(event.type){
@@ -30,7 +30,7 @@ void ProcessInput(z80*pz80){
 			case SDL_KEYUP:
 				break;
 			case SDL_QUIT:
-				exit(0);
+				*cont = 0;
 				break;
 		}
 }
@@ -51,21 +51,22 @@ main (int argc, char *argv[]){
 		return 1;
 	}
 	
-	while(pz80.registers16[PC] < 0x100)
+	int Continue = 1;
+	while(pz80.registers16[PC] < 0x100 && Continue)
 	{
 		//printf("PC: %d\n", pz80.registers16[PC]);
 		executeNextInstruction(&pz80);
-		ProcessInput(&pz80);
+		ProcessInput(&pz80,&Continue);
 	}
 	
 	printf("Finished executing BIOS\n");
 	pz80.mmu.bios_enabled = 0;
 	
-	while(1){
+	while(Continue){
 		
 		//printf("PC: %d\n", pz80.registers16[PC]);
 		executeNextInstruction(&pz80);
-		ProcessInput(&pz80);
+		ProcessInput(&pz80,&Continue);
 	}
 
 	

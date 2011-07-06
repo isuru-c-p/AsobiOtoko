@@ -95,8 +95,16 @@ void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val) {
 	printf("wb: Unimplemented GPU control register: %x\n", addr);
 }
 
+
+
+inline
 uint8_t getPixelColor(GPU*pgpu, uint8_t pixel)
 {
+	#ifdef PRECOMPUTED_GETPIXEL_COLOUR
+		static uint8_t lookup[256][256] = 
+		#include "getPixelColourLookup.c";
+		return lookup[pixel][pgpu->BGP];
+	#else
 	uint8_t mappedPixel = (pgpu->BGP >> (2*pixel)) & 0x3;
 	//if(mappedPixel != 0)
 	//	printf("Pixel: %d\n", mappedPixel);
@@ -110,9 +118,10 @@ uint8_t getPixelColor(GPU*pgpu, uint8_t pixel)
 			return 96;
 		case 3:
 			return 0;
+		printf("Error! Mapped pixel color is out of range: %x\n", mappedPixel);
 	}
+	#endif
 	
-	printf("Error! Mapped pixel color is out of range: %x\n", mappedPixel);
 }
 
 void writeScanline(GPU*pgpu)
