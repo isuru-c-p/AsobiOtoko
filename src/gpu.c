@@ -145,8 +145,8 @@ void writeScanline(GPU*pgpu)
 	}
 	//printf("tileNo: %d\n", tileNo);
 	
-	int start_x = (x % 8);
-	int start_y = (y % 8);
+	int start_x = (x & 0x7);
+	int start_y = (y & 0x7);
 	uint16_t rowAddress = tileNo*16 + start_y*2;
 	//printf("rowAddress: %x\n", 0x8000+rowAddress);
 	
@@ -154,7 +154,7 @@ void writeScanline(GPU*pgpu)
 	
 	for(xOffset = 0; xOffset < 160; xOffset++)
 	{
-		uint8_t pixel = (getPixel(pgpu, rowAddress + 1, (start_x+xOffset)%8 ) << 1) + getPixel(pgpu, rowAddress, (start_x+xOffset)%8);
+		uint8_t pixel = (getPixel(pgpu, rowAddress + 1, (start_x+xOffset) & 0x7 ) << 1) + getPixel(pgpu, rowAddress, (start_x+xOffset) & 0x7);
 		pixel = getPixelColor(pgpu, pixel);
 		//if (pixel != 255)
 		//	printf("Pixel*: %d\n", pixel);
@@ -168,9 +168,10 @@ void writeScanline(GPU*pgpu)
 		{
 			printf(" ");
 		}*/
-		DrawPixel(xOffset, pgpu->LY, pixel);
+		//DrawPixel(xOffset, pgpu->LY, pixel);
+		pgpu->buffer[pgpu->LY*160 + xOffset] = pixel;
 		
-		if(((start_x+xOffset) % 8) == 7)
+		if(((start_x+xOffset) & 0x7) == 7)
 		{
 			tileMapAddr++;
 			tileNo = pgpu->vram[tileMapAddr - 0x8000];
@@ -192,6 +193,7 @@ void writeScanline(GPU*pgpu)
 
 void renderScreen(GPU*pgpu)
 {
+	Flip(pgpu->buffer);
 	RenderScreen();
 	return;
 }

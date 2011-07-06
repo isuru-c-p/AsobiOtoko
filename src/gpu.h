@@ -14,6 +14,8 @@
 #define WMAP 6
 #define LCDON 7
 
+#define SCREEN_BUFF_SIZE 160*144
+
 // macros
 
 #define getLCDCBit(pgpu, X) (((pgpu)->LCDC >> (X)) & 0x01)
@@ -36,6 +38,7 @@ typedef struct _gpu {
 	uint8_t OBP1;
 	uint8_t WY;
 	uint8_t WX;
+	uint8_t buffer[SCREEN_BUFF_SIZE];
 	int clock;
 } GPU;
 

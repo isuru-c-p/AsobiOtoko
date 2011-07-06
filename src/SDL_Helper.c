@@ -25,6 +25,12 @@ void DrawPixel(int x, int y, int pixel)
 	*bufp = color;
 }
 
+void Flip(uint8_t* buffer)
+{
+	memcpy((Uint8 *)screen->pixels, buffer, 160*144);
+	return;
+}
+
 void RenderScreen()
 {
 	SDL_UpdateRect(screen, 0, 0, 0, 0);	
