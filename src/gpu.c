@@ -210,6 +210,7 @@ void gpu_step(GPU*pgpu, int tcycles)
 			if(pgpu->clock >= 80)
 			{
 				pgpu->mode = 3;
+				updateStat(pgpu);
 				pgpu->clock = 0;
 			}
 			break;
@@ -218,6 +219,7 @@ void gpu_step(GPU*pgpu, int tcycles)
 			if(pgpu->clock >= 172)
 			{
 				pgpu->mode = 0;
+				updateStat(pgpu);
 				pgpu->clock = 0;
 				pgpu->LY++;
 				//printf("LY: %d\n", pgpu->LY);
@@ -232,10 +234,12 @@ void gpu_step(GPU*pgpu, int tcycles)
 				{
 					renderScreen(pgpu);
 					pgpu->mode = 1;
+					updateStat(pgpu);
 				}
 				else
 				{
 					pgpu->mode = 2;
+					updateStat(pgpu);
 				}
 			}
 			break;
@@ -251,6 +255,7 @@ void gpu_step(GPU*pgpu, int tcycles)
 				{
 					pgpu->LY = 0;
 					pgpu->mode = 3;
+					updateStat(pgpu);
 				}	
 			}
 			break;

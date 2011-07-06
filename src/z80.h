@@ -22,6 +22,14 @@
 #define PC 0
 #define SP 1
 
+#define P0_P13_INT 4
+#define SERIALINT 3
+#define TOVF 2
+#define LCDCINT 1
+#define VBLNKINT 0
+
+
+
 /*Data types*/
 
 typedef struct _z80 {
@@ -35,7 +43,10 @@ typedef struct _z80 {
 
 
 
+
 /* functions defined as macros */
+
+#define getInterruptEnabled(pz80, flag) (((pz80)->mmu.rb(0xffff) >> (flag)) & 0x1)
 
 #define setFlag(X,FLAG) (X |= (1<<(FLAG)))
 #define getFlag(X,FLAG) (X & (1<<(FLAG)))

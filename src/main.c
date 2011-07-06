@@ -52,15 +52,24 @@ main (int argc, char *argv[]){
 	}
 	
 	int Continue = 1;
-	while(pz80.registers16[PC] < 0x100 && Continue)
+	/*while(pz80.registers16[PC] < 0x100 && Continue)
 	{
 		//printf("PC: %d\n", pz80.registers16[PC]);
 		executeNextInstruction(&pz80);
 		ProcessInput(&pz80,&Continue);
 	}
 	
-	printf("Finished executing BIOS\n");
+	printf("Finished executing BIOS\n");*/
 	pz80.mmu.bios_enabled = 0;
+	pz80.registers16[PC]=0x100;
+	pz80.registers16[SP]=0xFFFE;
+	pz80.registers[REGH] = 0x01;
+	pz80.registers[REGL] = 0x4D;
+	pz80.registers[REGC] = 0x13;
+	pz80.registers[REGE] = 0xD8;
+	pz80.registers[REGA] = 0x01;
+	wb(&(pz80.mmu),0xff40, 0x91);
+	
 	
 	while(Continue){
 		
