@@ -61,6 +61,9 @@ void DEC_n(z80*pz80, int reg)
 	pz80->registers[REGF] = buildStatusFlag((pz80->registers[reg]==0), 1, ((pz80->registers[reg] & 0xff) == 0xff), getFlag(pz80->registers[REGF], CARRY));
 	pz80->tcycles = 4;
 	incPC(pz80, 1);
+	#ifdef DEBUG
+		printf("DEC_n, Register: %d, Result: %d ",reg, pz80->registers[reg]);
+	#endif
 }
 
 void DEC_nn(z80*pz80, int h, int l)
@@ -391,6 +394,13 @@ void LD_n_immediate(z80*pz80, int n)
 	pz80->registers[n] = getImmediate(pz80);
 	pz80->tcycles = 8;
 	incPC(pz80, 2);		
+	
+	#ifdef DEBUG
+		if(n == REGB)
+		{
+			printf("LD_B_immediate, immediate: %d ", pz80->registers[n]);
+		}
+	#endif
 }
 
 void LD_immediate_mem_n(z80*pz80, int n)
@@ -591,20 +601,26 @@ void push(z80*pz80, uint8_t val)
 {
 	pz80->registers16[SP]--;
 	wb(&(pz80->mmu), pz80->registers16[SP], val);
+	//printf("Push: writing: %d at addr: %x\n", val, pz80->registers16[SP]);
 }
 
 uint8_t pop(z80*pz80)
 {
-	pz80->registers[SP]++;
-	return rb(&(pz80->mmu), pz80->registers[SP] - 1);
+	pz80->registers16[SP]++;
+	uint8_t val = rb(&(pz80->mmu), pz80->registers16[SP] - 1);
+	//printf("Pop: read %d from %x\n", val, pz80->registers16[SP] - 1);
+	return val;
 }
 
 void CALL_nn(z80*pz80)
 {
-	push(pz80, pz80->registers16[PC] >> 8);
-	push(pz80, pz80->registers16[PC] & 255);
+	push(pz80, (pz80->registers16[PC]+3) >> 8);
+	push(pz80, (pz80->registers16[PC]+3) & 255);
 	pz80->registers16[PC] = getImmediate16(pz80);
 	pz80->tcycles = 12;
+	#ifdef DEBUG
+		printf("CALL_nn, address: %x\n", pz80->registers16[PC]);
+	#endif
 }
 
 void CALL_NZ_nn(z80*pz80)
@@ -669,7 +685,7 @@ void RST_n(z80*pz80, int n)
 
 void RET(z80*pz80)
 {
-	pz80->registers16[PC] = (((uint16_t)pop(pz80)) << 8) + (uint16_t)pop(pz80);
+	pz80->registers16[PC] = (uint16_t)pop(pz80) + (((uint16_t)pop(pz80)) << 8) ;
 	pz80->tcycles = 8;
 }
 
@@ -731,10 +747,10 @@ void RETI(z80*pz80)
 	pz80->ime = 1;
 }
 
-void PUSH_nn(z80*pz80, int nH, int nL)
+void PUSH_nn(z80*pz80, uint8_t nH, uint8_t nL)
 {
-	push(pz80, nL);
-	push(pz80, nH);
+	push(pz80, pz80->registers[nH]);
+	push(pz80, pz80->registers[nL]);
 	pz80->tcycles = 16;
 	incPC(pz80, 1);
 }
@@ -986,7 +1002,9 @@ void executeNextInstruction(z80 * pz80){
 	MMU * pmmu = &(pz80->mmu);
 	uint16_t insAddress =  pz80->registers16[PC];
 	uint8_t	instruction = rb(pmmu,insAddress);
-	printf("PC: %x, Opcode: %x\n", insAddress, instruction);
+	#ifdef DEBUG
+		printf("PC: %d, Opcode: 0x%x\n", insAddress, instruction);
+	#endif
 	dispatchInstruction(pz80,instruction,0/*pz80->doSecondaryOpcode*/);
 	//printf("Instruction dispatched\n");
 	gpu_step(&(pz80->mmu.gpu), pz80->tcycles);
@@ -3598,10 +3616,12 @@ JP_Z_nn(pz80);
 /* Extended operations (two-byte instruction code) */
 void
 i_Ext_ops(z80 * pz80){
-printf("i_Ext_ops\n");
+//printf("i_Ext_ops\n");
 incPC(pz80, 1);
 uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]);
-printf("PC: %x, Opcode2: %x\n", pz80->registers16[PC], op);
+#ifdef DEBUG
+	printf("PC: %d, Opcode2: 0x%x\n", pz80->registers16[PC], op);
+#endif
 dispatchInstruction(pz80, op, 1);
 }
 /* Call routine at 16-bit location if last result was zero */

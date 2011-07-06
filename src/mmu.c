@@ -33,7 +33,7 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 		case 0x8 : case 0x9 :
 			// TODO: GPU
 			//return gpu.vram;
-			return pmmu->gpu.vram[address];
+			return pmmu->gpu.vram[address - 0x8000];
 			break;
 		
 		// External RAM
@@ -115,7 +115,7 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 		case 0x8 : case 0x9 :
 			// TODO: GPU
 			//return gpu.vram;
-			pmmu->gpu.vram[address] = val;
+			pmmu->gpu.vram[address - 0x8000] = val;
 			break;
 		
 		// External RAM

@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define VRAM_SIZE 0
+#define VRAM_SIZE 8192
 
 #define BGWON 0
 #define OBJON 1

@@ -97,6 +97,8 @@ void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val) {
 uint8_t getPixelColor(GPU*pgpu, uint8_t pixel)
 {
 	uint8_t mappedPixel = (pgpu->BGP >> (2*pixel)) & 0x3;
+	if(mappedPixel != 0)
+		printf("Pixel: %d\n", mappedPixel);
 	switch(mappedPixel)
 	{
 		case 0:
@@ -124,7 +126,7 @@ void writeScanline(GPU*pgpu)
 	uint16_t tileMapAddr = getLCDCBit(pgpu, BGMAP) ? 0x9800 : 0x9C00;
 	
 	tileMapAddr += ((tileY << 5) + tileX); // tileY*32 + tileX
-	int tileNo = pgpu->vram[tileMapAddr];
+	int tileNo = pgpu->vram[tileMapAddr - 0x8000];
 	if(!getLCDCBit(pgpu, BGWDATASEL) && tileNo < 127)
 	{
 		tileNo += 256;
@@ -132,7 +134,7 @@ void writeScanline(GPU*pgpu)
 	
 	int start_x = (x % 8);
 	int start_y = (y % 8);
-	uint16_t rowAddress = 0x8000 + tileNo*16 + start_y*2;
+	uint16_t rowAddress = tileNo*16 + start_y*2;
 	
 	int xOffset = 0;
 	
@@ -141,25 +143,31 @@ void writeScanline(GPU*pgpu)
 		uint8_t pixel = (getPixel(pgpu, rowAddress + 1, (start_x+xOffset)%8 ) << 1) + getPixel(pgpu, rowAddress, (start_x+xOffset)%8);
 		pixel = getPixelColor(pgpu, pixel);
 		
+		
 		// lols CLI printout
-		if (pixel != 255)
+		/*if (pixel != 255)
 		{
 			printf("*");
 		}
 		else
 		{
 			printf(" ");
-		}
+		}*/
 		
 		if(((start_x+xOffset) % 8) == 7)
 		{
-			tileNo++;
-			rowAddress = 0x8000 + tileNo*16 + start_y*2;
+			tileMapAddr++;
+			tileNo = pgpu->vram[tileMapAddr - 0x8000];
+			if(!getLCDCBit(pgpu, BGWDATASEL) && tileNo < 127)
+			{
+				tileNo += 256;
+			}
+			rowAddress = tileNo*16 + start_y*2;
 		}
 	}
 	
 	// lols CLI printout
-	printf("\n");
+	//printf("\n");
 	
 	return;
 }
@@ -191,7 +199,7 @@ void gpu_step(GPU*pgpu, int tcycles)
 				pgpu->mode = 0;
 				pgpu->clock = 0;
 				pgpu->LY++;
-				
+				//printf("LY: %d\n", pgpu->LY);
 				writeScanline(pgpu);
 			}
 			break;
@@ -215,10 +223,12 @@ void gpu_step(GPU*pgpu, int tcycles)
 			if(pgpu->clock >= 456)
 			{
 				pgpu->LY++;
+				//printf("LY: %d\n", pgpu->LY);
 				pgpu->clock = 0;
 				
 				if(pgpu->LY == 153)
 				{
+					pgpu->LY = 0;
 					pgpu->mode = 3;
 				}	
 			}
