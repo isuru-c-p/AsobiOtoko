@@ -5,6 +5,14 @@ AC_CONFIG_HEADERS([config.h])
 AC_CHECK_HEADERS([stdint.h],[],
 	[AC_MSG_ERROR([need stdint.h to build])]
 	)
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_TYPE_UINT16_T
+AC_TYPE_UINT8_T
+
+# Checks for library functions.
+AC_CHECK_FUNCS([bzero])
+	
 AC_CONFIG_FILES([
 Makefile
 src/Makefile

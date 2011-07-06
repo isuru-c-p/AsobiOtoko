@@ -6,6 +6,8 @@ int loadROM(z80* pz80, char* path)
 {
 	FILE* fp;
 	fp = fopen(path, "r");
+	if(!fp)
+		return -1;
 	int byte;
 	int byteNo = 0;
 	
@@ -15,6 +17,7 @@ int loadROM(z80* pz80, char* path)
 	}
 	
 	fclose(fp);
+	return 0;
 }
 
 int
@@ -28,7 +31,10 @@ main (int argc, char *argv[]){
 	z80 pz80;
 	initZ80(&pz80);
 	
-	loadROM(&pz80, argv[1]);
+	if(loadROM(&pz80, argv[1]) == -1){
+		printf("Error loading rom %s\n",argv[1]);
+		return 1;
+	}
 	
 	
 	while(pz80.registers16[PC] < 0x100)
