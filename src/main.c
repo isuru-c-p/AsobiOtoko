@@ -2,7 +2,6 @@
 #include "config.h"
 #include <stdio.h>
 #include "SDL_Helper.h"
-#include "debug.h"
 
 int loadROM(z80* pz80, char* path)
 {
@@ -64,7 +63,6 @@ main (int argc, char *argv[]){
 		//printf("PC: %d\n", z80_cpu.registers16[PC]);
 		checkAndTriggerInterrupts(&z80_cpu);
 		executeNextInstruction(&z80_cpu);
-		printCPU(&z80_cpu);
 		ProcessInput(&Continue);
 	}
 
