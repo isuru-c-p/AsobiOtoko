@@ -248,7 +248,7 @@ void gpu_step(GPU*pgpu, int tcycles)
 
 void initGPU(GPU*pgpu)
 {
-	if(init_graphics())
+	if(!init_graphics())
 	{
 		printf("Init graphics failed.\n");
 	}
