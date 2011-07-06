@@ -2,6 +2,7 @@
 #include "config.h"
 #include <stdio.h>
 #include "SDL_Helper.h"
+#include "debug.h"
 
 int loadROM(z80* pz80, char* path)
 {
@@ -38,16 +39,22 @@ main (int argc, char *argv[]){
 	}
 	
 	int Continue = 1;
-	/*while(z80_cpu.registers16[PC] < 0x100 && Continue)
+	wb(&(z80_cpu.mmu),0x00fa, 0x00);/*checksum bypass patch*/
+	wb(&(z80_cpu.mmu),0x00fb, 0x00);
+	while(z80_cpu.registers16[PC] < 0x100 && Continue)
 	{
-		//printf("PC: %d\n", pz80.registers16[PC]);
+		checkAndTriggerInterrupts(&z80_cpu);
 		executeNextInstruction(&z80_cpu);
 		ProcessInput(&Continue);
-	}*/
+	}
 	
-	printf("Finished executing BIOS\n");
+	printCPU(&z80_cpu);
+
 	
+					
 	z80_cpu.mmu.bios_enabled = 0;
+	printf("Finished executing BIOS\n");
+	/*
 	z80_cpu.registers16[PC]=0x100;
 	z80_cpu.registers16[SP]=0xFFFE;
 	z80_cpu.registers[REGH] = 0x01;
@@ -56,7 +63,7 @@ main (int argc, char *argv[]){
 	z80_cpu.registers[REGE] = 0xD8;
 	z80_cpu.registers[REGA] = 0x01;
 	wb(&(z80_cpu.mmu),0xff40, 0x91);
-	
+	*/
 	
 	while(Continue){
 		

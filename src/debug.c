@@ -6,13 +6,15 @@ fprintCPU(FILE*out,z80*pz80){
 	fprintf(out,
 	"Registers\n"\
 	"A: %02x B: %02x C: %02x D: %02x\n"\
-	"E: %02x H: %02x L: %02x\nPC: %04x\n"\
+	"E: %02x H: %02x L: %02x\n"\
+	"SP: %04x PC: %04x\n"\
 	"Status Flags \n"\
 	"z: %d s: %d c: %d hc: %d \n"\
 	"ime %d \n",
 	(int)pz80->registers[REGA],(int)pz80->registers[REGB],(int)pz80->registers[REGC],
 	(int)pz80->registers[REGD],(int)pz80->registers[REGE],(int)pz80->registers[REGH],
-	(int)pz80->registers[REGL],(int)pz80->registers16[PC],(int)getFlag(pz80->registers[REGF],ZERO),
+	(int)pz80->registers[REGL],(int)pz80->registers16[SP],(int)pz80->registers16[PC],
+	(int)getFlag(pz80->registers[REGF],ZERO),
 	(int)getFlag(pz80->registers[REGF],SUB),(int)getFlag(pz80->registers[REGF],CARRY),
 	(int)getFlag(pz80->registers[REGF],HALFCARRY),
 	pz80->ime
