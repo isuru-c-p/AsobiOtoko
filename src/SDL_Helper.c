@@ -49,7 +49,7 @@ void ProcessInput(int * cont){
 		switch(event.type){
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
-				switch(SDL_GetScancodeFromKey(event.key.keysym.sym))
+				switch(event.key.keysym.scancode)
 				{
 					case A_KEYCODE:
 						pressed_buttons[A_KEY] = 0;
