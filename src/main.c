@@ -36,7 +36,6 @@ main (int argc, char *argv[]){
 		return 1;
 	}
 	
-	
 	while(pz80.registers16[PC] < 0x100)
 	{
 		//printf("PC: %d\n", pz80.registers16[PC]);

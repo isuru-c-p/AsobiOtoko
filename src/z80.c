@@ -958,7 +958,6 @@ void Test_Bit(z80*pz80, int reg,int bit){
 void Test_HLBit(z80*pz80,int bit){ 
 	loadRegMemFromHL(pz80);
 	Test_Bit(pz80,REGMEM,bit);
-	saveRegMemToHL(pz80);
 	pz80->tcycles = 16;
 	//DO not incPC as sub function does this
 }
