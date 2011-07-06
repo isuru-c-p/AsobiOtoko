@@ -8,7 +8,7 @@ int init_graphics()
 		return 0;
 	}
 	
-	screen = SDL_SetVideoMode(160, 144, 8, SDL_SWSURFACE);
+	screen = SDL_SetVideoMode(160, 144, 8, SDL_HWSURFACE);
 	if ( screen == NULL ) {
         printf("Unable to set 160x144 video: %s\n", SDL_GetError());
         return 0;
