@@ -891,7 +891,9 @@ void RRC_HL(z80*pz80){
 void RL_n(z80*pz80,int reg){
 	uint8_t newFlag = 0;
 	uint8_t byte = pz80->registers[reg];
-	uint8_t newbyte =  (byte<<1)+ getFlag(pz80->registers[REGF],CARRY);
+	uint8_t newbyte =  (byte<<1);
+	if(getFlag(pz80->registers[REGF],CARRY))
+		newbyte+=1;
 	if(byte&(1<<7)) // if MSB
 		setFlag(newFlag,CARRY);
 	if(newbyte==0)

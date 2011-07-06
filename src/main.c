@@ -1,4 +1,5 @@
 #include "z80.h"
+#include "config.h"
 #include <stdio.h>
 
 int loadROM(z80* pz80, char* path)
@@ -20,7 +21,8 @@ int
 main (int argc, char *argv[]){
 	if(argc != 2)
 	{
-		printf("Usage: ./AsobiOtoko [path to ROM]\n");
+		puts(PACKAGE_STRING);
+		printf("Usage: %s [path to ROM]\n",argv[0]);
 		return 0;
 	}
 	z80 pz80;
