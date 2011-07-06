@@ -6,7 +6,7 @@
 
 //#define DEBUG
 
-uint8_t 
+inline uint8_t 
 buildStatusFlag(int zero, int sub, int halfcarry,int carry){
 	uint8_t ret = 0;
 	if(zero)
@@ -26,11 +26,13 @@ initZ80(z80*pz80){
 	initMMU(&(pz80->mmu));
 }
 
+inline
 void loadRegMemFromHL(z80*pz80){
 	uint16_t addr = getRegister16(pz80,REGH,REGL);
 	pz80->registers[REGMEM] = rb(&(pz80->mmu),addr);
 }
 
+inline
 void 
 saveRegMemToHL(z80*pz80){
 	uint16_t addr = getRegister16(pz80,REGH,REGL);

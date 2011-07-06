@@ -65,12 +65,15 @@ typedef struct _z80 {
 
 /* general purpose functions */
 	
+extern
 uint8_t 
 buildStatusFlag(int zero, int sub, int halfcarry,int carry);
 
+extern
 void 
 loadRegMemFromHL(z80*pz80);
 
+extern
 void 
 saveRegMemToHL(z80*pz80);
 
