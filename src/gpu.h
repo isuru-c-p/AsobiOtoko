@@ -18,7 +18,7 @@
 
 #define getLCDCBit(pgpu, X) (((pgpu)->LCDC >> (X)) & 0x01)
 
-#define getPixel(pgpu, addr, x) (((pgpu)->vram[(addr)] >> (x)) & 0x01)
+#define getPixel(pgpu, addr, x) (((pgpu)->vram[(addr)] >> (7-x)) & 0x01)
 
 // data types
 
