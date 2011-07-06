@@ -52,14 +52,15 @@ main (int argc, char *argv[]){
 	}
 	
 	int Continue = 1;
-	/*while(pz80.registers16[PC] < 0x100 && Continue)
+	/*while(z80_cpu.registers16[PC] < 0x100 && Continue)
 	{
 		//printf("PC: %d\n", pz80.registers16[PC]);
-		executeNextInstruction(&pz80);
-		ProcessInput(&pz80,&Continue);
-	}
+		executeNextInstruction(&z80_cpu);
+		ProcessInput(&z80_cpu,&Continue);
+	}*/
 	
-	printf("Finished executing BIOS\n");*/
+	printf("Finished executing BIOS\n");
+	
 	z80_cpu.mmu.bios_enabled = 0;
 	z80_cpu.registers16[PC]=0x100;
 	z80_cpu.registers16[SP]=0xFFFE;

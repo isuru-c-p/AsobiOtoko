@@ -29,11 +29,9 @@ initZ80(z80*pz80){
 
 void 
 checkAndTriggerInterrupts(z80* pz80){
-
+	//puts("check and trigger\n");
 	if(pz80->mmu.gpu.vblankPending){
-		pz80->mmu.gpu.vblankPending = 0; //this gets set in gpu step
-										//we must disable it here to 
-										//avoid serving it twice
+		//puts("pending vblank interupt\n");
 		setInterruptPending(pz80,VBLANKINT);
 	}
 	/*TODO set all pending interrupts*/
@@ -42,9 +40,10 @@ checkAndTriggerInterrupts(z80* pz80){
 
 
 	if(!pz80->ime){
+		//puts("ints disabled\n");
 		return; /* interrupts globally disabled */
 	}
-
+	//puts("ints enabled\n");
 	//priorities are in page 40 of GBCPU manual
 
 	if(getInterruptPending(pz80,VBLANKINT) && getInterruptEnabled(pz80,VBLANKINT)){
@@ -69,6 +68,10 @@ triggerInterrupt(z80*pz80,int interrupt){
 	uint16_t address = 0;
 	switch(interrupt){
 		case VBLANKINT:
+			puts("vblankint\n");
+			pz80->mmu.gpu.vblankPending = 0; //this gets set in gpu step
+										//we must disable it here to 
+										//avoid serving it twice
 			address = 0x0040;
 			break;
 		case LCDCINT:
