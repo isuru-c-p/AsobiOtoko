@@ -46,10 +46,10 @@ main (int argc, char *argv[]){
 	}
 	
 	int Continue = 1;
-	printf("WARNING patching out bios checksum...\n");
-	wb(&(z80_cpu.mmu),0x00fa, 0x00);/*checksum bypass patch*/
-	wb(&(z80_cpu.mmu),0x00fb, 0x00);
-	wb(&(z80_cpu.mmu),0x00fc, 0x00);
+	//printf("WARNING patching out bios checksum...\n");
+	//wb(&(z80_cpu.mmu),0x00fa, 0x00);/*checksum bypass patch*/
+	//wb(&(z80_cpu.mmu),0x00fb, 0x00);
+	//wb(&(z80_cpu.mmu),0x00fc, 0x00);
 	while(z80_cpu.registers16[PC] < 0x100 && Continue)
 	{
 		checkAndTriggerInterrupts(&z80_cpu);
@@ -58,10 +58,10 @@ main (int argc, char *argv[]){
 	}
 	
 	//printCPU(&z80_cpu);
-	z80_cpu.registers[REGF] != 0xb0;
-	printf("WARNING, possible error in bios or emulator - flags not as expected after bios\n");
+	if(z80_cpu.registers[REGF] != 0xb0)
+		printf("WARNING, possible error in bios or emulator - flags not as expected after bios\n");
 			
-	//disableBios(&(z80_cpu.mmu));
+	disableBios(&(z80_cpu.mmu));
 	printf("Finished executing BIOS\n");
 	/*
 	z80_cpu.registers16[PC]=0x100;

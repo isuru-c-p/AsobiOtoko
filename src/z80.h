@@ -4,23 +4,30 @@
 #include "mmu.h"
 
 /* constants */
-#define MEMORYSIZE 65536
-#define CARRY 4
-#define HALFCARRY 5
-#define SUB 6
-#define ZERO 7
 
-#define REGA 0
-#define REGB 1
-#define REGC 2
-#define REGD 3
-#define REGE 4
-#define REGF 5
-#define REGH 6
-#define REGL 7
-#define REGMEM 8
-#define PC 0
-#define SP 1
+
+enum{
+CARRY = 4,
+HALFCARRY = 5,
+SUB = 6,
+ZERO = 7
+};
+enum {
+REGA = 0,
+REGB = 1,
+REGC = 2,
+REGD = 3,
+REGE = 4,
+REGF = 5,
+REGH = 6,
+REGL = 7,
+REGMEM = 8
+};
+
+enum{
+	PC = 0,
+	SP = 1
+	}; 
 
 #define P0_P13_INT 4
 #define SERIALINT 3

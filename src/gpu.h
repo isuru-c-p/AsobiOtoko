@@ -6,14 +6,16 @@
 #define VRAM_SIZE 8192
 #define OAM_SIZE 160
 
-#define BGWON 0
-#define OBJON 1
-#define OBJSIZE 2
-#define BGMAP 3
-#define BGWDATASEL 4
-#define WDISP 5
-#define WMAP 6
-#define LCDON 7
+enum{
+BGWON = 0,
+OBJON,
+OBJSIZE, 
+BGMAP ,
+BGWDATASEL, 
+WDISP ,
+WMAP ,
+LCDON 
+};
 
 #define SCREEN_BUFF_SIZE 160*144
 
