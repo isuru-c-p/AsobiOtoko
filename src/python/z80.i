@@ -11,18 +11,18 @@
 %apply unsigned short { uint16_t }
 
 %inline %{
-uint8_t  getReg(uint8_t * arr, int i) {
-      return arr[i];
+uint8_t  getReg(z80 * pz, int i) {
+      return pz->registers[i];
 }
-void    setReg(uint8_t * arr, int i, uint8_t val) {
-      arr[i] = val;
+void    setReg(z80 * pz, int i, uint8_t val) {
+      pz->registers[i] = val;
 }
 
-uint16_t  getReg16(uint16_t * arr, int i) {
-      return arr[i];
+uint16_t  getReg16(z80 * pz, int i) {
+      return pz->registers16[i];
 }
-void    setReg16(uint16_t * arr, int i, uint16_t val) {
-      arr[i] = val;
+void    setReg16(z80 * pz, int i, uint16_t val) {
+      pz->registers16[i] = val;
 }
 
 %}

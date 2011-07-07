@@ -2960,18 +2960,18 @@ static swig_module_info swig_module = {swig_types, 7, 0, 0, 0, 0};
 
 
 
-uint8_t  getReg(uint8_t * arr, int i) {
-      return arr[i];
+uint8_t  getReg(z80 * pz, int i) {
+      return pz->registers[i];
 }
-void    setReg(uint8_t * arr, int i, uint8_t val) {
-      arr[i] = val;
+void    setReg(z80 * pz, int i, uint8_t val) {
+      pz->registers[i] = val;
 }
 
-uint16_t  getReg16(uint16_t * arr, int i) {
-      return arr[i];
+uint16_t  getReg16(z80 * pz, int i) {
+      return pz->registers16[i];
 }
-void    setReg16(uint16_t * arr, int i, uint16_t val) {
-      arr[i] = val;
+void    setReg16(z80 * pz, int i, uint16_t val) {
+      pz->registers16[i] = val;
 }
 
 
@@ -3233,7 +3233,7 @@ extern "C" {
 #endif
 SWIGINTERN PyObject *_wrap_getReg(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  uint8_t *arg1 = (uint8_t *) 0 ;
+  z80 *arg1 = (z80 *) 0 ;
   int arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3244,11 +3244,11 @@ SWIGINTERN PyObject *_wrap_getReg(PyObject *SWIGUNUSEDPARM(self), PyObject *args
   uint8_t result;
   
   if (!PyArg_ParseTuple(args,(char *)"OO:getReg",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_uint8_t, 0 |  0 );
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p__z80, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getReg" "', argument " "1"" of type '" "uint8_t *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getReg" "', argument " "1"" of type '" "z80 *""'"); 
   }
-  arg1 = (uint8_t *)(argp1);
+  arg1 = (z80 *)(argp1);
   ecode2 = SWIG_AsVal_int(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "getReg" "', argument " "2"" of type '" "int""'");
@@ -3264,7 +3264,7 @@ fail:
 
 SWIGINTERN PyObject *_wrap_setReg(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  uint8_t *arg1 = (uint8_t *) 0 ;
+  z80 *arg1 = (z80 *) 0 ;
   int arg2 ;
   uint8_t arg3 ;
   void *argp1 = 0 ;
@@ -3278,11 +3278,11 @@ SWIGINTERN PyObject *_wrap_setReg(PyObject *SWIGUNUSEDPARM(self), PyObject *args
   PyObject * obj2 = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"OOO:setReg",&obj0,&obj1,&obj2)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_uint8_t, 0 |  0 );
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p__z80, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "setReg" "', argument " "1"" of type '" "uint8_t *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "setReg" "', argument " "1"" of type '" "z80 *""'"); 
   }
-  arg1 = (uint8_t *)(argp1);
+  arg1 = (z80 *)(argp1);
   ecode2 = SWIG_AsVal_int(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "setReg" "', argument " "2"" of type '" "int""'");
@@ -3303,7 +3303,7 @@ fail:
 
 SWIGINTERN PyObject *_wrap_getReg16(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  uint16_t *arg1 = (uint16_t *) 0 ;
+  z80 *arg1 = (z80 *) 0 ;
   int arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3314,11 +3314,11 @@ SWIGINTERN PyObject *_wrap_getReg16(PyObject *SWIGUNUSEDPARM(self), PyObject *ar
   uint16_t result;
   
   if (!PyArg_ParseTuple(args,(char *)"OO:getReg16",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_uint16_t, 0 |  0 );
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p__z80, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getReg16" "', argument " "1"" of type '" "uint16_t *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getReg16" "', argument " "1"" of type '" "z80 *""'"); 
   }
-  arg1 = (uint16_t *)(argp1);
+  arg1 = (z80 *)(argp1);
   ecode2 = SWIG_AsVal_int(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "getReg16" "', argument " "2"" of type '" "int""'");
@@ -3334,7 +3334,7 @@ fail:
 
 SWIGINTERN PyObject *_wrap_setReg16(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  uint16_t *arg1 = (uint16_t *) 0 ;
+  z80 *arg1 = (z80 *) 0 ;
   int arg2 ;
   uint16_t arg3 ;
   void *argp1 = 0 ;
@@ -3348,11 +3348,11 @@ SWIGINTERN PyObject *_wrap_setReg16(PyObject *SWIGUNUSEDPARM(self), PyObject *ar
   PyObject * obj2 = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"OOO:setReg16",&obj0,&obj1,&obj2)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_uint16_t, 0 |  0 );
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p__z80, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "setReg16" "', argument " "1"" of type '" "uint16_t *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "setReg16" "', argument " "1"" of type '" "z80 *""'"); 
   }
-  arg1 = (uint16_t *)(argp1);
+  arg1 = (z80 *)(argp1);
   ecode2 = SWIG_AsVal_int(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "setReg16" "', argument " "2"" of type '" "int""'");
