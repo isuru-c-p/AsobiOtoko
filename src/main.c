@@ -61,7 +61,7 @@ main (int argc, char *argv[]){
 	z80_cpu.registers[REGF] != 0xb0;
 	printf("WARNING, possible error in bios or emulator - flags not as expected after bios\n");
 			
-	z80_cpu.mmu.bios_enabled = 0;
+	//disableBios(&(z80_cpu.mmu));
 	printf("Finished executing BIOS\n");
 	/*
 	z80_cpu.registers16[PC]=0x100;

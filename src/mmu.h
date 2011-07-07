@@ -30,7 +30,7 @@
   0xF5, 0x06, 0x19, 0x78, 0x86, 0x23, 0x05, 0x20, 0xFB, 0x86, 0x20, 0xFE, 0x3E, 0x01, 0xE0, 0x50}
 
 /* Data types */
-
+#define USE_ADDRESS_LUT
 typedef struct _mmu {
 	uint8_t bios_enabled;
 	uint8_t memory[MEMORYSIZE];
@@ -41,7 +41,15 @@ typedef struct _mmu {
 	uint8_t bios[BIOS_SIZE];
 	uint8_t cartridge[CARTRIDGE_SIZE];
 	GPU gpu;
+	#ifdef USE_ADDRESS_LUT
+	uint8_t * addressLUT[MEMORYSIZE];
+	#endif
 } MMU;
+
+#ifdef USE_ADDRESS_LUT
+void
+disableBios(MMU*pmmu);
+#endif
 
 /* functions */
 

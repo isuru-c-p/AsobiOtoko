@@ -26,7 +26,7 @@
 
 #define getLCDCBit(pgpu, X) (((pgpu)->LCDC >> (X)) & 0x01)
 
-#define getPixel(pgpu, addr, x) (((pgpu)->vram[(addr)] >> (7-x)) & 0x01)
+#define getPixel(pgpu, addr, x) (((pgpu)->vram[(addr)] >> (7-(x))) & 0x01)
 
 #define updateStat(pgpu) ((pgpu)->STAT = (((pgpu)->STAT & 0xfc) | (pgpu)->mode))
 
