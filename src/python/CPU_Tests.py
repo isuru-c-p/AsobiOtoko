@@ -1696,37 +1696,37 @@ class TestCPU(unittest.TestCase):
 		self.SetUp()
 		self.ADC_X_X_test(self.cpu.i_ADC_A, 'a', 'a')
 		
-	def test_i_SUB_B(self):
+	def test_i_SUB_A_B(self):
 		self.SetUp()
-		self.SUB_X_X_test(self.cpu.i_SUB_B, 'a', 'b')
+		self.SUB_X_X_test(self.cpu.i_SUB_A_B, 'a', 'b')
 		
-	def test_i_SUB_C(self):
+	def test_i_SUB_A_C(self):
 		self.SetUp()
-		self.SUB_X_X_test(self.cpu.i_SUB_C, 'a', 'c')
+		self.SUB_X_X_test(self.cpu.i_SUB_A_C, 'a', 'c')
 		
-	def test_i_SUB_D(self):
+	def test_i_SUB_A_D(self):
 		self.SetUp()
-		self.SUB_X_X_test(self.cpu.i_SUB_D, 'a', 'd')
+		self.SUB_X_X_test(self.cpu.i_SUB_A_D, 'a', 'd')
 		
-	def test_i_SUB_E(self):
+	def test_i_SUB_A_E(self):
 		self.SetUp()
-		self.SUB_X_X_test(self.cpu.i_SUB_E, 'a', 'e')
+		self.SUB_X_X_test(self.cpu.i_SUB_A_E, 'a', 'e')
 
-	def test_i_SUB_H(self):
+	def test_i_SUB_A_H(self):
 		self.SetUp()
-		self.SUB_X_X_test(self.cpu.i_SUB_H, 'a', 'h')
+		self.SUB_X_X_test(self.cpu.i_SUB_A_H, 'a', 'h')
 		
-	def test_i_SUB_L(self):
+	def test_i_SUB_A_L(self):
 		self.SetUp()
-		self.SUB_X_X_test(self.cpu.i_SUB_L, 'a', 'l')
+		self.SUB_X_X_test(self.cpu.i_SUB_A_L, 'a', 'l')
 		
 	def test_i_SUB_HL_mem(self):
 		self.SetUp()
 		self.SUB_X_XX_mem_test(self.cpu.i_SUB_HL_mem, 'a', 'hl')
 
-	def test_i_SUB_A(self):
+	def test_i_SUB_A_A(self):
 		self.SetUp()
-		self.SUB_X_X_test(self.cpu.i_SUB_A, 'a', 'a')
+		self.SUB_X_X_test(self.cpu.i_SUB_A_A, 'a', 'a')
 		
 	def test_i_SBC_B(self):
 		self.SetUp()

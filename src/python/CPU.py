@@ -39,6 +39,14 @@ class _MMU(object):
 	def ww(self,addr,val):
 		ww(self.mmu,addr,val)
 
+
+class fakemethod(object):
+	def __init__(self,func,name):
+		self.func = func
+		self.__name__ = name
+	def __call__(self,arg):
+		return self.func(arg.cpu)
+
 class CPU(object):
 	def __init__(self):
 		self.cpu = z80()
@@ -49,9 +57,7 @@ class CPU(object):
 		names = [x for x in globals().keys() if (x.startswith('i_') or x.startswith('i2_') )]
 		for n in names:
 			cfunc = globals()[n]
-			def func(fakecpu):
-				return cfunc(fakecpu.cpu)
-			method = func#types.MethodType(func, self, self.__class__)
+			method = fakemethod(cfunc,n)
 			self.__setattr__(n,method)
 	def setFlag(self, **kwargs): 
 		self.setFlags(filter(lambda key : kwargs[key],kwargs))
@@ -66,9 +72,59 @@ class CPU(object):
 		
 	def getBit(self,reg,bit):
 		return ((self.registers[reg] >> bit) & 0x1)
-		
+
+	def setBit(self,r,bit):
+		self.registers[r] |=  ((1 << bit) & 255 )
+
+	def getFlag(self, flagName):
+		return self.getBit('f',self.flags[flagName])
 	def resetBit(self,r,bit):
 		self.registers[r] &=  (~(1<<bit) & 255)	
+		
+	def setMemoryBit(self,h,l,bit):
+		h,l = self.registers[h],self.registers[l]
+		self.loadRegFromMemory('mem',h,l)
+		self.setBit('mem',bit)
+		self.writeMemory(h,l,self.registers['mem'])
+
+	def getMemoryBit(self,h,l,bit):
+		h,l = self.registers[h],self.registers[l]
+		self.loadRegFromMemory('mem',h,l)
+		return self.getBit('mem',bit)
+		
+	def resetMemoryBit(self,h,l,bit):
+		h,l = self.registers[h],self.registers[l]
+		self.loadRegFromMemory('mem',h,l)
+		self.resetBit('mem',bit)
+		self.writeMemory(h,l,self.registers['mem'])
+		
+	def push(self,im):
+		if im < 256:
+			push(self.cpu,im)
+		else:
+			push(self.cpu,(im>>8)&255)
+			push(self.cpu,im&255)
+			
+	def pop(self,reg):
+		pop(self.cpu,reg)
+		
+		
+	def loadRegFromMemory(self,dest, high, low, twobytes=0):
+		if len(dest)==2 and (dest not in self.registers.keys()):
+			val = self.mmu.rw((high<<8)+low)
+			self.registers[dest[0]] = (val >> 8)
+			self.registers[dest[1]] = (val & 255)
+		else:
+			if twobytes == 0:
+				self.registers[dest] = self.mmu.rb((high<<8)+low)
+			else:
+				self.registers[dest] = self.mmu.rw((high<<8)+low)
+		
+	def writeMemory(self,high, low, value, twobytes=0):
+		if twobytes:
+			self.mmu.ww((high<<8)+low, value)
+		else:
+			self.mmu.wb((high<<8)+low, value)
 		
 	#convenience function, you can index the cpu[''] and get either a byte or a register	
 	def __getitem__(self, index):
