@@ -32,17 +32,19 @@ checkAndTriggerInterrupts(z80* pz80){
 	//puts("check and trigger\n");
 	if(pz80->mmu.gpu.vblankPending){
 		//puts("pending vblank interupt\n");
+		pz80->mmu.gpu.vblankPending = 0;
 		setInterruptPending(pz80,VBLANKINT);
 	}
 	/*TODO set all pending interrupts*/
 	//unsure of whether the pending flag if should be set
 	//when the ime or enabled flags are not set
 
-
 	if(!pz80->ime){
 		//puts("ints disabled\n");
 		return; /* interrupts globally disabled */
-	}
+	}	
+
+
 	//puts("ints enabled\n");
 	//priorities are in page 40 of GBCPU manual
 
@@ -50,7 +52,9 @@ checkAndTriggerInterrupts(z80* pz80){
 		triggerInterrupt(pz80,VBLANKINT);
 		return;
 	}
-	
+
+
+
 	//TODO other interrupts
 }
 
@@ -68,8 +72,11 @@ triggerInterrupt(z80*pz80,int interrupt){
 	uint16_t address = 0;
 	switch(interrupt){
 		case VBLANKINT:
+			#ifdef DEBUG
+			if(logging_enabled==1)
 			puts("vblankint\n");
-			pz80->mmu.gpu.vblankPending = 0; //this gets set in gpu step
+			#endif
+			//pz80->mmu.gpu.vblankPending = 0; //this gets set in gpu step
 										//we must disable it here to 
 										//avoid serving it twice
 			address = 0x0040;
@@ -132,8 +139,8 @@ void INC_nn(z80*pz80, int h, int l)
 
 void DEC_n(z80*pz80, int reg)
 {
+	pz80->registers[REGF] = buildStatusFlag((pz80->registers[reg] - 1)==0, 1, (pz80->registers[reg] & 0xf) == 0x0, getFlag(pz80->registers[REGF], CARRY));
 	pz80->registers[reg]--;
-	pz80->registers[REGF] = buildStatusFlag((pz80->registers[reg]==0), 1, ((pz80->registers[reg] & 0xff) == 0xff), getFlag(pz80->registers[REGF], CARRY));
 	pz80->tcycles = 4;
 	incPC(pz80, 1);
 	#ifdef DEBUG
@@ -154,7 +161,7 @@ void DEC_nn(z80*pz80, int h, int l)
 void ADC_A_n(z80*pz80, int src)
 {
 	uint8_t carry = getFlag(pz80->registers[REGF], CARRY);
-	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + pz80->registers[src] + carry)==0), 0, (((pz80->registers[REGA] & 0xff) + (pz80->registers[src] & 0xff) + carry) > 0xff), (pz80->registers[REGA] + pz80->registers[src] + carry) > 0xffff);
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + pz80->registers[src] + carry)==0), 0, (((pz80->registers[REGA] & 0xf) + (pz80->registers[src] & 0xf) + carry) > 0xf), (pz80->registers[REGA] + pz80->registers[src] + carry) > 0xff);
 	pz80->registers[REGA] = pz80->registers[REGA] + pz80->registers[src] + carry;
 	pz80->tcycles = 4;
 	incPC(pz80, 1);
@@ -164,7 +171,7 @@ void ADC_A_nn_mem(z80*pz80, int srcH, int srcL)
 {
 	uint8_t carry = getFlag(pz80->registers[REGF], CARRY);
 	uint8_t val = rb(&(pz80->mmu), (pz80->registers[srcH] << 8) + pz80->registers[srcL]);
-	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + val + carry)==0), 0, (((pz80->registers[REGA] & 0xff) + (val & 0xff) + carry) > 0xff), (pz80->registers[REGA] + val + carry) > 0xffff);
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + val + carry)==0), 0, (((pz80->registers[REGA] & 0xf) + (val & 0xf) + carry) > 0xf), (pz80->registers[REGA] + val + carry) > 0xff);
 	pz80->registers[REGA] = pz80->registers[REGA] + val + carry;
 	pz80->tcycles = 8;
 	incPC(pz80, 1);
@@ -174,7 +181,7 @@ void ADC_A_immediate(z80*pz80)
 {
 	uint8_t carry = getFlag(pz80->registers[REGF], CARRY);
 	uint8_t val = getImmediate(pz80);
-	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + val + carry)==0), 0, (((pz80->registers[REGA] & 0xff) + (val & 0xff) + carry) > 0xff), (pz80->registers[REGA] + val + carry) > 0xffff);
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + val + carry)==0), 0, (((pz80->registers[REGA] & 0xf) + (val & 0xf) + carry) > 0xf), (pz80->registers[REGA] + val + carry) > 0xff);
 	pz80->registers[REGA] = pz80->registers[REGA] + val + carry;
 	pz80->tcycles = 8;
 	incPC(pz80, 2);
@@ -182,7 +189,7 @@ void ADC_A_immediate(z80*pz80)
 
 void ADD_A_n(z80*pz80, int src)
 {
-	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + pz80->registers[src])==0), 0, (((pz80->registers[REGA] & 0xff) + (pz80->registers[src] & 0xff)) > 0xff), (pz80->registers[REGA] + pz80->registers[src]) > 0xffff);
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + pz80->registers[src])==0), 0, (((pz80->registers[REGA] & 0xf) + (pz80->registers[src] & 0xff)) > 0xf), (pz80->registers[REGA] + pz80->registers[src]) > 0xff);
 	pz80->registers[REGA] = pz80->registers[REGA] + pz80->registers[src];
 	pz80->tcycles = 4;
 	incPC(pz80, 1);
@@ -191,7 +198,7 @@ void ADD_A_n(z80*pz80, int src)
 void ADD_A_nn_mem(z80*pz80, int srcH, int srcL)
 {
 	uint8_t val = rb(&(pz80->mmu), (pz80->registers[srcH] << 8) + pz80->registers[srcL]);
-	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + val)==0), 0, (((pz80->registers[REGA] & 0xff) + (val & 0xff)) > 0xff), (pz80->registers[REGA] + val) > 0xffff);
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + val)==0), 0, (((pz80->registers[REGA] & 0xf) + (val & 0xf)) > 0xf), (pz80->registers[REGA] + val) > 0xff);
 	pz80->registers[REGA] = pz80->registers[REGA] + val;
 	pz80->tcycles = 8;
 	incPC(pz80, 1);
@@ -200,7 +207,7 @@ void ADD_A_nn_mem(z80*pz80, int srcH, int srcL)
 void ADD_A_immediate(z80*pz80)
 {
 	uint8_t val = getImmediate(pz80);
-	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + val)==0), 0, (((pz80->registers[REGA] & 0xff) + (val & 0xff)) > 0xff), (pz80->registers[REGA] + val) > 0xffff);
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] + val)==0), 0, (((pz80->registers[REGA] & 0xf) + (val & 0xf)) > 0xf), (pz80->registers[REGA] + val) > 0xff);
 	pz80->registers[REGA] = pz80->registers[REGA] + val;
 	pz80->tcycles = 8;
 	incPC(pz80, 2);
@@ -210,7 +217,7 @@ void ADD_HL_nn(z80*pz80, int srcH, int srcL)
 {
 	uint16_t val = getRegister16(pz80, srcH, srcL);
 	uint16_t hl_val = getRegister16(pz80, REGH, REGL);
-	pz80->registers[REGF] = buildStatusFlag(((hl_val + val)==0), 0, (((hl_val & 0xffff) + (val & 0xffff)) > 0xffff), (hl_val + val) > 0xffff);
+	pz80->registers[REGF] = buildStatusFlag(getFlag(pz80->registers[REGF], ZERO), 0, (((hl_val & 0xff) + (val & 0xff)) > 0xff), (hl_val + val) > 0xffff);
 	setRegister16(pz80, REGH, REGL, (hl_val + val));
 	pz80->tcycles = 8;
 	incPC(pz80, 1);
@@ -220,7 +227,7 @@ void ADD_HL_SP(z80*pz80)
 {
 	uint16_t val = pz80->registers16[SP];
 	uint16_t hl_val = getRegister16(pz80, REGH, REGL);
-	pz80->registers[REGF] = buildStatusFlag(((hl_val + val)==0), 0, (((hl_val & 0xffff) + (val & 0xffff)) > 0xffff), (hl_val + val) > 0xffff);
+	pz80->registers[REGF] = buildStatusFlag(getFlag(pz80->registers[REGF], ZERO), 0, (((hl_val & 0xff) + (val & 0xff)) > 0xff), (hl_val + val) > 0xffff);
 	setRegister16(pz80, REGH, REGL, ((uint16_t)hl_val + (uint16_t)val));
 	pz80->tcycles = 8;
 	incPC(pz80, 1);
@@ -239,7 +246,7 @@ void ADD_SP_d(z80*pz80)
 
 void SUB_A_n(z80*pz80, int n)
 {
-	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - pz80->registers[n]) == 0), 1, ((pz80->registers[n] & 0xff) > (pz80->registers[REGA] & 0xff)), (pz80->registers[n] > pz80->registers[REGA]));
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - pz80->registers[n]) == 0), 1, ((pz80->registers[n] & 0xf) > (pz80->registers[REGA] & 0xf)), (pz80->registers[n] > pz80->registers[REGA]));
 	pz80->registers[REGA] -= pz80->registers[n];
 	pz80->tcycles = 4;
 	incPC(pz80, 1);
@@ -248,7 +255,7 @@ void SUB_A_n(z80*pz80, int n)
 void SUB_A_HL_mem(z80*pz80) 
 {
 	uint8_t val = rb(&(pz80->mmu), (pz80->registers[REGH] << 8) + pz80->registers[REGL]);
-	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - val) == 0), 1, ((val & 0xff) > (pz80->registers[REGA] & 0xff)), (val > pz80->registers[REGA])); 
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - val) == 0), 1, ((val & 0xf) > (pz80->registers[REGA] & 0xf)), (val > pz80->registers[REGA])); 
 	pz80->registers[REGA] -= val;
 	pz80->tcycles = 8;
 	incPC(pz80, 1);
@@ -257,7 +264,7 @@ void SUB_A_HL_mem(z80*pz80)
 void SUB_A_immediate(z80*pz80)
 {
 	uint8_t val = getImmediate(pz80);
-	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - val) == 0), 1, ((val & 0xff) > (pz80->registers[REGA] & 0xff)), (val > pz80->registers[REGA])); 
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - val) == 0), 1, ((val & 0xf) > (pz80->registers[REGA] & 0xf)), (val > pz80->registers[REGA])); 
 	pz80->registers[REGA] -= val;
 	pz80->tcycles = 8;
 	incPC(pz80, 2);
@@ -266,7 +273,7 @@ void SUB_A_immediate(z80*pz80)
 void SBC_A_n(z80*pz80, int n)
 {
 	uint8_t carry = getFlag(pz80->registers[REGF], CARRY);
-	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - pz80->registers[n] - carry) == 0), 1, (((pz80->registers[n] & 0xff) + carry) > (pz80->registers[REGA] & 0xff)), ((pz80->registers[n] + carry) > pz80->registers[REGA]));
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - pz80->registers[n] - carry) == 0), 1, (((pz80->registers[n] & 0xf) + carry) > (pz80->registers[REGA] & 0xf)), ((pz80->registers[n] + carry) > pz80->registers[REGA]));
 	pz80->registers[REGA] -= (pz80->registers[n] + carry);
 	pz80->tcycles = 4;
 	incPC(pz80, 1);
@@ -276,7 +283,7 @@ void SBC_A_HL_mem(z80*pz80)
 {
 	uint8_t carry = getFlag(pz80->registers[REGF], CARRY);
 	uint8_t val = rb(&(pz80->mmu), (pz80->registers[REGH] << 8) + pz80->registers[REGL]);
-	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - val - carry) == 0), 1, (((val & 0xff) + carry) > (pz80->registers[REGA] & 0xff)), ((val + carry) > pz80->registers[REGA])); 
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - val - carry) == 0), 1, (((val & 0xf) + carry) > (pz80->registers[REGA] & 0xf)), ((val + carry) > pz80->registers[REGA])); 
 	pz80->registers[REGA] -= (val + carry);
 	pz80->tcycles = 8;
 	incPC(pz80, 1);
@@ -286,7 +293,7 @@ void SBC_A_immediate(z80*pz80)
 {
 	uint8_t carry = getFlag(pz80->registers[REGF], CARRY);
 	uint8_t val = getImmediate(pz80);
-	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - val - carry) == 0), 1, (((val & 0xff) + carry) > (pz80->registers[REGA] & 0xff)), ((val + carry) > pz80->registers[REGA])); 
+	pz80->registers[REGF] = buildStatusFlag(((pz80->registers[REGA] - val - carry) == 0), 1, (((val & 0xf) + carry) > (pz80->registers[REGA] & 0xf)), ((val + carry) > pz80->registers[REGA])); 
 	pz80->registers[REGA] -= (val + carry);
 	pz80->tcycles = 8;
 	incPC(pz80, 2);
@@ -1087,6 +1094,7 @@ void executeNextInstruction(z80 * pz80){
 	uint16_t insAddress =  pz80->registers16[PC];
 	uint8_t	instruction = rb(pmmu,insAddress);
 	#ifdef DEBUG
+	if(logging_enabled)
 		printf("PC: %d, Opcode: 0x%x\n", insAddress, instruction, pz80->registers16[SP]);
 	#endif
 	dispatchInstruction(pz80,instruction,0/*pz80->doSecondaryOpcode*/);
@@ -2690,6 +2698,7 @@ INC_n(pz80, REGB);
 void
 i_DEC_B(z80 * pz80){
 DEC_n(pz80, REGB);
+//printf("i_DEC_B: B = %x | ", pz80->registers[REGB]);
 }
 /* Load 8-bit immediate into B */
 void
@@ -2720,6 +2729,7 @@ LD_n_nn_mem(pz80, REGA, REGB, REGC);
 void
 i_DEC_BC(z80 * pz80){
 DEC_nn(pz80, REGB, REGC);
+//printf("i_DEC_BC: BC: %x ", (pz80->registers[REGB]<<8) + pz80->registers[REGC]);
 }
 /* Increment C */
 void
@@ -2730,6 +2740,7 @@ INC_n(pz80, REGC);
 void
 i_DEC_C(z80 * pz80){
 DEC_n(pz80, REGC);
+//printf("i_DEC_C: C = %x | ", pz80->registers[REGC]);
 }
 /* Load 8-bit immediate into C */
 void
@@ -2920,7 +2931,18 @@ LD_SP_nn(pz80);
 /* Save A to address pointed by HL, and decrement HL */
 void
 i_LDD__HL__A(z80 * pz80){
-LDD_HL_mem_A(pz80);
+
+if(pz80->registers16[PC] == 646)
+{
+	//printf("i_LDD__HL__A, A: %x, HL: %x, PC before: %x ", pz80->registers[REGA], ((pz80->registers[REGH] << 8) + pz80->registers[REGL]), pz80->registers16[PC]);
+	LDD_HL_mem_A(pz80);
+	//printf(" PC after: %x |", pz80->registers16[PC]);
+}
+else
+{
+	LDD_HL_mem_A(pz80);
+}
+
 }
 /* Increment 16-bit HL */
 void
@@ -3704,6 +3726,7 @@ i_Ext_ops(z80 * pz80){
 incPC(pz80, 1);
 uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]);
 #ifdef DEBUG
+	if(logging_enabled==1)
 	printf("PC: %d, Opcode: 0x%x\n", pz80->registers16[PC], op);
 #endif
 dispatchInstruction(pz80, op, 1);

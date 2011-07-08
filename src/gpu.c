@@ -2,6 +2,8 @@
 #include "SDL_Helper.h"
 #include <stdio.h>
 
+#define PRECOMPUTED_GETPIXEL_COLOUR 
+
 uint8_t gpu_rb(GPU*pgpu, uint16_t addr) {
 	switch(addr)
 	{
@@ -102,7 +104,8 @@ uint8_t getPixelColor(GPU*pgpu, uint8_t pixel)
 {
 	#ifdef PRECOMPUTED_GETPIXEL_COLOUR
 		static uint8_t lookup[256][256] = 
-		#include "getPixelColourLookup.c";
+		#include "getPixelColourLookup.c"
+		;
 		return lookup[pixel][pgpu->BGP];
 	#else
 	uint8_t mappedPixel = (pgpu->BGP >> (2*pixel)) & 0x3;
@@ -155,7 +158,13 @@ uint8_t MapSpritePixel(GPU*pgpu, uint8_t pixel, uint8_t palette_sel)
 void writeScanline(GPU*pgpu)
 {
 	if(!getLCDCBit(pgpu, BGWON))
+	{
+		//bzero((void*)pgpu->buffer,sizeof(pgpu->buffer));
+		memset((void*)pgpu->buffer, 0xff, sizeof(pgpu->buffer));
 		return;
+	}
+	
+	readOAM(pgpu);
 
 	int x = pgpu->SCX;
 	int y = pgpu->LY + pgpu->SCY;
@@ -167,7 +176,7 @@ void writeScanline(GPU*pgpu)
 	//printf("TileMapAddr: %x\n", tileMapAddr);
 	int tileNo = pgpu->vram[tileMapAddr - 0x8000];
 	
-	if(!getLCDCBit(pgpu, BGWDATASEL) && tileNo < 127)
+	if(!getLCDCBit(pgpu, BGWDATASEL) && tileNo < 128)
 	{
 		tileNo += 256;
 	}
@@ -214,7 +223,7 @@ void writeScanline(GPU*pgpu)
 		{
 			tileMapAddr++;
 			tileNo = pgpu->vram[tileMapAddr - 0x8000];
-			if(!getLCDCBit(pgpu, BGWDATASEL) && tileNo < 127)
+			if(!getLCDCBit(pgpu, BGWDATASEL) && tileNo < 128)
 			{
 				tileNo += 256;
 			}
@@ -240,18 +249,24 @@ void readOAM(GPU*pgpu)
 	
 	bzero((void*)pgpu->sprite_line,sizeof(pgpu->sprite_line));
 	
+	if(!getLCDCBit(pgpu, OBJON))
+		return;
+	
 	for(i = 0; i < 40; i++)
 	{
-		uint8_t spriteX = getSpriteX(pgpu, i) - 8;
-		uint8_t spriteY = getSpriteY(pgpu, i) - 8;
+		uint8_t spriteX = (pgpu->oam[(i*40)+1]) - 8;//getSpriteX(pgpu, i) - 8;
+		uint8_t spriteY = (pgpu->oam[(i*40)]) - 16;//getSpriteY(pgpu, i) - 16;
 		
-		if((spriteX == -8) && (spriteY == -8))
-			continue;
+		//if((spriteX == -8) && (spriteY == -8))
+		//	continue;
+		
+		//if(i == 39)
+		//	printf("oam[%d], LY: %d, SpriteX: %d, SpriteY: %d, SpriteYSize:%d\n", i*4, pgpu->LY, spriteX, spriteY, spriteYSize);
 			
-		if(((pgpu->LY + pgpu->SCY) >= spriteY) && ((pgpu->LY + pgpu->SCY) <= (spriteY + spriteYSize)) && ((spriteX+8) >= (pgpu->SCX)) )
+		if((pgpu->LY >= spriteY) && (pgpu->LY <= (spriteY + spriteYSize)))
 		{
-			printf("Sprite at: %d,%d\n", spriteX, spriteY);
-			uint8_t sprite_no = getLCDCBit(pgpu,OBJSIZE) ? (getSpriteTile(pgpu, i) >> 1) : getSpriteTile(pgpu, i);
+			//printf("Sprite at: %d,%d\n", spriteX, spriteY);
+			uint8_t sprite_no = getLCDCBit(pgpu,OBJSIZE) ? (getSpriteTile(pgpu, i) & 0xfe) : getSpriteTile(pgpu, i);
 			uint16_t sprite_addr = ((uint16_t)sprite_no * spriteYSize * 2) + (((pgpu->LY + pgpu->SCY) % spriteYSize) * 2);
 					
 			for(j= spriteX; j <= (spriteX+8); j++)
@@ -265,7 +280,7 @@ void readOAM(GPU*pgpu)
 					{
 						pgpu->sprite_line[j] = (pgpu->sprite_line[j] << 1);
 					}
-					printf("Sprite Line(%d): %x\n", j, pgpu->sprite_line[j]);
+					//printf("Sprite Line(%d): %x\n", j, pgpu->sprite_line[j]);
 				
 				}
 				
@@ -328,7 +343,6 @@ void gpu_step(GPU*pgpu, int tcycles)
 				}
 				else
 				{
-					readOAM(pgpu);
 					pgpu->mode = 2;
 					updateStat(pgpu);
 				}
@@ -359,5 +373,6 @@ void initGPU(GPU*pgpu)
 	{
 		printf("Init graphics failed.\n");
 	}
+	bzero((void*)pgpu,sizeof(pgpu));
 	return;
 }

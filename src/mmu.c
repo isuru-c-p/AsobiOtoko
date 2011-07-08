@@ -4,6 +4,10 @@
 #include "io.h"
 #include <stdio.h>
 
+#ifdef DEBUG
+int logging_enabled = 0;
+#endif
+
 #ifdef USE_ADDRESS_LUT
 void fillAddressLUTEntry(MMU * pmmu,uint16_t address) {
 	
@@ -113,6 +117,9 @@ void fillAddressLUT(MMU*pmmu){
 
 uint8_t rb(MMU * pmmu,uint16_t address) {
 	#ifdef USE_ADDRESS_LUT
+	//if((address >= 0xFE00) && (address <= 0xFE9F))
+	//	printf("OAM Read: %x\n", address);
+	
 	uint8_t * b = pmmu->addressLUT[address];
 	if(b)
 		return *b;
@@ -225,6 +232,7 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 			{
 				pmmu->cartridge[address] = val;
 			}
+			//printf("ERROR1! Attempting to write to ROM\n");
 			break;
 			
 		// cartridge	
@@ -236,6 +244,7 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 		case 0x6 :
 		case 0x7 :
 			pmmu->cartridge[address] = val;
+			//printf("ERROR! Attempting to write to ROM\n");
 			break;
 			
 		// VRAM
@@ -275,7 +284,7 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 			else if (address <= 0xFE9F)
 			{
 				// TODO: sprite information
-				printf("OAM access! address: %x\n", address);
+				//printf("OAM access! address: %x\n", address);
 				pmmu->gpu.oam[address - 0xFE00] = val;
 				return;
 			}
@@ -286,6 +295,21 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 				if(address == 0xff00)
 				{
 					writeP1(val);
+					return;
+				}
+				else if(address == 0xff46)
+				{
+					//printf("Initiating DMA transfer of OAM from: %x\n", (val<<8));
+					int i;
+					for(i = 0; i < 160; i++)
+					{
+						//printf("Transferring: oam[%d] = %x\n", i, pmmu->cartridge[(val<<8)+i]);
+						pmmu->gpu.oam[i] = pmmu->cartridge[(val<<8)+i];
+					}
+					#ifdef DEBUG
+					logging_enabled = 1;
+					#endif
+					//memcpy(pmmu->gpu.oam, &(pmmu->memory[val]), 160);
 					return;
 				}
 				else if((address & 0xf0) == 0x40)

@@ -61,5 +61,9 @@ uint16_t rw(MMU * pmmu,uint16_t address);
 void wb(MMU * pmmu,uint16_t address, uint8_t val);
 void ww(MMU * pmmu,uint16_t address, uint16_t val);
 
+//#define DEBUG
 
+#ifdef DEBUG
+extern int logging_enabled;
+#endif
 #endif

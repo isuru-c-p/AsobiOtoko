@@ -42,7 +42,7 @@ uint8_t getButtons()
 			return retval;
 		// anomaly
 		default:
-			printf("Invalid P14-P15 value: %d\n", ((P1 & 0x30) >> 4));
+			//printf("Invalid P14-P15 value: %d\n", ((P1 & 0x30) >> 4));
 			return 0;
 	}
 }

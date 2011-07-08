@@ -52,7 +52,7 @@ class TestCPU(unittest.TestCase):
 			oldFlags = self.cpu['f']
 			instruction(self.cpu)
 			self.assertEqual(self.cpu[register], (immediate + 1) & (2**(len(register)*8) - 1))
-			self.flags_test({ 'sub': 0, 'halfcarry' : 1 }, oldFlags)
+			self.flags_test({ 'zero' : 1, 'sub': 0, 'halfcarry' : 1 }, oldFlags)
 	
 	def INC_XX_mem_test(self, instruction, addressReg):
 		immediate = 0xa0
@@ -334,6 +334,7 @@ class TestCPU(unittest.TestCase):
 		instruction(self.cpu)
 		self.assertEqual(self.cpu[reg1], (immediate + immediate2) & 65535)
 		self.flags_test({'carry':0, 'sub':0, 'zero':1, 'halfcarry':1, 'carry':0}, oldFlags)
+		
 		
 		immediate = 0xffff
 		immediate2 = 0xa0 if (reg1 != reg2) else 0xffff
@@ -1081,7 +1082,7 @@ class TestCPU(unittest.TestCase):
 		oldFlags = self.cpu['f']
 		self.cpu.i_INC_B(self.cpu)
 		self.assertEqual(self.cpu['b'], (immediate+1) & 255)
-		self.flags_test({ 'sub' : 0, 'halfcarry' : 1}, oldFlags)
+		self.flags_test({ 'zero' : 1, 'sub' : 0, 'halfcarry' : 1}, oldFlags)
 		
 	def test_i_DEC_B(self):
 		self.SetUp()
@@ -2172,9 +2173,9 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_EI(self):
 		self.SetUp()
-		self.cpu.interruptsEnabled = 0
+		self.cpu.ime = 0
 		self.cpu.i_EI(self.cpu)
-		self.assertEquals(self.cpu.interruptsEnabled, 1)
+		self.assertEquals(self.cpu.ime, 1)
 		
 	def test_i_XXfc(self):
 		pass
