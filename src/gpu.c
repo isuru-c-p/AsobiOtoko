@@ -116,9 +116,11 @@ uint8_t getPixelColor(GPU*pgpu, uint8_t pixel)
 		case 0:
 			return 255;
 		case 1:
-			return 192;
+			return 0xb6;
+			//return 192;
 		case 2:
-			return 96;
+			return 0x6d;
+			//return 96;
 		case 3:
 			return 0;
 		printf("Error! Mapped pixel color is out of range: %x\n", mappedPixel);
@@ -134,9 +136,11 @@ uint8_t GetColor(GPU*pgpu, uint8_t pixel)
 		case 0:
 			return 255;
 		case 1:
-			return 192;
+			return 0xb6;
+			//return 192;
 		case 2:
-			return 96;
+			return 0x6d;
+			//return 96;
 		case 3:
 			return 0;
 		printf("Error! Mapped pixel color is out of range: %x\n", pixel);
@@ -267,13 +271,29 @@ void readOAM(GPU*pgpu)
 		{
 			//printf("Sprite at: %d,%d\n", spriteX, spriteY);
 			uint8_t sprite_no = getLCDCBit(pgpu,OBJSIZE) ? (getSpriteTile(pgpu, i) & 0xfe) : getSpriteTile(pgpu, i);
-			uint16_t sprite_addr = ((uint16_t)sprite_no * spriteYSize * 2) + ((pgpu->LY % spriteYSize) * 2);
-					
+			uint16_t sprite_addr;
+			
+			if(getSpriteAttr(pgpu, i, YFLIP))
+			{
+				sprite_addr = ((uint16_t)sprite_no * spriteYSize * 2) + ((7 - (pgpu->LY % spriteYSize)) * 2);
+			}
+			else
+			{
+				sprite_addr = ((uint16_t)sprite_no * spriteYSize * 2) + ((pgpu->LY % spriteYSize) * 2);
+			}
+			
 			for(j= spriteX; j <= (spriteX+8); j++)
 			{
 				if(pgpu->sprite_line[j] == 0)
 				{
-					pgpu->sprite_line[j] = ((pgpu->vram[sprite_addr] >> (j-spriteX)) & 0x1) + (((pgpu->vram[sprite_addr+1] >> (j-spriteX)) & 0x1) << 1);
+					if(getSpriteAttr(pgpu, i, XFLIP))
+					{
+						pgpu->sprite_line[j] = ((pgpu->vram[sprite_addr] >> (7-(j-spriteX))) & 0x1) + (((pgpu->vram[sprite_addr+1] >> (7-(j-spriteX))) & 0x1) << 1);
+					}
+					else
+					{
+						pgpu->sprite_line[j] = ((pgpu->vram[sprite_addr] >> (j-spriteX)) & 0x1) + (((pgpu->vram[sprite_addr+1] >> (j-spriteX)) & 0x1) << 1);
+					}
 					pgpu->sprite_line[j] = MapSpritePixel(pgpu, pgpu->sprite_line[j], getSpriteAttr(pgpu, i, SPRITE_PALETTE));
 					
 					if(!getSpriteAttr(pgpu, i, PRIORITY))
@@ -286,8 +306,6 @@ void readOAM(GPU*pgpu)
 				
 				// TODO: implement sprite priority wrt to x pos
 				// (sprites with smaller x positions have higher priority)
-				
-				// TODO: implement sprite X and Y flip
 			}
 		}
 	}

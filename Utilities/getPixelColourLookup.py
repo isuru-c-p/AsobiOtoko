@@ -6,9 +6,11 @@ for pixel in range(0,256):
 		if result == 0:
 			 result = 255
 		elif result == 1:
-			 result = 192
+			 result = 0xb6
+			 #result = 192
 		elif result == 2: 
-			 result = 96
+			 result = 0x6d
+			 #result = 96
 		elif result == 3:
 			 result = 0
 		row+= "0x%02X,"%result
