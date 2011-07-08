@@ -50,66 +50,41 @@ void RenderScreen()
 
 void ProcessInput(int * cont){
 		static	SDL_Event event;
+		int upordown = 0;
 		if(!SDL_PollEvent(&event))
 			return;
 		switch(event.type){
 			case SDL_KEYDOWN:
-				switch(event.key.keysym.scancode)
-				{
-					case A_KEYCODE:
-						pressed_buttons[A_KEY] = 0;
-						break;
-					case B_KEYCODE:
-						pressed_buttons[B_KEY] = 0;
-						break;
-					case UP_KEYCODE:
-						pressed_buttons[UP_KEY] = 0;
-						break;
-					case DOWN_KEYCODE:
-						pressed_buttons[DOWN_KEY] = 0;
-						break;
-					case LEFT_KEYCODE:
-						pressed_buttons[LEFT_KEY] = 0;
-						break;
-					case RIGHT_KEYCODE:
-						pressed_buttons[RIGHT_KEY] = 0;
-						break;
-					case START_KEYCODE:
-						pressed_buttons[START_KEY] = 0;
-						break;
-					case SELECT_KEYCODE:
-						pressed_buttons[SELECT_KEY] = 0;
-						break;
-					default:
-						break;
-				}
-				break;
+				upordown = 0;
+				goto keyswitch;
 			case SDL_KEYUP:
-				switch(event.key.keysym.scancode)
+				upordown = 1;
+				keyswitch:
+				switch(event.key.keysym.sym)
 				{
-					case A_KEYCODE:
-						pressed_buttons[A_KEY] = 1;
+					case SDLK_j:
+						pressed_buttons[A_KEY] = upordown;
 						break;
-					case B_KEYCODE:
-						pressed_buttons[B_KEY] = 1;
+					case SDLK_k:
+						pressed_buttons[B_KEY] = upordown;
 						break;
-					case UP_KEYCODE:
-						pressed_buttons[UP_KEY] = 1;
+					case SDLK_w:
+						pressed_buttons[UP_KEY] = upordown;
 						break;
-					case DOWN_KEYCODE:
-						pressed_buttons[DOWN_KEY] = 1;
+					case SDLK_s:
+						pressed_buttons[DOWN_KEY] = upordown;
 						break;
-					case LEFT_KEYCODE:
-						pressed_buttons[LEFT_KEY] = 1;
+					case SDLK_a:
+						pressed_buttons[LEFT_KEY] = upordown;
 						break;
-					case RIGHT_KEYCODE:
-						pressed_buttons[RIGHT_KEY] = 1;
+					case SDLK_d:
+						pressed_buttons[RIGHT_KEY] = upordown;
 						break;
-					case START_KEYCODE:
-						pressed_buttons[START_KEY] = 1;
+					case SDLK_RETURN:
+						pressed_buttons[START_KEY] = upordown;
 						break;
-					case SELECT_KEYCODE:
-						pressed_buttons[SELECT_KEY] = 1;
+					case SDLK_RSHIFT:
+						pressed_buttons[SELECT_KEY] = upordown;
 						break;
 					default:
 						break;

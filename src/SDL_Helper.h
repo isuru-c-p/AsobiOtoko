@@ -12,14 +12,6 @@ void Flip(uint8_t* buffer);
 void ProcessInput(int * cont);
 uint8_t GetPixelVal(int pixel);
 
-#define START_KEYCODE 0x28
-#define SELECT_KEYCODE 0xe5
-#define A_KEYCODE 0xd 
-#define B_KEYCODE 0xe
-#define UP_KEYCODE 0x1a
-#define DOWN_KEYCODE 0x16
-#define LEFT_KEYCODE 0x04
-#define RIGHT_KEYCODE 0x07
 
 #define START_KEY 0
 #define SELECT_KEY 1
