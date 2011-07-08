@@ -4,7 +4,7 @@
 #include "string.h" //bzero
 #include <stdio.h>
 
-//#define DEBUG
+#define DEBUG
 
 inline uint8_t 
 buildStatusFlag(int zero, int sub, int halfcarry,int carry){
@@ -23,6 +23,7 @@ buildStatusFlag(int zero, int sub, int halfcarry,int carry){
 void 
 initZ80(z80*pz80){
 	bzero((void*)pz80,sizeof(z80));
+	pz80->ime = 1;
 	initMMU(&(pz80->mmu));
 }
 
@@ -72,10 +73,10 @@ triggerInterrupt(z80*pz80,int interrupt){
 	uint16_t address = 0;
 	switch(interrupt){
 		case VBLANKINT:
-			#ifdef DEBUG
-			if(logging_enabled==1)
-			puts("vblankint\n");
-			#endif
+			//#ifdef DEBUG
+			//if(logging_enabled==1)
+			printf("vblankint\n");
+			//#endif
 			//pz80->mmu.gpu.vblankPending = 0; //this gets set in gpu step
 										//we must disable it here to 
 										//avoid serving it twice
@@ -520,7 +521,6 @@ void LDD_A_HL_mem(z80*pz80)
 	incPC(pz80, -1); // as DEC_nn and LD_nn_mem_n increase the pc by 1
 }
 
-// TODO: is this LDD supposed to change flags or not?
 void LDD_HL_mem_A(z80*pz80)
 {
 	LD_nn_mem_n(pz80, REGH, REGL, REGA);
@@ -1093,8 +1093,8 @@ void executeNextInstruction(z80 * pz80){
 	uint16_t insAddress =  pz80->registers16[PC];
 	uint8_t	instruction = rb(pmmu,insAddress);
 	#ifdef DEBUG
-	if(logging_enabled)
-		printf("PC: %d, Opcode: 0x%x\n", insAddress, instruction, pz80->registers16[SP]);
+	//if(logging_enabled)
+	printf("%x : %s\n", pz80->registers16[PC], dissasemble(instruction, 0));
 	#endif
 	dispatchInstruction(pz80,instruction,0/*pz80->doSecondaryOpcode*/);
 	//printf("Instruction dispatched\n");
@@ -2930,18 +2930,7 @@ LD_SP_nn(pz80);
 /* Save A to address pointed by HL, and decrement HL */
 void
 i_LDD__HL__A(z80 * pz80){
-
-if(pz80->registers16[PC] == 646)
-{
-	//printf("i_LDD__HL__A, A: %x, HL: %x, PC before: %x ", pz80->registers[REGA], ((pz80->registers[REGH] << 8) + pz80->registers[REGL]), pz80->registers16[PC]);
-	LDD_HL_mem_A(pz80);
-	//printf(" PC after: %x |", pz80->registers16[PC]);
-}
-else
-{
-	LDD_HL_mem_A(pz80);
-}
-
+LDD_HL_mem_A(pz80);
 }
 /* Increment 16-bit HL */
 void
@@ -3725,8 +3714,8 @@ i_Ext_ops(z80 * pz80){
 incPC(pz80, 1);
 uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]);
 #ifdef DEBUG
-	if(logging_enabled==1)
-	printf("PC: %d, Opcode: 0x%x\n", pz80->registers16[PC], op);
+	//if(logging_enabled==1)
+	printf("%x : %s\n", pz80->registers16[PC], dissasemble(op, 0));
 #endif
 dispatchInstruction(pz80, op, 1);
 }
@@ -3919,6 +3908,9 @@ POP_nn(pz80, REGA, REGF);
 /* DIsable interrupts */
 void
 i_DI(z80 * pz80){
+//#ifdef DEBUG
+printf("Disabling interrupts\n");
+//#endif
 pz80->ime = 0; // TODO: in real GB, interrupts are disabled after next instruction.
 pz80->tcycles = 4;
 incPC(pz80, 1);

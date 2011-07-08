@@ -4,9 +4,6 @@
 #include "io.h"
 #include <stdio.h>
 
-#ifdef DEBUG
-int logging_enabled = 0;
-#endif
 
 #ifdef USE_ADDRESS_LUT
 void fillAddressLUTEntry(MMU * pmmu,uint16_t address) {
@@ -307,7 +304,7 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 						pmmu->gpu.oam[i] = pmmu->cartridge[(val<<8)+i];
 					}
 					#ifdef DEBUG
-					logging_enabled = 1;
+					//logging_enabled = 1;
 					#endif
 					//memcpy(pmmu->gpu.oam, &(pmmu->memory[val]), 160);
 					return;
@@ -317,11 +314,13 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 					gpu_wb(&(pmmu->gpu), address, val);
 					return;
 				}
-				pmmu->memory[address - 0xFF00] = val;
+				pmmu->memory[address] = val;
 			}
 			else
 			{
 				pmmu->zram[address - 0xFF80] = val;
+				if(address == 0xFFFF)
+					printf("New IE: %x\n", address);
 			}
 			break;
 			
