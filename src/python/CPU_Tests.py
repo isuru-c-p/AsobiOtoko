@@ -38,6 +38,8 @@ class TestCPU(unittest.TestCase):
 			instruction(self.cpu)
 			self.assertEqual(self.cpu[register], (immediate - 1) & (2**(len(register)*8) - 1))
 			self.flags_test({ 'sub': 1, 'halfcarry' : 1 }, oldFlags)
+		else:
+			self.assertEqual(self.cpu['f'], oldFlags)
 		
 	def IncTest(self, instruction, register):
 		immediate = 0xa0
@@ -53,6 +55,8 @@ class TestCPU(unittest.TestCase):
 			instruction(self.cpu)
 			self.assertEqual(self.cpu[register], (immediate + 1) & (2**(len(register)*8) - 1))
 			self.flags_test({ 'zero' : 1, 'sub': 0, 'halfcarry' : 1 }, oldFlags)
+		else:
+			self.assertEqual(self.cpu['f'], oldFlags)
 	
 	def INC_XX_mem_test(self, instruction, addressReg):
 		immediate = 0xa0
@@ -70,7 +74,7 @@ class TestCPU(unittest.TestCase):
 		oldFlags = self.cpu['f']
 		instruction(self.cpu)
 		self.assertEqual(self.cpu[address], (immediate + 1) & 255)
-		self.flags_test({'sub':0, 'halfcarry':1}, oldFlags)
+		self.flags_test({'zero': 1, 'sub':0, 'halfcarry':1}, oldFlags)
 		
 	def DEC_XX_mem_test(self, instruction, addressReg):
 		immediate = 0xa0
@@ -978,39 +982,39 @@ class TestCPU(unittest.TestCase):
 
 	
 
-	def testNibbleSwap(self):
-		self.SetUp()
-		forward = 0b10100001
-		reverse = 0b00011010
-		self.cpu['a'] = forward
-		self.cpu.swapNibble('a')
-		self.assertEqual(reverse,self.cpu['a'])
+	#def testNibbleSwap(self):
+	#	self.SetUp()
+	#	forward = 0b10100001
+	#	reverse = 0b00011010
+	#	self.cpu['a'] = forward
+	#	self.cpu.nibbleSwap('a')
+	#	self.assertEqual(reverse,self.cpu['a'])
 		#test memory swapping
-		self.cpu[0] = forward
-		self.cpu['h'],self.cpu['l'] = 0,0 # explicitly set address to low
-		self.cpu.swapMemoryNibble('h','l')
-		self.assertEqual(self.cpu[0],reverse)
+	#	self.cpu[0] = forward
+	#	self.cpu['h'],self.cpu['l'] = 0,0 # explicitly set address to low
+	#	self.cpu.nibbleHLSwap()
+	#	self.assertEqual(self.cpu[0],reverse)
 
-	def testResetSetAndGetBit(self):
-		self.SetUp()
-		self.cpu.setBit('a',0)
-		self.assertTrue(self.cpu.getBit('a',0))
-		self.assertEqual(self.cpu.registers['a'],0b00000001)
-		self.assertFalse(self.cpu.getBit('a',5))
-		self.cpu.setBit('a',5)
-		self.assertTrue(self.cpu.getBit('a',5))
-		self.assertEqual(self.cpu.registers['a'],0b00100001)
-		self.cpu.setBit('a',7)
-		self.assertEqual(self.cpu.registers['a'],0b10100001)
-		self.cpu.resetBit('a',5)
-		self.assertEqual(self.cpu.registers['a'],0b10000001)
+	#def testResetSetAndGetBit(self):
+	#	self.SetUp()
+	#	self.cpu.setBit('a',0)
+	#	self.assertTrue(self.cpu.getBit('a',0))
+	#	self.assertEqual(self.cpu.registers['a'],0b00000001)
+	#	self.assertFalse(self.cpu.getBit('a',5))
+	#	self.cpu.setBit('a',5)
+	#	self.assertTrue(self.cpu.getBit('a',5))
+	#	self.assertEqual(self.cpu.registers['a'],0b00100001)
+	#	self.cpu.setBit('a',7)
+	#	self.assertEqual(self.cpu.registers['a'],0b10100001)
+	#	self.cpu.resetBit('a',5)
+	#	self.assertEqual(self.cpu.registers['a'],0b10000001)
 		#self.assertRaises(Exception,self.cpu.setBit,'a',8)
 		#self.assertRaises(Exception,self.cpu.setBit,'a',-2)
 		#h and l start at 0
-		self.cpu.setMemoryBit('h','l',2)
-		self.assertEqual(self.cpu[0],0b0000100)
-		self.assertEqual(self.cpu.getMemoryBit('h','l',1),0)
-		self.assertEqual(self.cpu.getMemoryBit('h','l',2),1)
+	#	self.cpu.setMemoryBit('h','l',2)
+	#	self.assertEqual(self.cpu[0],0b0000100)
+	#	self.assertEqual(self.cpu.getMemoryBit('h','l',1),0)
+	#	self.assertEqual(self.cpu.getMemoryBit('h','l',2),1)
 		
 	def testResetSetAndGetFlags(self):
 		self.SetUp()
@@ -1053,7 +1057,7 @@ class TestCPU(unittest.TestCase):
 		self.cpu['a'] = immediate
 		self.cpu['c'] = address & 255
 		self.cpu['b'] = address >> 8
-		self.cpu.i_LD_BC_A_mem(self.cpu)
+		self.cpu.i_LD__BC__A(self.cpu)
 		self.assertEqual(self.cpu.mmu.rb(address), immediate)
 		
 	def test_i_INC_BC(self):
@@ -1110,7 +1114,7 @@ class TestCPU(unittest.TestCase):
 		immediate = 0xfa
 		self.cpu.mmu.ww(self.cpu['pc']+1, immediate)
 		self.cpu['sp'] = 1337
-		self.cpu.i_LD_nn_SP(self.cpu)
+		self.cpu.i_LD__nn__SP(self.cpu)
 		self.assertEqual(self.cpu.mmu.rw(0xfa), 1337)
 		
 	def test_i_ADD_HL_BC(self):
@@ -1123,7 +1127,7 @@ class TestCPU(unittest.TestCase):
 		address = 0xabbc
 		self.cpu.mmu.wb(address, immediate)
 		self.cpu['bc'] = address
-		self.cpu.i_LD_A_BC_mem(self.cpu)
+		self.cpu.i_LD_A__BC_(self.cpu)
 		self.assertEqual(self.cpu['a'], immediate)
 	
 	def test_i_DEC_BC(self):
@@ -1156,7 +1160,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_LD_DE_A_mem(self):
 		self.SetUp()
-		self.LD_XX_X_mem_test(self.cpu.i_LD_DE_A_mem, 'de', 'a')
+		self.LD_XX_X_mem_test(self.cpu.i_LD__DE__A, 'de', 'a')
 	
 	def test_i_INC_DE(self):
 		self.SetUp()
@@ -1200,7 +1204,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_LD_A_DE_mem(self):
 		self.SetUp()
-		self.LD_X_XX_mem_test(self.cpu.i_LD_A_DE_mem, 'a', 'de')
+		self.LD_X_XX_mem_test(self.cpu.i_LD_A__DE_, 'a', 'de')
 	
 	def test_i_DEC_DE(self):
 		self.SetUp()
@@ -1232,7 +1236,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_LDI_HL_A_mem(self):
 		self.SetUp()
-		self.LDI_XX_X_mem_test(self.cpu.i_LDI_HL_A_mem, 'hl', 'a')
+		self.LDI_XX_X_mem_test(self.cpu.i_LDI__HL__A, 'hl', 'a')
 		
 	def test_i_INC_HL(self):
 		self.SetUp()
@@ -1271,7 +1275,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_LDI_A_HL_mem(self):
 		self.SetUp()
-		self.LDI_X_XX_mem_test(self.cpu.i_LDI_A_HL_mem, 'a', 'hl')
+		self.LDI_X_XX_mem_test(self.cpu.i_LDI_A__HL_, 'a', 'hl')
 	
 	def test_i_DEC_HL(self):
 		self.SetUp()
@@ -1306,7 +1310,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_LDD_HL_A(self):
 		self.SetUp()
-		self.LDD_XX_X_test(self.cpu.i_LDD_HL_A, 'hl', 'a')
+		self.LDD_XX_X_test(self.cpu.i_LDD__HL__A, 'hl', 'a')
 		
 	def test_i_INC_SP(self):
 		self.SetUp()
@@ -1314,15 +1318,15 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_INC_HL_mem(self):
 		self.SetUp()
-		self.INC_XX_mem_test(self.cpu.i_INC_HL_mem, 'hl')
+		self.INC_XX_mem_test(self.cpu.i_INC__HL_, 'hl')
 		
 	def test_i_DEC_HL_mem(self):
 		self.SetUp()
-		self.DEC_XX_mem_test(self.cpu.i_DEC_HL_mem, 'hl')
+		self.DEC_XX_mem_test(self.cpu.i_DEC__HL_, 'hl')
 		
 	def test_i_LD_HL_n_mem(self):
 		self.SetUp()
-		self.LD_XX_n_mem_test(self.cpu.i_LD_HL_n_mem, 'hl')
+		self.LD_XX_n_mem_test(self.cpu.i_LD__HL__n, 'hl')
 		
 	def test_i_SCF(self):
 		self.SetUp()
@@ -1347,7 +1351,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_LDD_A_HL(self):
 		self.SetUp()
-		self.LDD_X_XX_test(self.cpu.i_LDD_A_HL, 'a', 'hl')
+		self.LDD_X_XX_test(self.cpu.i_LDD_A__HL_, 'a', 'hl')
 		
 	def test_i_DEC_SP(self):
 		self.SetUp()
@@ -1403,7 +1407,7 @@ class TestCPU(unittest.TestCase):
 
 	def test_i_LD_B_HL_mem(self):
 		self.SetUp()
-		self.LD_X_XX_mem_test(self.cpu.i_LD_B_HL_mem, 'b', 'hl')
+		self.LD_X_XX_mem_test(self.cpu.i_LD_B__HL_, 'b', 'hl')
 		
 	def test_i_LD_B_A(self):
 		self.SetUp()
@@ -1435,7 +1439,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_LD_C_HL_mem(self):
 		self.SetUp()
-		self.LD_X_XX_mem_test(self.cpu.i_LD_C_HL_mem, 'c', 'hl')
+		self.LD_X_XX_mem_test(self.cpu.i_LD_C__HL_, 'c', 'hl')
 
 	def test_i_LD_C_A(self):
 		self.SetUp()
@@ -1467,7 +1471,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_LD_D_HL_mem(self):
 		self.SetUp()
-		self.LD_X_XX_mem_test(self.cpu.i_LD_D_HL_mem, 'd', 'hl')
+		self.LD_X_XX_mem_test(self.cpu.i_LD_D__HL_, 'd', 'hl')
 
 	def test_i_LD_D_A(self):
 		self.SetUp()
@@ -1499,7 +1503,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_LD_E_HL_mem(self):
 		self.SetUp()
-		self.LD_X_XX_mem_test(self.cpu.i_LD_E_HL_mem, 'e', 'hl')
+		self.LD_X_XX_mem_test(self.cpu.i_LD_E__HL_, 'e', 'hl')
 
 	def test_i_LD_E_A(self):
 		self.SetUp()
@@ -1531,7 +1535,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_LD_H_HL_mem(self):
 		self.SetUp()
-		self.LD_X_XX_mem_test(self.cpu.i_LD_H_HL_mem, 'h', 'hl')
+		self.LD_X_XX_mem_test(self.cpu.i_LD_H__HL_, 'h', 'hl')
 
 	def test_i_LD_H_A(self):
 		self.SetUp()
@@ -1563,7 +1567,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_LD_L_HL_mem(self):
 		self.SetUp()
-		self.LD_X_XX_mem_test(self.cpu.i_LD_L_HL_mem, 'l', 'hl')
+		self.LD_X_XX_mem_test(self.cpu.i_LD_L__HL_, 'l', 'hl')
 
 	def test_i_LD_L_A(self):
 		self.SetUp()
@@ -1571,27 +1575,27 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_LD_HL_B(self):
 		self.SetUp()
-		self.LD_XX_X_test(self.cpu.i_LD_HL_B, 'hl', 'b')
+		self.LD_XX_X_test(self.cpu.i_LD__HL__B, 'hl', 'b')
 	
 	def test_i_LD_HL_C(self):
 		self.SetUp()
-		self.LD_XX_X_test(self.cpu.i_LD_HL_C, 'hl', 'c')
+		self.LD_XX_X_test(self.cpu.i_LD__HL__C, 'hl', 'c')
 		
 	def test_i_LD_HL_D(self):
 		self.SetUp()
-		self.LD_XX_X_test(self.cpu.i_LD_HL_D, 'hl', 'd')
+		self.LD_XX_X_test(self.cpu.i_LD__HL__D, 'hl', 'd')
 		
 	def test_i_LD_HL_E(self):
 		self.SetUp()
-		self.LD_XX_X_test(self.cpu.i_LD_HL_E, 'hl', 'e')
+		self.LD_XX_X_test(self.cpu.i_LD__HL__E, 'hl', 'e')
 		
 	def test_i_LD_HL_H(self):
 		self.SetUp()
-		self.LD_XX_X_test(self.cpu.i_LD_HL_H, 'hl', 'h')
+		self.LD_XX_X_test(self.cpu.i_LD__HL__H, 'hl', 'h')
 		
 	def test_i_LD_HL_L(self):
 		self.SetUp()
-		self.LD_XX_X_test(self.cpu.i_LD_HL_L, 'hl', 'l')
+		self.LD_XX_X_test(self.cpu.i_LD__HL__L, 'hl', 'l')
 		
 	def test_i_HALT(self):
 		pass
@@ -1599,7 +1603,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_LD_HL_A(self):
 		self.SetUp()
-		self.LD_XX_X_test(self.cpu.i_LD_HL_A, 'hl', 'a')
+		self.LD_XX_X_test(self.cpu.i_LD__HL__A, 'hl', 'a')
 
 	def test_i_LD_A_B(self):
 		self.SetUp()
@@ -1627,7 +1631,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_LD_A_HL_mem(self):
 		self.SetUp()
-		self.LD_X_XX_mem_test(self.cpu.i_LD_A_HL_mem, 'a', 'hl')
+		self.LD_X_XX_mem_test(self.cpu.i_LD_A__HL_, 'a', 'hl')
 
 	def test_i_LD_A_A(self):
 		self.SetUp()
@@ -1635,67 +1639,67 @@ class TestCPU(unittest.TestCase):
 
 	def test_i_ADD_B(self):
 		self.SetUp()
-		self.ADD_X_X_test(self.cpu.i_ADD_B, 'a', 'b')
+		self.ADD_X_X_test(self.cpu.i_ADD_A_B, 'a', 'b')
 
 	def test_i_ADD_C(self):
 		self.SetUp()
-		self.ADD_X_X_test(self.cpu.i_ADD_C, 'a', 'c')		
+		self.ADD_X_X_test(self.cpu.i_ADD_A_C, 'a', 'c')		
 		
 	def test_i_ADD_D(self):
 		self.SetUp()
-		self.ADD_X_X_test(self.cpu.i_ADD_D, 'a', 'd')
+		self.ADD_X_X_test(self.cpu.i_ADD_A_D, 'a', 'd')
 		
 	def test_i_ADD_E(self):
 		self.SetUp()
-		self.ADD_X_X_test(self.cpu.i_ADD_E, 'a', 'e')
+		self.ADD_X_X_test(self.cpu.i_ADD_A_E, 'a', 'e')
 		
 	def test_i_ADD_H(self):
 		self.SetUp()
-		self.ADD_X_X_test(self.cpu.i_ADD_H, 'a', 'h')
+		self.ADD_X_X_test(self.cpu.i_ADD_A_H, 'a', 'h')
 		
 	def test_i_ADD_L(self):
 		self.SetUp()
-		self.ADD_X_X_test(self.cpu.i_ADD_L, 'a', 'l')
+		self.ADD_X_X_test(self.cpu.i_ADD_A_L, 'a', 'l')
 		
 	def test_i_ADD_HL_mem(self):
 		self.SetUp()
-		self.ADD_X_XX_mem_test(self.cpu.i_ADD_HL_mem, 'a', 'hl')
+		self.ADD_X_XX_mem_test(self.cpu.i_ADD_A__HL_, 'a', 'hl')
 		
 	def test_i_ADD_A(self):
 		self.SetUp()
-		self.ADD_X_X_test(self.cpu.i_ADD_A, 'a', 'a')
+		self.ADD_X_X_test(self.cpu.i_ADD_A_A, 'a', 'a')
 		
 	def test_i_ADC_B(self):
 		self.SetUp()
-		self.ADC_X_X_test(self.cpu.i_ADC_B, 'a', 'b')
+		self.ADC_X_X_test(self.cpu.i_ADC_A_B, 'a', 'b')
 		
 	def test_i_ADC_C(self):
 		self.SetUp()
-		self.ADC_X_X_test(self.cpu.i_ADC_C, 'a', 'c')		
+		self.ADC_X_X_test(self.cpu.i_ADC_A_C, 'a', 'c')		
 		
 	def test_i_ADC_D(self):
 		self.SetUp()
-		self.ADC_X_X_test(self.cpu.i_ADC_D, 'a', 'd')	
+		self.ADC_X_X_test(self.cpu.i_ADC_A_D, 'a', 'd')	
 		
 	def test_i_ADC_E(self):
 		self.SetUp()
-		self.ADC_X_X_test(self.cpu.i_ADC_E, 'a', 'e')
+		self.ADC_X_X_test(self.cpu.i_ADC_A_E, 'a', 'e')
 		
 	def test_i_ADC_H(self):
 		self.SetUp()
-		self.ADC_X_X_test(self.cpu.i_ADC_H, 'a', 'h')
+		self.ADC_X_X_test(self.cpu.i_ADC_A_H, 'a', 'h')
 
 	def test_i_ADC_L(self):
 		self.SetUp()
-		self.ADC_X_X_test(self.cpu.i_ADC_L, 'a', 'l')
+		self.ADC_X_X_test(self.cpu.i_ADC_A_L, 'a', 'l')
 	
 	def test_i_ADC_HL_mem(self):
 		self.SetUp()
-		self.ADC_X_XX_mem_test(self.cpu.i_ADC_HL_mem, 'a', 'hl')
+		self.ADC_X_XX_mem_test(self.cpu.i_ADC_A__HL_, 'a', 'hl')
 
 	def test_i_ADC_A(self):
 		self.SetUp()
-		self.ADC_X_X_test(self.cpu.i_ADC_A, 'a', 'a')
+		self.ADC_X_X_test(self.cpu.i_ADC_A_A, 'a', 'a')
 		
 	def test_i_SUB_A_B(self):
 		self.SetUp()
@@ -1723,7 +1727,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_SUB_HL_mem(self):
 		self.SetUp()
-		self.SUB_X_XX_mem_test(self.cpu.i_SUB_HL_mem, 'a', 'hl')
+		self.SUB_X_XX_mem_test(self.cpu.i_SUB_A__HL_, 'a', 'hl')
 
 	def test_i_SUB_A_A(self):
 		self.SetUp()
@@ -1731,35 +1735,35 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_SBC_B(self):
 		self.SetUp()
-		self.SBC_X_X_test(self.cpu.i_SBC_B, 'a', 'b')
+		self.SBC_X_X_test(self.cpu.i_SBC_A_B, 'a', 'b')
 		
 	def test_i_SBC_C(self):
 		self.SetUp()
-		self.SBC_X_X_test(self.cpu.i_SBC_C, 'a', 'c')
+		self.SBC_X_X_test(self.cpu.i_SBC_A_C, 'a', 'c')
 		
 	def test_i_SBC_D(self):
 		self.SetUp()
-		self.SBC_X_X_test(self.cpu.i_SBC_D, 'a', 'd')
+		self.SBC_X_X_test(self.cpu.i_SBC_A_D, 'a', 'd')
 		
 	def test_i_SBC_E(self):
 		self.SetUp()
-		self.SBC_X_X_test(self.cpu.i_SBC_E, 'a', 'e')
+		self.SBC_X_X_test(self.cpu.i_SBC_A_E, 'a', 'e')
 		
 	def test_i_SBC_H(self):
 		self.SetUp()
-		self.SBC_X_X_test(self.cpu.i_SBC_H, 'a', 'h')
+		self.SBC_X_X_test(self.cpu.i_SBC_A_H, 'a', 'h')
 		
 	def test_i_SBC_L(self):
 		self.SetUp()
-		self.SBC_X_X_test(self.cpu.i_SBC_L, 'a', 'l')
+		self.SBC_X_X_test(self.cpu.i_SBC_A_L, 'a', 'l')
 		
 	def test_i_SBC_HL_mem(self):
 		self.SetUp()
-		self.SBC_X_XX_mem_test(self.cpu.i_SBC_HL_mem, 'a', 'hl')
+		self.SBC_X_XX_mem_test(self.cpu.i_SBC_A__HL_, 'a', 'hl')
 	
 	def test_i_SBC_A(self):
 		self.SetUp()
-		self.SBC_X_X_test(self.cpu.i_SBC_A, 'a', 'a')	
+		self.SBC_X_X_test(self.cpu.i_SBC_A_A, 'a', 'a')	
 	
 	def test_i_AND_B(self):
 		self.SetUp()
@@ -1787,7 +1791,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_AND_HL_mem(self):
 		self.SetUp()
-		self.AND_X_XX_mem_test(self.cpu.i_AND_HL_mem, 'a', 'hl')
+		self.AND_X_XX_mem_test(self.cpu.i_AND__HL_, 'a', 'hl')
 
 	def test_i_AND_A(self):
 		self.SetUp()
@@ -1819,7 +1823,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_XOR_HL_mem(self):
 		self.SetUp()
-		self.XOR_X_XX_mem_test(self.cpu.i_XOR_HL_mem, 'a', 'hl')
+		self.XOR_X_XX_mem_test(self.cpu.i_XOR__HL_, 'a', 'hl')
 		
 	def test_i_XOR_A(self):
 		self.SetUp()
@@ -1851,7 +1855,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_OR_HL_mem(self):
 		self.SetUp()
-		self.OR_X_XX_mem_test(self.cpu.i_OR_HL_mem, 'a', 'hl')
+		self.OR_X_XX_mem_test(self.cpu.i_OR__HL_, 'a', 'hl')
 		
 	def test_i_OR_A(self):
 		self.SetUp()
@@ -1883,7 +1887,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_CP_HL_mem(self):
 		self.SetUp()
-		self.CP_X_XX_mem_test(self.cpu.i_CP_HL_mem, 'a', 'hl')
+		self.CP_X_XX_mem_test(self.cpu.i_CP__HL_, 'a', 'hl')
 		
 	def test_i_CP_A(self):
 		self.SetUp()
@@ -1933,11 +1937,11 @@ class TestCPU(unittest.TestCase):
 		self.SetUp()
 		self.RelJumpTest(self.cpu.i_JP_Z_nn, "zero", twobytes=1)
 		
-	def test_i_Ext_ops(self):
-		self.SetUp()
-		self.assertEqual(self.cpu.extraOpcodeMode, 0)
-		self.cpu.i_Ext_ops(self.cpu)
-		self.assertEqual(self.cpu.extraOpcodeMode, 1)
+	#def test_i_Ext_ops(self):
+	#	self.SetUp()
+	#	self.assertEqual(self.cpu.extraOpcodeMode, 0)
+	#	self.cpu.i_Ext_ops(self.cpu)
+	#	self.assertEqual(self.cpu.extraOpcodeMode, 1)
 		
 	def test_i_CALL_Z_nn(self):
 		self.SetUp()
@@ -1993,7 +1997,7 @@ class TestCPU(unittest.TestCase):
 	def test_i_RETI(self):
 		self.SetUp()
 		self.RET_test(self.cpu.i_RETI, ".")
-		self.assertEqual(self.cpu.interruptsEnabled, 1)
+		self.assertEqual(self.cpu.cpu.ime, 1)
 		
 	def test_i_JP_C_nn(self):
 		self.SetUp()
@@ -2023,7 +2027,7 @@ class TestCPU(unittest.TestCase):
 		immediate2 = 0x40
 		self.cpu['a'] = immediate2
 		self.cpu[self.cpu['pc']+1] = immediate
-		self.cpu.i_LDH_n_A(self.cpu)
+		self.cpu.i_LDH__n__A(self.cpu)
 		self.assertEqual(self.cpu.mmu.rb(0xff00 + immediate), immediate2)
 		
 	def test_i_POP_HL(self):
@@ -2036,7 +2040,7 @@ class TestCPU(unittest.TestCase):
 		immediate2 = 0xab
 		self.cpu['a'] = immediate2
 		self.cpu['c'] = immediate
-		self.cpu.i_LDH_C_A(self.cpu)
+		self.cpu.i_LDH__C__A(self.cpu)
 		self.assertEqual(self.cpu.mmu.rb(0xff00 + immediate), immediate2)
 		
 	def test_i_XXe3(self):
@@ -2066,13 +2070,13 @@ class TestCPU(unittest.TestCase):
 		self.SetUp()
 		self.ADD_X_n_test(self.cpu.i_ADD_SP_d, 'sp', signed=1)
 		
-	def test_i_JP_HL(self):
+	def test_i_JP__HL_(self):
 		self.SetUp()
-		address = 0xface
+		address = 0x00be
 		immediate = 0x1337
 		self.cpu['hl'] = address
 		self.cpu.mmu.ww(address, immediate)
-		self.cpu.i_JP_HL(self.cpu)
+		self.cpu.i_JP__HL_(self.cpu)
 		self.assertEqual(self.cpu['pc'], immediate)
 		
 	def test_i_LD_nn_A(self):
@@ -2081,7 +2085,7 @@ class TestCPU(unittest.TestCase):
 		immediate = 0x13
 		self.cpu.mmu.ww(self.cpu['pc']+1, address)
 		self.cpu['a'] = immediate
-		self.cpu.i_LD_nn_A(self.cpu)
+		self.cpu.i_LD__nn__A(self.cpu)
 		self.assertEqual(self.cpu.mmu.rw(address), immediate)		
 	
 	def test_i_XXeb(self):
@@ -2113,7 +2117,7 @@ class TestCPU(unittest.TestCase):
 		address = 0xab
 		self.cpu[self.cpu['pc']+1] = address
 		self.cpu[address+0xff00] = immediate2
-		self.cpu.i_LDH_A_n(self.cpu)
+		self.cpu.i_LDH_A__n_(self.cpu)
 		self.assertEqual(self.cpu['a'], immediate2)
 
 	def test_i_POP_AF(self):
@@ -2125,9 +2129,10 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_DI(self):
 		self.SetUp()
-		self.assertEquals(self.cpu.interruptsEnabled, 1)
+		self.cpu.cpu.ime = 1
+		self.assertEquals(self.cpu.cpu.ime, 1)
 		self.cpu.i_DI(self.cpu)
-		self.assertEquals(self.cpu.interruptsEnabled, 0)
+		self.assertEquals(self.cpu.cpu.ime, 0)
 		
 	def test_i_XXf4(self):
 		pass
@@ -2169,13 +2174,13 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_LD_A_nn(self):
 		self.SetUp()
-		self.LD_X_nn_test(self.cpu.i_LD_A_nn, 'a')
+		self.LD_X_nn_test(self.cpu.i_LD_A__nn_, 'a')
 		
 	def test_i_EI(self):
 		self.SetUp()
-		self.cpu.ime = 0
+		self.cpu.cpu.ime = 0
 		self.cpu.i_EI(self.cpu)
-		self.assertEquals(self.cpu.ime, 1)
+		self.assertEquals(self.cpu.cpu.ime, 1)
 		
 	def test_i_XXfc(self):
 		pass
@@ -2219,7 +2224,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i2_RLC_HL_mem(self):
 		self.SetUp()
-		self.RLC_XX_mem_test(self.cpu.i2_RLC_HL_mem, 'hl')
+		self.RLC_XX_mem_test(self.cpu.i2_RLC__HL_, 'hl')
 	
 	def test_i2_RLC_A(self):
 		self.SetUp()
@@ -2251,7 +2256,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i2_RRC_HL_mem(self):
 		self.SetUp()
-		self.RRC_XX_mem_test(self.cpu.i2_RRC_HL_mem, 'hl')
+		self.RRC_XX_mem_test(self.cpu.i2_RRC__HL_, 'hl')
 
 	def test_i2_RRC_A(self):
 		self.SetUp()
@@ -2283,7 +2288,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i2_RL_HL_mem(self):
 		self.SetUp()
-		self.RL_XX_mem_test(self.cpu.i2_RL_HL_mem, 'hl')
+		self.RL_XX_mem_test(self.cpu.i2_RL__HL_, 'hl')
 		
 	def test_i2_RL_A(self):
 		self.SetUp()
@@ -2315,7 +2320,7 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i2_RR_HL_mem(self):
 		self.SetUp()
-		self.RR_XX_mem_test(self.cpu.i2_RR_HL_mem, 'hl')
+		self.RR_XX_mem_test(self.cpu.i2_RR__HL_, 'hl')
 		
 	def test_i2_RR_A(self):
 		self.SetUp()

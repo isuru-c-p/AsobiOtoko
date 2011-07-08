@@ -132,7 +132,6 @@ void INC_nn(z80*pz80, int h, int l)
 	if(pz80->registers[l] == 0xff)
 		pz80->registers[h]++;
 	pz80->registers[l]++;
-	pz80->registers[REGF] = buildStatusFlag((pz80->registers[h]==0) && (pz80->registers[l]==0), 0, (pz80->registers[l] == 0), getFlag(pz80->registers[REGF], CARRY));
 	pz80->tcycles = 8;
 	incPC(pz80, 1);
 }
@@ -153,7 +152,6 @@ void DEC_nn(z80*pz80, int h, int l)
 	if(pz80->registers[l] == 0x0)
 		pz80->registers[h]--;
 	pz80->registers[l]--;
-	pz80->registers[REGF] = buildStatusFlag((pz80->registers[h]==0) && (pz80->registers[l]==0), 1, (pz80->registers[l] == 0xff), getFlag(pz80->registers[REGF], CARRY));
 	pz80->tcycles = 8;
 	incPC(pz80, 1);
 }
@@ -513,6 +511,7 @@ void LDH_A_immediate(z80*pz80)
 	incPC(pz80, 2);
 }
 
+// TODO: is this LDD supposed to change flags or not?
 void LDD_A_HL_mem(z80*pz80)
 {
 	LD_n_nn_mem(pz80, REGA, REGH, REGL);
@@ -521,6 +520,7 @@ void LDD_A_HL_mem(z80*pz80)
 	incPC(pz80, -1); // as DEC_nn and LD_nn_mem_n increase the pc by 1
 }
 
+// TODO: is this LDD supposed to change flags or not?
 void LDD_HL_mem_A(z80*pz80)
 {
 	LD_nn_mem_n(pz80, REGH, REGL, REGA);
@@ -534,7 +534,7 @@ void LDI_A_HL_mem(z80*pz80)
 	LD_n_nn_mem(pz80, REGA, REGH, REGL);
 	INC_nn(pz80, REGH, REGL);
 	pz80->tcycles = 8;
-	incPC(pz80, -1); // as DEC_nn and LD_nn_mem_n increase the pc by 1
+	incPC(pz80, -1); // as INC_nn and LD_nn_mem_n increase the pc by 1
 }
 
 void LDI_HL_mem_A(z80*pz80)
@@ -542,7 +542,7 @@ void LDI_HL_mem_A(z80*pz80)
 	LD_nn_mem_n(pz80, REGH, REGL, REGA);
 	INC_nn(pz80, REGH, REGL);
 	pz80->tcycles = 8;
-	incPC(pz80, -1); // as DEC_nn and LD_nn_mem_n increase the pc by 1
+	incPC(pz80, -1); // as INC_nn and LD_nn_mem_n increase the pc by 1
 }
 
 void LD_C_mem_A(z80*pz80)
@@ -619,9 +619,8 @@ void JP_C_nn(z80*pz80)
 
 void JP_HL(z80*pz80)
 {
-	pz80->registers16[PC] = (((uint16_t)pz80->registers[REGH]) << 8) + (uint16_t)pz80->registers[REGL];
+	pz80->registers16[PC] = rw(&(pz80->mmu), (((uint16_t)pz80->registers[REGH]) << 8) + (uint16_t)pz80->registers[REGL]);
 	pz80->tcycles = 4;
-	incPC(pz80, 1);
 }
 
 void JR_n(z80*pz80)
@@ -2966,7 +2965,7 @@ void
 i_DEC__HL_(z80 * pz80){
 uint8_t newVal = rb(&(pz80->mmu),(pz80->registers[REGH] << 8) + pz80->registers[REGL]) - 1;
 wb(&(pz80->mmu),(pz80->registers[REGH] << 8) + pz80->registers[REGL], newVal);
-pz80->registers[REGF] = buildStatusFlag((newVal == 0), 0, ((newVal & 0xff) == 0xff), getFlag(pz80->registers[REGF], CARRY));
+pz80->registers[REGF] = buildStatusFlag((newVal == 0), 1, ((newVal & 0xf) == 0xf), getFlag(pz80->registers[REGF], CARRY));
 pz80->tcycles = 12;
 incPC(pz80, 1);
 }
