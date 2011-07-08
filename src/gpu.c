@@ -267,13 +267,13 @@ void readOAM(GPU*pgpu)
 		{
 			//printf("Sprite at: %d,%d\n", spriteX, spriteY);
 			uint8_t sprite_no = getLCDCBit(pgpu,OBJSIZE) ? (getSpriteTile(pgpu, i) & 0xfe) : getSpriteTile(pgpu, i);
-			uint16_t sprite_addr = ((uint16_t)sprite_no * spriteYSize * 2) + (((pgpu->LY + pgpu->SCY) % spriteYSize) * 2);
+			uint16_t sprite_addr = ((uint16_t)sprite_no * spriteYSize * 2) + ((pgpu->LY % spriteYSize) * 2);
 					
 			for(j= spriteX; j <= (spriteX+8); j++)
 			{
 				if(pgpu->sprite_line[j] == 0)
 				{
-					pgpu->sprite_line[j] = ((pgpu->vram[sprite_addr] >> j) & 0x1) + (((pgpu->vram[sprite_addr+1] >> j) & 0x1) << 1);
+					pgpu->sprite_line[j] = ((pgpu->vram[sprite_addr] >> (j-spriteX)) & 0x1) + (((pgpu->vram[sprite_addr+1] >> (j-spriteX)) & 0x1) << 1);
 					pgpu->sprite_line[j] = MapSpritePixel(pgpu, pgpu->sprite_line[j], getSpriteAttr(pgpu, i, SPRITE_PALETTE));
 					
 					if(!getSpriteAttr(pgpu, i, PRIORITY))
