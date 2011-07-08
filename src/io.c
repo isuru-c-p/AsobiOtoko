@@ -20,25 +20,17 @@ uint8_t readP1()
 
 uint8_t getButtons()
 {
-	uint8_t retval = 0;
+	uint8_t retval = 0xff;
 
 	switch(((P1 & 0x30) >> 4))
 	{
 		// P14 enabled
 		case 2:
 			retval = ((pressed_buttons[RIGHT_KEY]) + (pressed_buttons[LEFT_KEY] << 1) + (pressed_buttons[UP_KEY] << 2) + (pressed_buttons[DOWN_KEY] << 3));
-			pressed_buttons[RIGHT_KEY] = 1;
-			pressed_buttons[LEFT_KEY] = 1;
-			pressed_buttons[UP_KEY] = 1;
-			pressed_buttons[DOWN_KEY] = 1;
 			return retval;
 		// P15 enabled
 		case 1:
 			retval = ((pressed_buttons[A_KEY]) + (pressed_buttons[B_KEY] << 1) + (pressed_buttons[SELECT_KEY] << 2) + (pressed_buttons[START_KEY] << 3));
-			pressed_buttons[A_KEY] = 1;
-			pressed_buttons[B_KEY] = 1;
-			pressed_buttons[START_KEY] = 1;
-			pressed_buttons[SELECT_KEY] = 1;
 			return retval;
 		// anomaly
 		default:

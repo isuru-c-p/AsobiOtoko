@@ -50,10 +50,10 @@ void RenderScreen()
 
 void ProcessInput(int * cont){
 		static	SDL_Event event;
-		SDL_PollEvent(&event);
+		if(!SDL_PollEvent(&event))
+			return;
 		switch(event.type){
 			case SDL_KEYDOWN:
-			case SDL_KEYUP:
 				switch(event.key.keysym.scancode)
 				{
 					case A_KEYCODE:
@@ -79,6 +79,37 @@ void ProcessInput(int * cont){
 						break;
 					case SELECT_KEYCODE:
 						pressed_buttons[SELECT_KEY] = 0;
+						break;
+					default:
+						break;
+				}
+				break;
+			case SDL_KEYUP:
+				switch(event.key.keysym.scancode)
+				{
+					case A_KEYCODE:
+						pressed_buttons[A_KEY] = 1;
+						break;
+					case B_KEYCODE:
+						pressed_buttons[B_KEY] = 1;
+						break;
+					case UP_KEYCODE:
+						pressed_buttons[UP_KEY] = 1;
+						break;
+					case DOWN_KEYCODE:
+						pressed_buttons[DOWN_KEY] = 1;
+						break;
+					case LEFT_KEYCODE:
+						pressed_buttons[LEFT_KEY] = 1;
+						break;
+					case RIGHT_KEYCODE:
+						pressed_buttons[RIGHT_KEY] = 1;
+						break;
+					case START_KEYCODE:
+						pressed_buttons[START_KEY] = 1;
+						break;
+					case SELECT_KEYCODE:
+						pressed_buttons[SELECT_KEY] = 1;
 						break;
 					default:
 						break;

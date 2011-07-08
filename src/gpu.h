@@ -40,6 +40,13 @@ LCDON
 
 // data types
 
+typedef struct _sprite {
+	uint8_t x;
+	uint8_t y;
+	uint8_t pattern;
+	uint8_t flags;
+} Sprite;
+
 typedef struct _gpu {
 	int mode;
 	uint8_t vram[VRAM_SIZE];
@@ -60,6 +67,7 @@ typedef struct _gpu {
 	int clock;
 	int vblankPending;
 } GPU;
+
 
 uint8_t gpu_rb(GPU*pgpu, uint16_t addr);
 void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val);
