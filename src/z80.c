@@ -112,8 +112,10 @@ saveRegMemToHL(z80*pz80){
 
 void INC_n(z80*pz80, int reg)
 {
-	pz80->registers[reg]++;
-	pz80->registers[REGF] = buildStatusFlag((pz80->registers[reg]==0), 0, ((pz80->registers[reg] & 0xff) == 0), getFlag(pz80->registers[REGF], CARRY));
+	uint8_t oldv =  pz80->registers[reg];
+	uint8_t newv = oldv+1;
+	pz80->registers[reg] = newv;
+	pz80->registers[REGF] = buildStatusFlag((pz80->registers[reg]==0), 0, (oldv&0x0f)==0x0f, getFlag(pz80->registers[REGF], CARRY));
 	pz80->tcycles = 4;
 	incPC(pz80, 1);
 }
@@ -206,8 +208,8 @@ void ADD_A_immediate(z80*pz80)
 
 void ADD_HL_nn(z80*pz80, int srcH, int srcL)
 {
-	uint8_t val = getRegister16(pz80, srcH, srcL);
-	uint8_t hl_val = getRegister16(pz80, REGH, REGL);
+	uint16_t val = getRegister16(pz80, srcH, srcL);
+	uint16_t hl_val = getRegister16(pz80, REGH, REGL);
 	pz80->registers[REGF] = buildStatusFlag(((hl_val + val)==0), 0, (((hl_val & 0xffff) + (val & 0xffff)) > 0xffff), (hl_val + val) > 0xffff);
 	setRegister16(pz80, REGH, REGL, (hl_val + val));
 	pz80->tcycles = 8;
@@ -216,10 +218,10 @@ void ADD_HL_nn(z80*pz80, int srcH, int srcL)
 
 void ADD_HL_SP(z80*pz80)
 {
-	uint8_t val = pz80->registers16[SP];
-	uint8_t hl_val = getRegister16(pz80, REGH, REGL);
+	uint16_t val = pz80->registers16[SP];
+	uint16_t hl_val = getRegister16(pz80, REGH, REGL);
 	pz80->registers[REGF] = buildStatusFlag(((hl_val + val)==0), 0, (((hl_val & 0xffff) + (val & 0xffff)) > 0xffff), (hl_val + val) > 0xffff);
-	setRegister16(pz80, REGH, REGL, (hl_val + val));
+	setRegister16(pz80, REGH, REGL, ((uint16_t)hl_val + (uint16_t)val));
 	pz80->tcycles = 8;
 	incPC(pz80, 1);
 }
@@ -757,6 +759,7 @@ void CALL_C_nn(z80*pz80)
 
 void RST_n(z80*pz80, int n)
 {
+	pz80->registers16[PC]++;
 	push(pz80, pz80->registers16[PC] >> 8);
 	push(pz80, pz80->registers16[PC] & 255);
 	pz80->registers16[PC] = n;
