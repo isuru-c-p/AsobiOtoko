@@ -1049,6 +1049,8 @@ void nibbleSwap(z80*pz80,int reg){
 	uint8_t byte = pz80->registers[reg];
 	if(byte == 0){// no need to swap it if its zero
 		pz80->registers[REGF] = (1<<ZERO);
+		pz80->tcycles = 8;
+		incPC(pz80, 1);
 		return;
 	}
 	 pz80->registers[REGF] = 0;
