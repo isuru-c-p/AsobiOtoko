@@ -2,6 +2,7 @@
 #include "mmu.h"
 
 #include "string.h" //bzero
+#include "debug.h"
 #include <stdio.h>
 
 #define DEBUG
@@ -619,7 +620,7 @@ void JP_C_nn(z80*pz80)
 
 void JP_HL(z80*pz80)
 {
-	pz80->registers16[PC] = rw(&(pz80->mmu), (((uint16_t)pz80->registers[REGH]) << 8) + (uint16_t)pz80->registers[REGL]);
+	pz80->registers16[PC] = (((uint16_t)pz80->registers[REGH]) << 8) + (uint16_t)pz80->registers[REGL];
 	pz80->tcycles = 4;
 }
 
@@ -1095,6 +1096,11 @@ void executeNextInstruction(z80 * pz80){
 	#ifdef DEBUG
 	//if(logging_enabled)
 	printf("%x : %s\n", pz80->registers16[PC], dissasemble(instruction, 0));
+	if((pz80->registers16[PC] >= 0x28) && (pz80->registers16[PC] <= 0x33))
+	{
+		printCPU(pz80);
+	}
+	
 	#endif
 	dispatchInstruction(pz80,instruction,0/*pz80->doSecondaryOpcode*/);
 	//printf("Instruction dispatched\n");
