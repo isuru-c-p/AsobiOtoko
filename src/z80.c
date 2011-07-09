@@ -3721,7 +3721,7 @@ incPC(pz80, 1);
 uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]);
 #ifdef DEBUG
 	//if(logging_enabled==1)
-	printf("%x : %s\n", pz80->registers16[PC], dissasemble(op, 0));
+	printf("%x : %s\n", pz80->registers16[PC], dissasemble(op, 1));
 #endif
 dispatchInstruction(pz80, op, 1);
 }

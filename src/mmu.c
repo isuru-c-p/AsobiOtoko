@@ -85,7 +85,7 @@ void fillAddressLUTEntry(MMU * pmmu,uint16_t address) {
 					pmmu->addressLUT[address] = 0;
 					return;
 				}
-				pmmu->addressLUT[address] = &(pmmu->memory[address - 0xFF00]);
+				pmmu->addressLUT[address] = &(pmmu->memory[address]);
 				return;
 			}
 			else
@@ -200,7 +200,7 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 				{
 					return gpu_rb(&(pmmu->gpu), address);
 				}
-				return pmmu->memory[address - 0xFF00];
+				return pmmu->memory[address];
 			}
 			else
 			{
