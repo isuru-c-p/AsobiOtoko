@@ -221,15 +221,15 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 	{
 		// cartridge / bios
 		case 0x0: 
-			if((address <= 0x00ff) && (pmmu->bios_enabled == 1))
+			/*if((address <= 0x00ff) && (pmmu->bios_enabled == 1))
 			{
 				pmmu->bios[address] = val;
 			}
 			else
 			{
 				pmmu->cartridge[address] = val;
-			}
-			//printf("ERROR1! Attempting to write to ROM\n");
+			}*/
+			printf("ERROR1! Attempting to write to ROM\n");
 			break;
 			
 		// cartridge	
@@ -240,8 +240,8 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 		case 0x5 : 
 		case 0x6 :
 		case 0x7 :
-			pmmu->cartridge[address] = val;
-			//printf("ERROR! Attempting to write to ROM\n");
+			//pmmu->cartridge[address] = val;
+			printf("ERROR! Attempting to write to ROM\n");
 			break;
 			
 		// VRAM
@@ -319,8 +319,8 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 			else
 			{
 				pmmu->zram[address - 0xFF80] = val;
-				if(address == 0xFFFF)
-					printf("New IE: %x\n", address);
+				//if(address == 0xFFFF)
+				//	printf("New IE: %x\n", address);
 			}
 			break;
 			

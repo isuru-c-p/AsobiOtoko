@@ -5,7 +5,7 @@
 #include "debug.h"
 #include <stdio.h>
 
-#define DEBUG
+//#define DEBUG
 
 inline uint8_t 
 buildStatusFlag(int zero, int sub, int halfcarry,int carry){
@@ -74,10 +74,10 @@ triggerInterrupt(z80*pz80,int interrupt){
 	uint16_t address = 0;
 	switch(interrupt){
 		case VBLANKINT:
-			//#ifdef DEBUG
+			#ifdef DEBUG
 			//if(logging_enabled==1)
 			printf("vblankint\n");
-			//#endif
+			#endif
 			//pz80->mmu.gpu.vblankPending = 0; //this gets set in gpu step
 										//we must disable it here to 
 										//avoid serving it twice
@@ -1098,11 +1098,6 @@ void executeNextInstruction(z80 * pz80){
 	#ifdef DEBUG
 	//if(logging_enabled)
 	printf("%x : %s\n", pz80->registers16[PC], dissasemble(instruction, 0));
-	if((pz80->registers16[PC] >= 0x28) && (pz80->registers16[PC] <= 0x33))
-	{
-		printCPU(pz80);
-	}
-	
 	#endif
 	dispatchInstruction(pz80,instruction,0/*pz80->doSecondaryOpcode*/);
 	//printf("Instruction dispatched\n");
@@ -3916,12 +3911,20 @@ POP_nn(pz80, REGA, REGF);
 /* DIsable interrupts */
 void
 i_DI(z80 * pz80){
-//#ifdef DEBUG
-printf("Disabling interrupts\n");
-//#endif
-pz80->ime = 0; // TODO: in real GB, interrupts are disabled after next instruction.
 pz80->tcycles = 4;
 incPC(pz80, 1);
+
+// Execute next instruction and then disable interrupts
+uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]);
+#ifdef DEBUG
+	printf("%x : %s\n", pz80->registers16[PC], dissasemble(op, 0));
+#endif
+dispatchInstruction(pz80, op, 1);
+
+#ifdef DEBUG
+printf("Disabling interrupts\n");
+#endif
+pz80->ime = 0;
 }
 /* Operation removed in this CPU */
 //void
@@ -3960,9 +3963,20 @@ LD_n_immediate_mem(pz80, REGA);
 /* Enable interrupts */
 void
 i_EI(z80 * pz80){
-pz80->ime = 1; // TODO: real GB interrupts are enabled after next instruction
 pz80->tcycles = 4;
 incPC(pz80, 1);
+
+// Execute next instruction and then enable interrupts
+uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]);
+#ifdef DEBUG
+	printf("%x : %s\n", pz80->registers16[PC], dissasemble(op, 0));
+#endif
+dispatchInstruction(pz80, op, 1);
+
+#ifdef DEBUG
+printf("Enabling interrupts\n");
+#endif
+pz80->ime = 1;
 }
 /* Operation removed in this CPU */
 //void
