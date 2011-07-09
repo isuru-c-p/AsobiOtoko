@@ -2660,13 +2660,14 @@ SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int argnum, int flags)
 
 #define SWIGTYPE_p__gpu swig_types[0]
 #define SWIGTYPE_p__mmu swig_types[1]
-#define SWIGTYPE_p__z80 swig_types[2]
-#define SWIGTYPE_p_char swig_types[3]
-#define SWIGTYPE_p_p_uint8_t swig_types[4]
-#define SWIGTYPE_p_uint16_t swig_types[5]
-#define SWIGTYPE_p_uint8_t swig_types[6]
-static swig_type_info *swig_types[8];
-static swig_module_info swig_module = {swig_types, 7, 0, 0, 0, 0};
+#define SWIGTYPE_p__sprite swig_types[2]
+#define SWIGTYPE_p__z80 swig_types[3]
+#define SWIGTYPE_p_char swig_types[4]
+#define SWIGTYPE_p_p_uint8_t swig_types[5]
+#define SWIGTYPE_p_uint16_t swig_types[6]
+#define SWIGTYPE_p_uint8_t swig_types[7]
+static swig_type_info *swig_types[9];
+static swig_module_info swig_module = {swig_types, 8, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -3113,6 +3114,255 @@ fail:
   return NULL;
 }
 
+
+SWIGINTERN PyObject *_wrap_Sprite_x_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Sprite *arg1 = (Sprite *) 0 ;
+  uint8_t arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned char val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Sprite_x_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p__sprite, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Sprite_x_set" "', argument " "1"" of type '" "Sprite *""'"); 
+  }
+  arg1 = (Sprite *)(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_char(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Sprite_x_set" "', argument " "2"" of type '" "uint8_t""'");
+  } 
+  arg2 = (uint8_t)(val2);
+  if (arg1) (arg1)->x = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Sprite_x_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Sprite *arg1 = (Sprite *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  uint8_t result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Sprite_x_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p__sprite, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Sprite_x_get" "', argument " "1"" of type '" "Sprite *""'"); 
+  }
+  arg1 = (Sprite *)(argp1);
+  result =  ((arg1)->x);
+  resultobj = SWIG_From_unsigned_SS_char((unsigned char)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Sprite_y_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Sprite *arg1 = (Sprite *) 0 ;
+  uint8_t arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned char val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Sprite_y_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p__sprite, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Sprite_y_set" "', argument " "1"" of type '" "Sprite *""'"); 
+  }
+  arg1 = (Sprite *)(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_char(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Sprite_y_set" "', argument " "2"" of type '" "uint8_t""'");
+  } 
+  arg2 = (uint8_t)(val2);
+  if (arg1) (arg1)->y = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Sprite_y_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Sprite *arg1 = (Sprite *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  uint8_t result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Sprite_y_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p__sprite, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Sprite_y_get" "', argument " "1"" of type '" "Sprite *""'"); 
+  }
+  arg1 = (Sprite *)(argp1);
+  result =  ((arg1)->y);
+  resultobj = SWIG_From_unsigned_SS_char((unsigned char)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Sprite_pattern_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Sprite *arg1 = (Sprite *) 0 ;
+  uint8_t arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned char val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Sprite_pattern_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p__sprite, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Sprite_pattern_set" "', argument " "1"" of type '" "Sprite *""'"); 
+  }
+  arg1 = (Sprite *)(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_char(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Sprite_pattern_set" "', argument " "2"" of type '" "uint8_t""'");
+  } 
+  arg2 = (uint8_t)(val2);
+  if (arg1) (arg1)->pattern = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Sprite_pattern_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Sprite *arg1 = (Sprite *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  uint8_t result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Sprite_pattern_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p__sprite, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Sprite_pattern_get" "', argument " "1"" of type '" "Sprite *""'"); 
+  }
+  arg1 = (Sprite *)(argp1);
+  result =  ((arg1)->pattern);
+  resultobj = SWIG_From_unsigned_SS_char((unsigned char)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Sprite_flags_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Sprite *arg1 = (Sprite *) 0 ;
+  uint8_t arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  unsigned char val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Sprite_flags_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p__sprite, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Sprite_flags_set" "', argument " "1"" of type '" "Sprite *""'"); 
+  }
+  arg1 = (Sprite *)(argp1);
+  ecode2 = SWIG_AsVal_unsigned_SS_char(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Sprite_flags_set" "', argument " "2"" of type '" "uint8_t""'");
+  } 
+  arg2 = (uint8_t)(val2);
+  if (arg1) (arg1)->flags = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Sprite_flags_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Sprite *arg1 = (Sprite *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  uint8_t result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Sprite_flags_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p__sprite, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Sprite_flags_get" "', argument " "1"" of type '" "Sprite *""'"); 
+  }
+  arg1 = (Sprite *)(argp1);
+  result =  ((arg1)->flags);
+  resultobj = SWIG_From_unsigned_SS_char((unsigned char)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_new_Sprite(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Sprite *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)":new_Sprite")) SWIG_fail;
+  result = (Sprite *)calloc(1, sizeof(Sprite));
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p__sprite, SWIG_POINTER_NEW |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_delete_Sprite(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Sprite *arg1 = (Sprite *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:delete_Sprite",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p__sprite, SWIG_POINTER_DISOWN |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_Sprite" "', argument " "1"" of type '" "Sprite *""'"); 
+  }
+  arg1 = (Sprite *)(argp1);
+  free((char *) arg1);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *Sprite_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *obj;
+  if (!PyArg_ParseTuple(args,(char*)"O:swigregister", &obj)) return NULL;
+  SWIG_TypeNewClientData(SWIGTYPE_p__sprite, SWIG_NewClientData(obj));
+  return SWIG_Py_Void();
+}
 
 SWIGINTERN PyObject *_wrap_GPU_mode_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
@@ -16247,6 +16497,17 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"setReg", _wrap_setReg, METH_VARARGS, NULL},
 	 { (char *)"getReg16", _wrap_getReg16, METH_VARARGS, NULL},
 	 { (char *)"setReg16", _wrap_setReg16, METH_VARARGS, NULL},
+	 { (char *)"Sprite_x_set", _wrap_Sprite_x_set, METH_VARARGS, NULL},
+	 { (char *)"Sprite_x_get", _wrap_Sprite_x_get, METH_VARARGS, NULL},
+	 { (char *)"Sprite_y_set", _wrap_Sprite_y_set, METH_VARARGS, NULL},
+	 { (char *)"Sprite_y_get", _wrap_Sprite_y_get, METH_VARARGS, NULL},
+	 { (char *)"Sprite_pattern_set", _wrap_Sprite_pattern_set, METH_VARARGS, NULL},
+	 { (char *)"Sprite_pattern_get", _wrap_Sprite_pattern_get, METH_VARARGS, NULL},
+	 { (char *)"Sprite_flags_set", _wrap_Sprite_flags_set, METH_VARARGS, NULL},
+	 { (char *)"Sprite_flags_get", _wrap_Sprite_flags_get, METH_VARARGS, NULL},
+	 { (char *)"new_Sprite", _wrap_new_Sprite, METH_VARARGS, NULL},
+	 { (char *)"delete_Sprite", _wrap_delete_Sprite, METH_VARARGS, NULL},
+	 { (char *)"Sprite_swigregister", Sprite_swigregister, METH_VARARGS, NULL},
 	 { (char *)"GPU_mode_set", _wrap_GPU_mode_set, METH_VARARGS, NULL},
 	 { (char *)"GPU_mode_get", _wrap_GPU_mode_get, METH_VARARGS, NULL},
 	 { (char *)"GPU_vram_set", _wrap_GPU_vram_set, METH_VARARGS, NULL},
@@ -16854,6 +17115,7 @@ static PyMethodDef SwigMethods[] = {
 
 static swig_type_info _swigt__p__gpu = {"_p__gpu", "struct _gpu *|GPU *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p__mmu = {"_p__mmu", "struct _mmu *|MMU *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p__sprite = {"_p__sprite", "struct _sprite *|Sprite *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p__z80 = {"_p__z80", "struct _z80 *|z80 *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_uint8_t = {"_p_p_uint8_t", "uint8_t **", 0, 0, (void*)0, 0};
@@ -16863,6 +17125,7 @@ static swig_type_info _swigt__p_uint8_t = {"_p_uint8_t", "uint8_t *", 0, 0, (voi
 static swig_type_info *swig_type_initial[] = {
   &_swigt__p__gpu,
   &_swigt__p__mmu,
+  &_swigt__p__sprite,
   &_swigt__p__z80,
   &_swigt__p_char,
   &_swigt__p_p_uint8_t,
@@ -16872,6 +17135,7 @@ static swig_type_info *swig_type_initial[] = {
 
 static swig_cast_info _swigc__p__gpu[] = {  {&_swigt__p__gpu, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p__mmu[] = {  {&_swigt__p__mmu, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p__sprite[] = {  {&_swigt__p__sprite, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p__z80[] = {  {&_swigt__p__z80, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_uint8_t[] = {  {&_swigt__p_p_uint8_t, 0, 0, 0},{0, 0, 0, 0}};
@@ -16881,6 +17145,7 @@ static swig_cast_info _swigc__p_uint8_t[] = {  {&_swigt__p_uint8_t, 0, 0, 0},{0,
 static swig_cast_info *swig_cast_initial[] = {
   _swigc__p__gpu,
   _swigc__p__mmu,
+  _swigc__p__sprite,
   _swigc__p__z80,
   _swigc__p_char,
   _swigc__p_p_uint8_t,

@@ -5,7 +5,7 @@
 #include "debug.h"
 #include <stdio.h>
 
-//#define DEBUG
+#define DEBUG
 
 inline uint8_t 
 buildStatusFlag(int zero, int sub, int halfcarry,int carry){
@@ -3919,7 +3919,7 @@ uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]);
 #ifdef DEBUG
 	printf("%x : %s\n", pz80->registers16[PC], dissasemble(op, 0));
 #endif
-dispatchInstruction(pz80, op, 1);
+dispatchInstruction(pz80, op, 0);
 
 #ifdef DEBUG
 printf("Disabling interrupts\n");
@@ -3971,7 +3971,7 @@ uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]);
 #ifdef DEBUG
 	printf("%x : %s\n", pz80->registers16[PC], dissasemble(op, 0));
 #endif
-dispatchInstruction(pz80, op, 1);
+dispatchInstruction(pz80, op, 0);
 
 #ifdef DEBUG
 printf("Enabling interrupts\n");

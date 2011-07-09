@@ -97,6 +97,33 @@ PRIORITY = _z80.PRIORITY
 YFLIP = _z80.YFLIP
 XFLIP = _z80.XFLIP
 SPRITE_PALETTE = _z80.SPRITE_PALETTE
+class Sprite(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, Sprite, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, Sprite, name)
+    __repr__ = _swig_repr
+    __swig_setmethods__["x"] = _z80.Sprite_x_set
+    __swig_getmethods__["x"] = _z80.Sprite_x_get
+    if _newclass:x = _swig_property(_z80.Sprite_x_get, _z80.Sprite_x_set)
+    __swig_setmethods__["y"] = _z80.Sprite_y_set
+    __swig_getmethods__["y"] = _z80.Sprite_y_get
+    if _newclass:y = _swig_property(_z80.Sprite_y_get, _z80.Sprite_y_set)
+    __swig_setmethods__["pattern"] = _z80.Sprite_pattern_set
+    __swig_getmethods__["pattern"] = _z80.Sprite_pattern_get
+    if _newclass:pattern = _swig_property(_z80.Sprite_pattern_get, _z80.Sprite_pattern_set)
+    __swig_setmethods__["flags"] = _z80.Sprite_flags_set
+    __swig_getmethods__["flags"] = _z80.Sprite_flags_get
+    if _newclass:flags = _swig_property(_z80.Sprite_flags_get, _z80.Sprite_flags_set)
+    def __init__(self): 
+        this = _z80.new_Sprite()
+        try: self.this.append(this)
+        except: self.this = this
+    __swig_destroy__ = _z80.delete_Sprite
+    __del__ = lambda self : None;
+Sprite_swigregister = _z80.Sprite_swigregister
+Sprite_swigregister(Sprite)
+
 class GPU(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, GPU, name, value)

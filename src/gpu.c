@@ -12,7 +12,7 @@ uint8_t gpu_rb(GPU*pgpu, uint16_t addr) {
 			return pgpu->LCDC;
 		// LCDC status
 		case 0xFF41:
-			return pgpu->STAT;
+			return (pgpu->STAT & 3) | ((pgpu->LY == pgpu->LYC) << 2);
 		// SCY
 		case 0xFF42:
 			return pgpu->SCY;
@@ -35,11 +35,11 @@ uint8_t gpu_rb(GPU*pgpu, uint16_t addr) {
 		case 0xFF49:
 		  return pgpu->OBP1;
 		// WY
-		//case 0xFF4A:
-		//  return pgpu->WY;
+		case 0xFF4A:
+		  return pgpu->WY;
 		// WX
-		//case 0xFF4B:
-		//  return pgpu->WX;
+		case 0xFF4B:
+		  return (pgpu->WX+7);
 	}
 	printf("rb : Unimplemented GPU control register: %x\n", addr);
 }
@@ -86,13 +86,13 @@ void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val) {
 		    pgpu->OBP1 = val;
 		    return;
 		// WY
-		//case 0xFF4A:
-		//  pgpu->WY = val;
-		//  return;
+		case 0xFF4A:
+		  pgpu->WY = val;
+		  return;
 		// WX
-		//case 0xFF4B:
-		//  pgpu->WX = val;
-		//  return;
+		case 0xFF4B:
+		  pgpu->WX = val-7;
+		  return;
 	}
 	printf("wb: Unimplemented GPU control register: %x\n", addr);
 }
@@ -254,7 +254,9 @@ void readOAM(GPU*pgpu)
 	bzero((void*)pgpu->sprite_line,sizeof(pgpu->sprite_line));
 	
 	if(!getLCDCBit(pgpu, OBJON))
+	{
 		return;
+	}
 	
 	for(i = 0; i < 40; i++)
 	{
@@ -269,7 +271,7 @@ void readOAM(GPU*pgpu)
 			
 		if((pgpu->LY >= spriteY) && (pgpu->LY <= (spriteY + spriteYSize)))
 		{
-			//printf("Sprite at: %d,%d\n", spriteX, spriteY);
+			//printf("i: %d, LY: %d, Sprite at: %d,%d\n", i, pgpu->LY, spriteX, spriteY);
 			uint8_t sprite_no = getLCDCBit(pgpu,OBJSIZE) ? (getSpriteTile(pgpu, i) & 0xfe) : getSpriteTile(pgpu, i);
 			uint16_t sprite_addr;
 			
@@ -307,6 +309,11 @@ void readOAM(GPU*pgpu)
 				// TODO: implement sprite priority wrt to x pos
 				// (sprites with smaller x positions have higher priority)
 			}
+		}
+		else
+		{
+			;
+			//printf("Sprite not being drawn. LY: %d	 i: %d, SpriteX: %d, SpriteY: %d\n", i, spriteX, spriteY);
 		}
 	}
 	

@@ -2072,12 +2072,10 @@ class TestCPU(unittest.TestCase):
 		
 	def test_i_JP__HL_(self):
 		self.SetUp()
-		address = 0x00be
-		immediate = 0x1337
+		address = 0x1337
 		self.cpu['hl'] = address
-		self.cpu.mmu.ww(address, immediate)
 		self.cpu.i_JP__HL_(self.cpu)
-		self.assertEqual(self.cpu['pc'], immediate)
+		self.assertEqual(self.cpu['pc'], address)
 		
 	def test_i_LD_nn_A(self):
 		self.SetUp()
