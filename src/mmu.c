@@ -300,8 +300,9 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 					int i;
 					for(i = 0; i < 160; i++)
 					{
-						//printf("Transferring: oam[%d] = %x\n", i, pmmu->cartridge[(val<<8)+i]);
-						pmmu->gpu.oam[i] = pmmu->cartridge[(val<<8)+i];
+						uint8_t byte = rb(pmmu, (val<<8)+i); //pmmu->cartridge[(val<<8)+i];
+						//printf("Transferring: oam[%d] = %x\n", i, byte);
+						pmmu->gpu.oam[i] = byte;//pmmu->cartridge[(val<<8)+i];
 					}
 					#ifdef DEBUG
 					//logging_enabled = 1;
