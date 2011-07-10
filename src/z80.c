@@ -5,7 +5,7 @@
 #include "debug.h"
 #include <stdio.h>
 
-#define DEBUG
+//#define DEBUG
 
 inline uint8_t 
 buildStatusFlag(int zero, int sub, int halfcarry,int carry){
@@ -1095,11 +1095,30 @@ void executeNextInstruction(z80 * pz80){
 	MMU * pmmu = &(pz80->mmu);
 	uint16_t insAddress =  pz80->registers16[PC];
 	uint8_t	instruction = rb(pmmu,insAddress);
+	
 	#ifdef DEBUG
-	//if(logging_enabled)
-	printf("%x : %s\n", pz80->registers16[PC], dissasemble(instruction, 0));
+		static uint16_t lastPC;
+		lastPC = pz80->registers16[PC];
+		printf("%x : %s", pz80->registers16[PC], dissasemble(instruction, 0));
 	#endif
-	dispatchInstruction(pz80,instruction,0/*pz80->doSecondaryOpcode*/);
+	
+	dispatchInstruction(pz80,instruction,0);
+	
+	#ifdef DEBUG
+		if((pz80->registers16[PC] - lastPC) == 3)
+		{
+			printf(" %x\n", rw(&(pz80->mmu), pz80->registers16[PC] - 2));
+		}
+		else if((pz80->registers16[PC] - lastPC) == 2)
+		{
+			printf(" %x\n", rb(&(pz80->mmu), pz80->registers16[PC] - 1));
+		}
+		else
+		{
+			printf("\n");
+		}
+	#endif
+	
 	//printf("Instruction dispatched\n");
 	gpu_step(&(pz80->mmu.gpu), pz80->tcycles);
 }
@@ -3713,14 +3732,33 @@ JP_Z_nn(pz80);
 /* Extended operations (two-byte instruction code) */
 void
 i_Ext_ops(z80 * pz80){
-//printf("i_Ext_ops\n");
-incPC(pz80, 1);
-uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]);
-#ifdef DEBUG
-	//if(logging_enabled==1)
-	printf("%x : %s\n", pz80->registers16[PC], dissasemble(op, 1));
-#endif
-dispatchInstruction(pz80, op, 1);
+	//printf("i_Ext_ops\n");
+	incPC(pz80, 1);
+	uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]);
+
+	#ifdef DEBUG
+		static uint16_t lastPC;
+		lastPC = pz80->registers16[PC];
+		printf("%x : %s", pz80->registers16[PC], dissasemble(op, 1));
+	#endif
+	
+	dispatchInstruction(pz80,op,1);
+	
+	#ifdef DEBUG
+		if((pz80->registers16[PC] - lastPC) == 3)
+		{
+			printf(" %x\n", rw(&(pz80->mmu), pz80->registers16[PC] - 2));
+		}
+		else if((pz80->registers16[PC] - lastPC) == 2)
+		{
+			printf(" %x\n", rb(&(pz80->mmu), pz80->registers16[PC] - 1));
+		}
+		else
+		{
+			printf("\n");
+		}
+	#endif
+
 }
 /* Call routine at 16-bit location if last result was zero */
 void
@@ -3911,20 +3949,37 @@ POP_nn(pz80, REGA, REGF);
 /* DIsable interrupts */
 void
 i_DI(z80 * pz80){
-pz80->tcycles = 4;
-incPC(pz80, 1);
+	pz80->tcycles = 4;
+	incPC(pz80, 1);
+	
+	// Execute next instruction and then disable interrupts
+	uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]);
 
-// Execute next instruction and then disable interrupts
-uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]);
-#ifdef DEBUG
-	printf("%x : %s\n", pz80->registers16[PC], dissasemble(op, 0));
-#endif
-dispatchInstruction(pz80, op, 0);
-
-#ifdef DEBUG
-printf("Disabling interrupts\n");
-#endif
-pz80->ime = 0;
+	#ifdef DEBUG
+		static uint16_t lastPC;
+		lastPC = pz80->registers16[PC];
+		printf("%x : %s", pz80->registers16[PC], dissasemble(op, 0));
+	#endif
+	
+	dispatchInstruction(pz80,op,0);
+	
+	#ifdef DEBUG
+		if((pz80->registers16[PC] - lastPC) == 3)
+		{
+			printf(" %x\n", rw(&(pz80->mmu), pz80->registers16[PC] - 2));
+		}
+		else if((pz80->registers16[PC] - lastPC) == 2)
+		{
+			printf(" %x\n", rb(&(pz80->mmu), pz80->registers16[PC] - 1));
+		}
+		else
+		{
+			printf("\n");
+		}
+		printf("Disabling interrupts\n");
+	#endif
+	
+	pz80->ime = 0;
 }
 /* Operation removed in this CPU */
 //void
@@ -3963,20 +4018,36 @@ LD_n_immediate_mem(pz80, REGA);
 /* Enable interrupts */
 void
 i_EI(z80 * pz80){
-pz80->tcycles = 4;
-incPC(pz80, 1);
+	pz80->tcycles = 4;
+	incPC(pz80, 1);
+	
+	// Execute next instruction and then enable interrupts
+	uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]);
 
-// Execute next instruction and then enable interrupts
-uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]);
-#ifdef DEBUG
-	printf("%x : %s\n", pz80->registers16[PC], dissasemble(op, 0));
-#endif
-dispatchInstruction(pz80, op, 0);
+	#ifdef DEBUG
+		uint16_t lastPC = pz80->registers16[PC];
+		printf("%x : %s", pz80->registers16[PC], dissasemble(op, 0));
+	#endif
+	
+	dispatchInstruction(pz80,op,0);
+	
+	#ifdef DEBUG
+		if((pz80->registers16[PC] - lastPC) == 3)
+		{
+			printf(" %x\n", rw(&(pz80->mmu), pz80->registers16[PC] - 2));
+		}
+		else if((pz80->registers16[PC] - lastPC) == 2)
+		{
+			printf(" %x\n", rb(&(pz80->mmu), pz80->registers16[PC] - 1));
+		}
+		else
+		{
+			printf("\n");
+		}
+		printf("Enabling interrupts\n");
+	#endif
 
-#ifdef DEBUG
-printf("Enabling interrupts\n");
-#endif
-pz80->ime = 1;
+	pz80->ime = 1;
 }
 /* Operation removed in this CPU */
 //void
