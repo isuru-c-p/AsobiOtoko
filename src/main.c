@@ -14,13 +14,11 @@ int loadROM(z80* pz80, char* path)
 	fseek(fp, 0L, SEEK_END);
 	int fileSize = ftell(fp);	
 	fseek(fp, 0L, SEEK_SET);
-	
 	pz80->mmu.cartridge = (uint8_t*)malloc(fileSize);
-		
 	int byte;
 	int byteNo = 0;
 	
-	for(byteNo = 0; (byte = fgetc(fp)) != EOF && byteNo != MEMORYSIZE; byteNo++)
+	for(byteNo = 0; (byte = fgetc(fp)) != EOF; byteNo++)
 	{
 		pz80->mmu.cartridge[byteNo] = byte;
 	}

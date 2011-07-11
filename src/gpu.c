@@ -170,6 +170,15 @@ void writeScanline(GPU*pgpu)
 	}
 	
 	readOAM(pgpu);
+	
+	/*int windowEnabled = getLCDCBit(pgpu, WDISP);
+
+	uint16_t windowTileAddr = !getLCDCBit(pgpu, BGMAP) ? 
+
+	if(windowEnabled)
+	{
+		
+	}*/
 
 	int x = pgpu->SCX % 256;
 	int y = (pgpu->LY + pgpu->SCY) % 256;
@@ -216,6 +225,7 @@ void writeScanline(GPU*pgpu)
 		}
 		else
 		{
+			
 			pgpu->buffer[pgpu->LY*160 + xOffset] = pixel;//GetPixelVal(pixel);//pixel;
 		}
 		
