@@ -59,7 +59,7 @@ void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val) {
 		// SCY
 		case 0xFF42:
 			pgpu->SCY = val;
-			printf("ScrollY: %d\n", pgpu->SCY);
+			//printf("ScrollY: %d\n", pgpu->SCY);
 			return;
 		// SCX
 		case 0xFF43:
