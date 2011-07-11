@@ -174,7 +174,14 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 		// External RAM
 		case 0xA : case 0xB :
 			// TODO implement MBC1 RAM read
-			return pmmu->eram[address - 0xA000];
+			if(pmmu->ram_bank_enable)
+			{	
+				return pmmu->eram[(pmmu->ram_bank*0x4000) + (address - 0xA000)];
+			}
+			else
+			{
+				printf("Read Error! External RAM bank not enabled.\n");
+			}
 			break;
 		
 		// Working RAM
@@ -323,8 +330,14 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 		
 		// External RAM
 		case 0xA : case 0xB :
-			// TODO: MBC1 ext RAM
-			pmmu->eram[address - 0xA000] = val;
+			if(pmmu->ram_bank_enable)
+			{
+				pmmu->eram[(pmmu->ram_bank*0x4000) + (address - 0xA000)] = val;
+			}
+			else
+			{
+				printf("Write Error! RAM Bank is not enabled.\n");
+			}
 			break;
 		
 		// Working RAM
