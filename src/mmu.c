@@ -271,9 +271,9 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 				
 				pmmu->rom_bank = ( pmmu->rom_bank & 0xc0 ) || ( newVal & 0x1f );
 				
-				#ifdef DEBUG
+				//#ifdef DEBUG
 					printf("Selecting ROM bank: %d\n", pmmu->rom_bank);
-				#endif
+				//#endif
 	
 				return;
 			}
@@ -436,6 +436,7 @@ void initMMU(MMU * pmmu)
 	uint8_t bios[BIOS_SIZE] = __BIOS__ ;
 	memcpy(pmmu->bios, bios, BIOS_SIZE);
 	pmmu->bios_enabled = 1;
+	pmmu->rom_bank = 1;
 	initGPU(&(pmmu->gpu));
 	#ifdef USE_ADDRESS_LUT
 	fillAddressLUT(pmmu);

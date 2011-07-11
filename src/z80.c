@@ -26,22 +26,22 @@ updateCPUTime(z80*pz80){
 		//all the following comparisons are matching the tcycle clock
 		//frequency of 4.196MHz
 		case 0x00: //4.096 KHz
-			if(tickCounter > 1024 ){
+			if(tickCounter >= 1024 ){
 				shouldTick = 1;
 			}
 			break;
 		case 0x01: //262.144 KHz
-			if(tickCounter > 16 ){
+			if(tickCounter >= 16 ){
 				shouldTick = 1;
 			}
 			break;
 		case 0x02: //65.536 KHz
-			if(tickCounter > 64 ){
+			if(tickCounter >= 64 ){
 				shouldTick = 1;
 			}
 			break;
 		case 0x03: //16.384 KHz
-			if(tickCounter > 256){
+			if(tickCounter >= 256){
 				shouldTick = 1;
 			}
 			break;
