@@ -843,9 +843,9 @@ i_LDH_A__n_(z80 * pz80);
 /* Pop 16-bit value from stack into AF */
 void
 i_POP_AF(z80 * pz80);
-/* Operation removed in this CPU */
-//void
-//i_XX(z80 * pz80);
+/* TODO: description */
+void 
+i_LD_A__C_(z80* pz80);
 /* DIsable interrupts */
 void
 i_DI(z80 * pz80);

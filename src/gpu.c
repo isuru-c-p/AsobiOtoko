@@ -58,7 +58,7 @@ void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val) {
 			return;
 		// SCY
 		case 0xFF42:
-			pgpu->SCY = val;
+			//pgpu->SCY = val;
 			//printf("ScrollY: %d\n", pgpu->SCY);
 			return;
 		// SCX
@@ -179,6 +179,15 @@ void writeScanline(GPU*pgpu)
 	tileMapAddr += ((tileY << 5) + tileX); // tileY*32 + tileX
 	//printf("TileMapAddr: %x\n", tileMapAddr);
 	int tileNo = pgpu->vram[tileMapAddr - 0x8000];
+	
+	/*if(!getLCDCBit(pgpu, BGWDATASEL))
+	{
+		if(tileNo > 127)
+		{
+			tileNo = -((~tileNo+1) & 255);
+		}
+		tileNo += 256;
+	}*/
 	
 	if(!getLCDCBit(pgpu, BGWDATASEL) && tileNo < 128)
 	{
