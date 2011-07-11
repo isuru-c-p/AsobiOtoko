@@ -149,7 +149,7 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 		case 0x5 : 
 		case 0x6 :
 		case 0x7 :
-			if((pmmu->rom_type == MBC1) && (pmmu->rom_bank))
+			if((pmmu->rom_type != ROM_ONLY))
 			{
 				if(pmmu->rom_bank)
 				{
@@ -173,7 +173,6 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 		
 		// External RAM
 		case 0xA : case 0xB :
-			// TODO implement MBC1 RAM read
 			if(pmmu->ram_bank_enable)
 			{	
 				return pmmu->eram[(pmmu->ram_bank*0x4000) + (address - 0xA000)];
@@ -239,7 +238,7 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 		// cartridge / bios
 		case 0x0: 
 		case 0x1 :
-			if(pmmu->rom_type == MBC1)
+			if(pmmu->rom_type != ROM_ONLY)
 			{
 				if((val & 0xf) == 0xa)
 				{
@@ -278,6 +277,11 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 	
 				return;
 			}
+			else if (pmmu->rom_type == MBC3)
+			{
+				pmmu->rom_bank = (val & 0x7f);
+			}
+			
 			printf("ERROR1! Attempting to write to ROM. Address: %x, Val: %x\n", address, val);
 			return;
 		
@@ -293,7 +297,6 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 			}
 			else if((pmmu->rom_type == MBC1) && (pmmu->mbc1_mode == MBC1_16_8_MODE))
 			{
-				//TODO: set two most significant ROM address lines
 				pmmu->rom_bank = (pmmu->rom_bank & 0x3f) || (val << 6);
 				#ifdef DEBUG
 					printf("Selecting Rom bank: %d\n", pmmu->rom_bank);

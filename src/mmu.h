@@ -34,6 +34,7 @@
 
 #define ROM_ONLY 0
 #define MBC1 1
+#define MBC3 2
 
 /* Data types */
 //#define USE_ADDRESS_LUT
