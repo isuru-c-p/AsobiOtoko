@@ -50,7 +50,6 @@ main (int argc, char *argv[]){
 	printf("WARNING patching out bios checksum...\n");
 	z80_cpu.mmu.bios[0x00fa] = 0x00;
 	z80_cpu.mmu.bios[0x00fb] = 0x00;
-	z80_cpu.mmu.bios[0x00fc] = 0x00;
 	//wb(&(z80_cpu.mmu),0x00fa, 0x00);
 	//wb(&(z80_cpu.mmu),0x00fb, 0x00);
 	//wb(&(z80_cpu.mmu),0x00fc, 0x00);

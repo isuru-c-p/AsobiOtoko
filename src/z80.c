@@ -5,7 +5,7 @@
 #include "debug.h"
 #include <stdio.h>
 
-//#define DEBUG
+#define DEBUG
 
 inline uint8_t 
 buildStatusFlag(int zero, int sub, int halfcarry,int carry){
@@ -54,6 +54,11 @@ checkAndTriggerInterrupts(z80* pz80){
 		triggerInterrupt(pz80,VBLANKINT);
 		return;
 	}
+	
+	if(getInterruptPending(pz80,TOVF) && getInterruptEnabled(pz80,TOVF)){
+		triggerInterrupt(pz80,TOVF);
+		return;
+	}
 
 
 
@@ -63,7 +68,9 @@ checkAndTriggerInterrupts(z80* pz80){
 
 void 
 triggerInterrupt(z80*pz80,int interrupt){
-
+	#ifdef DEBUG
+		printf("Interrupt triggered\n");
+	#endif
 	pz80->ime = 0; //must reset master interrupt flag
 
 	uint8_t interruptStatus = rb(&(pz80->mmu),0xFF0F); //address 0xFF0F  corresponding bit
@@ -87,6 +94,9 @@ triggerInterrupt(z80*pz80,int interrupt){
 			address = 0x0048;
 			break;
 		case TOVF:
+			#ifdef DEBUG
+				printf("TOVF interrupt\n");
+			#endif
 			address = 0x0050;
 			break;
 		case SERIALINT:
@@ -227,7 +237,7 @@ void ADD_HL_SP(z80*pz80)
 {
 	uint16_t val = pz80->registers16[SP];
 	uint16_t hl_val = getRegister16(pz80, REGH, REGL);
-	pz80->registers[REGF] = buildStatusFlag(getFlag(pz80->registers[REGF], ZERO), 0, (((hl_val & 0xff) + (val & 0xff)) > 0xff), (hl_val + val) > 0xffff);
+	pz80->registers[REGF] = buildStatusFlag(getFlag(pz80->registers[REGF], ZERO), 0, (((hl_val & 0x0fff) + (val & 0x0fff)) > 0x0fff), (hl_val + val) > 0xffff);
 	setRegister16(pz80, REGH, REGL, ((uint16_t)hl_val + (uint16_t)val));
 	pz80->tcycles = 8;
 	incPC(pz80, 1);
@@ -1161,7 +1171,7 @@ void executeNextInstruction(z80 * pz80){
 	#ifdef DEBUG
 		static uint16_t lastPC;
 		lastPC = pz80->registers16[PC];
-		printf("%x : %s", pz80->registers16[PC], dissasemble(instruction, 0));
+		printf("%x : %s (%x)", pz80->registers16[PC], dissasemble(instruction, 0), instruction);
 	#endif
 	
 	dispatchInstruction(pz80,instruction,0);
@@ -3059,7 +3069,6 @@ LDD_HL_mem_A(pz80);
 void
 i_INC_SP(z80 * pz80){
 pz80->registers16[SP]++;
-pz80->registers[REGF] = buildStatusFlag((pz80->registers16[SP] == 0), 0, ((pz80->registers16[SP] & 0xffff) == 0), getFlag(pz80->registers[REGF], CARRY));
 pz80->tcycles = 8;
 incPC(pz80, 1);
 }
@@ -3111,8 +3120,9 @@ LDD_A_HL_mem(pz80);
 /* Decrement 16-bit SP */
 void
 i_DEC_SP(z80 * pz80){
-pz80->registers16[SP]--;
-pz80->registers[REGF] = buildStatusFlag((pz80->registers16[SP] == 0), 0, ((pz80->registers16[SP] & 0xffff) == 0xffff), getFlag(pz80->registers[REGF], CARRY));
+	pz80->registers16[SP]--;
+	pz80->tcycles = 8;
+	incPC(pz80, 1);
 }
 /* Increment A */
 void
@@ -4064,7 +4074,7 @@ i_DI(z80 * pz80){
 	#ifdef DEBUG
 		static uint16_t lastPC;
 		lastPC = pz80->registers16[PC];
-		printf("%x : %s", pz80->registers16[PC], dissasemble(op, 0));
+		printf("%x : %s (%x)", pz80->registers16[PC], dissasemble(op, 0), op);
 	#endif
 	
 	dispatchInstruction(pz80,op,0);
