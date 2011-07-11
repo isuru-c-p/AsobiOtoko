@@ -165,7 +165,6 @@ void writeScanline(GPU*pgpu)
 {
 	if(!getLCDCBit(pgpu, BGWON))
 	{
-		//bzero((void*)pgpu->buffer,sizeof(pgpu->buffer));
 		memset((void*)pgpu->buffer, 0xff, sizeof(pgpu->buffer));
 		return;
 	}

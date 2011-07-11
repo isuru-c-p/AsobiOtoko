@@ -17,6 +17,21 @@ int loadROM(z80* pz80, char* path)
 		pz80->mmu.cartridge[byteNo] = byte;
 	}
 	
+	switch(pz80->mmu.cartridge[0x0147])
+	{
+		case 1:
+		case 2:
+		case 3:
+			pz80->mmu.rom_type = MBC1;
+			printf("ROM type: MBC1\n");
+			break;
+		
+		default:
+			pz80->mmu.rom_type = ROM_ONLY;
+			printf("ROM type: ROM_ONLY\n");
+			break;
+	}
+	
 	fclose(fp);
 	return 0;
 }

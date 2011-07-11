@@ -37,8 +37,6 @@ void fillAddressLUTEntry(MMU * pmmu,uint16_t address) {
 		
 		// VRAM
 		case 0x8 : case 0x9 :
-			// TODO: GPU
-			//return gpu.vram;
 			pmmu->addressLUT[address] = &(pmmu->gpu.vram[address - 0x8000]);
 			return;
 		
@@ -132,7 +130,10 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 	switch (address >> 12)
 	{
 		// cartridge / bios
-		case 0x0: 
+		case 0x0:
+		case 0x1 : 
+		case 0x2 :
+		case 0x3 :
 			if((address <= 0x00ff) && (pmmu->bios_enabled == 1))
 			{
 				return pmmu->bios[address];
@@ -144,14 +145,16 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 			break;
 			
 		// cartridge	
-		case 0x1 :
-		case 0x2 :
-		case 0x3 :
 		case 0x4 :
 		case 0x5 : 
 		case 0x6 :
 		case 0x7 :
-			return pmmu->cartridge[address];
+			if(pmmu->rom_type == MBC1)
+			{
+				return pmmu->cartridge[0x8000+(pmmu->rom_bank*0x4000)+(address - 0x4000)];
+			}
+			else
+				return pmmu->cartridge[address];
 			break;
 		
 		// VRAM
@@ -163,6 +166,7 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 		
 		// External RAM
 		case 0xA : case 0xB :
+			// TODO implement MBC1 RAM read
 			return pmmu->eram[address - 0xA000];
 			break;
 		
@@ -185,7 +189,6 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 			// OAM
 			else if (address <= 0xFE9F)
 			{
-				// TODO: sprite information
 				return pmmu->gpu.oam[address - 0xFE00];
 			}
 			// Memory Mapped IO
@@ -221,28 +224,71 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 	{
 		// cartridge / bios
 		case 0x0: 
-			/*if((address <= 0x00ff) && (pmmu->bios_enabled == 1))
+		case 0x1 :
+			if(pmmu->rom_type == MBC1)
 			{
-				pmmu->bios[address] = val;
+				if((val & 0xf) == 0xa)
+				{
+					pmmu->ram_bank_enable = 1;
+				}
+				else
+				{
+					pmmu->ram_bank_enable = 0;
+				}
+				
+				printf("Setting ext RAM enable: %d\n", pmmu->ram_bank_enable);
+				return;
 			}
-			else
-			{
-				pmmu->cartridge[address] = val;
-			}*/
-			printf("ERROR1! Attempting to write to ROM\n");
+			printf("ERROR1! Attempting to write to ROM. Address: %x, Val: %x\n", address, val);
 			break;
 			
-		// cartridge	
-		case 0x1 :
+		
 		case 0x2 :
 		case 0x3 :
+			if(pmmu->rom_type == MBC1)
+			{
+				pmmu->rom_bank = val & 0x1f;
+				
+				if(!pmmu->rom_bank)
+				{
+					pmmu->rom_bank = 1;
+				}
+				
+				printf("Selecting ROM bank: %d\n", pmmu->rom_bank);
+				
+				return;
+			}
+			printf("ERROR1! Attempting to write to ROM. Address: %x, Val: %x\n", address, val);
+			return;
+		
 		case 0x4 :
 		case 0x5 : 
+			if((pmmu->rom_type == MBC1) && (pmmu->mbc1_mode == MBC1_4_32_MODE))
+			{
+				pmmu->ram_bank = val & 0x3;
+				printf("Selecting RAM bank: %d\n", pmmu->ram_bank);
+				return;
+			}
+			else if((pmmu->rom_type == MBC1) && (pmmu->mbc1_mode == MBC1_16_8_MODE))
+			{
+				//TODO: set two most significant ROM address lines
+				printf("TODO: set two most significant ROM address lines\n");
+				return;
+			}
+			printf("ERROR1! Attempting to write to ROM. Address: %x, Val: %x\n", address, val);
+			return;
+		
 		case 0x6 :
 		case 0x7 :
+			if(pmmu->rom_type == MBC1)
+			{
+				pmmu->mbc1_mode = val & 0x01;
+				printf("Setting MBC1 Mode to: %d\n",pmmu->mbc1_mode);
+				return;
+			}
 			//pmmu->cartridge[address] = val;
-			printf("ERROR! Attempting to write to ROM\n");
-			break;
+			printf("ERROR1! Attempting to write to ROM. Address: %x, Val: %x\n", address, val);
+			return;
 			
 		// VRAM
 		case 0x8 : case 0x9 :
@@ -257,6 +303,7 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 		
 		// External RAM
 		case 0xA : case 0xB :
+			// TODO: MBC1 ext RAM
 			pmmu->eram[address - 0xA000] = val;
 			break;
 		
