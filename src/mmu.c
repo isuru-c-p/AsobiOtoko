@@ -149,9 +149,16 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 		case 0x5 : 
 		case 0x6 :
 		case 0x7 :
-			if(pmmu->rom_type == MBC1)
+			if((pmmu->rom_type == MBC1) && (pmmu->rom_bank))
 			{
-				return pmmu->cartridge[0x8000+(pmmu->rom_bank*0x4000)+(address - 0x4000)];
+				if(pmmu->rom_bank)
+				{
+					return pmmu->cartridge[(pmmu->rom_bank*0x4000)+(address - 0x4000)];
+				}
+				else
+				{
+					return pmmu->cartridge[address - 0x4000];
+				}
 			}
 			else
 				return pmmu->cartridge[address];
@@ -236,7 +243,9 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 					pmmu->ram_bank_enable = 0;
 				}
 				
-				printf("Setting ext RAM enable: %d\n", pmmu->ram_bank_enable);
+				#ifdef DEBUG
+					printf("Setting ext RAM enable: %d\n", pmmu->ram_bank_enable);
+				#endif
 				return;
 			}
 			printf("ERROR1! Attempting to write to ROM. Address: %x, Val: %x\n", address, val);
@@ -247,15 +256,19 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 		case 0x3 :
 			if(pmmu->rom_type == MBC1)
 			{
-				pmmu->rom_bank = val & 0x1f;
+				uint8_t newVal = ( val & 0x1f );
 				
-				if(!pmmu->rom_bank)
+				if( !newVal )
 				{
-					pmmu->rom_bank = 1;
+					newVal = 1;
 				}
 				
-				printf("Selecting ROM bank: %d\n", pmmu->rom_bank);
+				pmmu->rom_bank = ( pmmu->rom_bank & 0xc0 ) || ( newVal & 0x1f );
 				
+				#ifdef DEBUG
+					printf("Selecting ROM bank: %d\n", pmmu->rom_bank);
+				#endif
+	
 				return;
 			}
 			printf("ERROR1! Attempting to write to ROM. Address: %x, Val: %x\n", address, val);
@@ -266,13 +279,18 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 			if((pmmu->rom_type == MBC1) && (pmmu->mbc1_mode == MBC1_4_32_MODE))
 			{
 				pmmu->ram_bank = val & 0x3;
-				printf("Selecting RAM bank: %d\n", pmmu->ram_bank);
+				#ifdef DEBUG
+					printf("Selecting RAM bank: %d\n", pmmu->ram_bank);
+				#endif
 				return;
 			}
 			else if((pmmu->rom_type == MBC1) && (pmmu->mbc1_mode == MBC1_16_8_MODE))
 			{
 				//TODO: set two most significant ROM address lines
-				printf("TODO: set two most significant ROM address lines\n");
+				pmmu->rom_bank = (pmmu->rom_bank & 0x3f) || (val << 6);
+				#ifdef DEBUG
+					printf("Selecting Rom bank: %d\n", pmmu->rom_bank);
+				#endif
 				return;
 			}
 			printf("ERROR1! Attempting to write to ROM. Address: %x, Val: %x\n", address, val);
@@ -283,7 +301,9 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 			if(pmmu->rom_type == MBC1)
 			{
 				pmmu->mbc1_mode = val & 0x01;
-				printf("Setting MBC1 Mode to: %d\n",pmmu->mbc1_mode);
+				#ifdef DEBUG
+					printf("Setting MBC1 Mode to: %d\n",pmmu->mbc1_mode);
+				#endif
 				return;
 			}
 			//pmmu->cartridge[address] = val;

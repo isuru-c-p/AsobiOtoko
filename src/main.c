@@ -90,9 +90,9 @@ main (int argc, char *argv[]){
 	while(Continue){
 		
 		//printf("PC: %d\n", z80_cpu.registers16[PC]);
-		updateCPUTime(&z80_cpu);
 		checkAndTriggerInterrupts(&z80_cpu);
 		executeNextInstruction(&z80_cpu);
+		updateCPUTime(&z80_cpu);
 		ProcessInput(&Continue);
 	}
 
