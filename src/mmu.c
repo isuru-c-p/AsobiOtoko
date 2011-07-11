@@ -68,7 +68,7 @@ void fillAddressLUTEntry(MMU * pmmu,uint16_t address) {
 			else if (address <= 0xFE9F)
 			{
 				// TODO: sprite information
-				pmmu->addressLUT[address] = &(pmmu->memory[address - 0xFE00]);
+				pmmu->addressLUT[address] = &(pmmu->gpu.oam[address - 0xFE00]);
 				return;
 			}
 			// Memory Mapped IO
@@ -186,7 +186,7 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 			else if (address <= 0xFE9F)
 			{
 				// TODO: sprite information
-				return pmmu->memory[address - 0xFE00];
+				return pmmu->gpu.oam[address - 0xFE00];
 			}
 			// Memory Mapped IO
 			else if (address <= 0xFF7F)

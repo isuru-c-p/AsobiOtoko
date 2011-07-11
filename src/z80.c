@@ -5,7 +5,7 @@
 #include "debug.h"
 #include <stdio.h>
 
-#define DEBUG
+//#define DEBUG
 
 inline uint8_t 
 buildStatusFlag(int zero, int sub, int halfcarry,int carry){

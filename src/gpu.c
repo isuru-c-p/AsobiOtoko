@@ -59,7 +59,7 @@ void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val) {
 		// SCY
 		case 0xFF42:
 			pgpu->SCY = val;
-			//printf("ScrollY: %d\n", pgpu->SCY);
+			printf("ScrollY: %d\n", pgpu->SCY);
 			return;
 		// SCX
 		case 0xFF43:
@@ -88,10 +88,12 @@ void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val) {
 		// WY
 		case 0xFF4A:
 		  pgpu->WY = val;
+		  printf("WY: %d\n", pgpu->WY);
 		  return;
 		// WX
 		case 0xFF4B:
 		  pgpu->WX = val-7;
+		  printf("WX: %d\n", pgpu->WX);
 		  return;
 	}
 	printf("wb: Unimplemented GPU control register: %x\n", addr);
@@ -170,35 +172,23 @@ void writeScanline(GPU*pgpu)
 	
 	readOAM(pgpu);
 
-	int x = pgpu->SCX;
-	int y = pgpu->LY + pgpu->SCY;
+	int x = pgpu->SCX % 256;
+	int y = (pgpu->LY + pgpu->SCY) % 256;
 	int tileX = (x >> 3); // divide by 8
 	int tileY = (y >> 3); // divide by 8
 	uint16_t tileMapAddr = !getLCDCBit(pgpu, BGMAP) ? 0x9800 : 0x9C00;
 	
 	tileMapAddr += ((tileY << 5) + tileX); // tileY*32 + tileX
-	//printf("TileMapAddr: %x\n", tileMapAddr);
 	int tileNo = pgpu->vram[tileMapAddr - 0x8000];
-	
-	/*if(!getLCDCBit(pgpu, BGWDATASEL))
-	{
-		if(tileNo > 127)
-		{
-			tileNo = -((~tileNo+1) & 255);
-		}
-		tileNo += 256;
-	}*/
 	
 	if(!getLCDCBit(pgpu, BGWDATASEL) && tileNo < 128)
 	{
 		tileNo += 256;
 	}
-	//printf("tileNo: %d\n", tileNo);
 	
 	int start_x = (x & 0x7);
 	int start_y = (y & 0x7);
 	uint16_t rowAddress = tileNo*16 + start_y*2;
-	//printf("rowAddress: %x\n", 0x8000+rowAddress);
 	
 	int xOffset = 0;
 	
@@ -206,8 +196,6 @@ void writeScanline(GPU*pgpu)
 	{
 		uint8_t pixel = (getPixel(pgpu, rowAddress + 1, (start_x+xOffset) & 0x7 ) << 1) + getPixel(pgpu, rowAddress, (start_x+xOffset) & 0x7);
 		pixel = getPixelColor(pgpu, pixel);
-		//if (pixel != 255)
-		//	printf("Pixel*: %d\n", pixel);
 		
 		// lols CLI printout
 		/*if (pixel != 255)
@@ -269,8 +257,8 @@ void readOAM(GPU*pgpu)
 	
 	for(i = 0; i < 40; i++)
 	{
-		uint8_t spriteX = (pgpu->oam[(i*40)+1]) - 8;//getSpriteX(pgpu, i) - 8;
-		uint8_t spriteY = (pgpu->oam[(i*40)]) - 16;//getSpriteY(pgpu, i) - 16;
+		uint8_t spriteX = (pgpu->oam[(i*4)+1]) - 8;//getSpriteX(pgpu, i) - 8;
+		uint8_t spriteY = (pgpu->oam[(i*4)]) - 16;//getSpriteY(pgpu, i) - 16;
 		
 		//if((spriteX == -8) && (spriteY == -8))
 		//	continue;
