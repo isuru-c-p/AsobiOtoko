@@ -1,6 +1,7 @@
 #include "z80.h"
 #include "config.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include "debug.h"
 
 int loadROM(z80* pz80, char* path)
@@ -9,6 +10,13 @@ int loadROM(z80* pz80, char* path)
 	fp = fopen(path, "r");
 	if(!fp)
 		return -1;
+		
+	fseek(fp, 0L, SEEK_END);
+	int fileSize = ftell(fp);	
+	fseek(fp, 0L, SEEK_SET);
+	
+	pz80->mmu.cartridge = (uint8_t*)malloc(fileSize);
+		
 	int byte;
 	int byteNo = 0;
 	
@@ -101,6 +109,8 @@ main (int argc, char *argv[]){
 		updateCPUTime(&z80_cpu);
 		ProcessInput(&Continue);
 	}
+	
+	free(z80_cpu.mmu.cartridge);
 
 	
 	return 0;

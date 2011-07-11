@@ -180,6 +180,7 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 			else
 			{
 				printf("Read Error! External RAM bank not enabled.\n");
+				return 0;
 			}
 			break;
 		
@@ -271,15 +272,16 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 				
 				pmmu->rom_bank = ( pmmu->rom_bank & 0xc0 ) || ( newVal & 0x1f );
 				
-				//#ifdef DEBUG
+				#ifdef DEBUG
 					printf("Selecting ROM bank: %d\n", pmmu->rom_bank);
-				//#endif
+				#endif
 	
 				return;
 			}
 			else if (pmmu->rom_type == MBC3)
 			{
 				pmmu->rom_bank = (val & 0x7f);
+				return;
 			}
 			
 			printf("ERROR1! Attempting to write to ROM. Address: %x, Val: %x\n", address, val);

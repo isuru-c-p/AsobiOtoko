@@ -10,7 +10,8 @@
 #define ZERO_PAGE_RAM_SIZE 128
 #define BIOS_SIZE 256
 #define OAM_SIZE 160
-#define CARTRIDGE_SIZE 300000 //32768 TODO: dynamically resize to rom size
+// cartridge_size no longer applicable as cartridge array is now malloced
+//#define CARTRIDGE_SIZE 300000 //32768 TODO: dynamically resize to rom size
 
 #define __BIOS__ {0x31, 0xFE, 0xFF, 0xAF, 0x21, 0xFF, 0x9F, 0x32, 0xCB, 0x7C, 0x20, 0xFB, 0x21, 0x26, 0xFF, 0x0E,\
   0x11, 0x3E, 0x80, 0x32, 0xE2, 0x0C, 0x3E, 0xF3, 0xE2, 0x32, 0x3E, 0x77, 0x77, 0x3E, 0xFC, 0xE0,\
@@ -46,7 +47,7 @@ typedef struct _mmu {
 	uint8_t eram[EXT_RAM_SIZE];
 	uint8_t oam[OAM_SIZE];
 	uint8_t bios[BIOS_SIZE];
-	uint8_t cartridge[CARTRIDGE_SIZE];
+	uint8_t* cartridge;
 	uint8_t rom_type;
 	uint8_t mbc1_mode;
 	uint8_t rom_bank;

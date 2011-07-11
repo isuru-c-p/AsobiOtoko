@@ -49,10 +49,15 @@ updateCPUTime(z80*pz80){
 	
 	uint8_t timerVal;
 	if(shouldTick){
-		printf("timer tick!\n");
+		#ifdef DEBUG
+			printf("timer tick!\n");
+		#endif
 		tickCounter = 0;
 		timerVal = rb(&(pz80->mmu),0xff05); // timer counter
 		if(timerVal == 255){//max in uint overflow will happen
+			#ifdef DEBUG
+				printf("Timer OVF!\n");
+			#endif
 			setInterruptPending(pz80,TOVF);
 			timerVal = rb(&(pz80->mmu),0xff06); //timerOverflow val 
 			wb(&(pz80->mmu),0xff05,timerVal); // set timer counter to timer modulo
