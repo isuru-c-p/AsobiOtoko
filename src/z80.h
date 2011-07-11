@@ -99,6 +99,9 @@ saveRegMemToHL(z80*pz80);
 void push(z80*pz80, uint8_t val);
 
 void
+updateCPUTime(z80*pz80);
+
+void
 triggerInterrupt(z80*pz80,int interrupt);
 
 void 

@@ -7,6 +7,62 @@
 
 //#define DEBUG
 
+//TODO two choices, realtime or emulation time based on emulated clock?
+// which is better?
+void
+updateCPUTime(z80*pz80){
+	uint8_t timerControl = rb(&(pz80->mmu),0xff07);
+	static uint32_t tickCounter = 0;
+	int shouldTick = 0;
+	
+	if(!(timerControl&(1<<2))){ //if timer disabled
+		tickCounter = 0; // TODO should this be reset?
+		return;
+	}
+		
+	tickCounter += pz80->tcycles;
+	
+	switch(timerControl&0x03){ //timer scale bits
+		//all the following comparisons are matching the tcycle clock
+		//frequency of 4.196MHz
+		case 0x00: //4.096 KHz
+			if(tickCounter > 1024 ){
+				shouldTick = 1;
+			}
+			break;
+		case 0x01: //262.144 KHz
+			if(tickCounter > 16 ){
+				shouldTick = 1;
+			}
+			break;
+		case 0x02: //65.536 KHz
+			if(tickCounter > 64 ){
+				shouldTick = 1;
+			}
+			break;
+		case 0x03: //16.384 KHz
+			if(tickCounter > 256){
+				shouldTick = 1;
+			}
+			break;
+	}
+	
+	uint8_t timerVal;
+	if(shouldTick){
+		printf("timer tick!\n");
+		tickCounter = 0;
+		timerVal = rb(&(pz80->mmu),0xff05); // timer counter
+		if(timerVal == 255){//max in uint overflow will happen
+			setInterruptPending(pz80,TOVF);
+			timerVal = rb(&(pz80->mmu),0xff06); //timerOverflow val 
+			wb(&(pz80->mmu),0xff05,timerVal); // set timer counter to timer modulo
+		}else{
+			wb(&(pz80->mmu),0xff05,timerVal+1);//inc timer counter
+		}
+	}		
+}
+
+
 inline uint8_t 
 buildStatusFlag(int zero, int sub, int halfcarry,int carry){
 	uint8_t ret = 0;
