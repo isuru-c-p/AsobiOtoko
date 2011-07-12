@@ -2966,6 +2966,7 @@ RRCA(pz80);
 /* Stop processor */
 void
 i_STOP(z80 * pz80){
+	incPC(pz80, 1);
 }
 /* Load 16-bit immediate into DE */
 void
