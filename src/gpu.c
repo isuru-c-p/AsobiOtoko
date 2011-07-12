@@ -4,6 +4,13 @@
 
 #define PRECOMPUTED_GETPIXEL_COLOUR 
 
+void updateStat(GPU*pgpu)
+{
+	pgpu->STAT = (pgpu->STAT & 0xfc) | pgpu->mode;
+	if(getStatInterruptEnable(pgpu, pgpu->mode + 3))
+		pgpu->statInterruptTriggered = 1;
+}
+
 uint8_t gpu_rb(GPU*pgpu, uint16_t addr) {
 	switch(addr)
 	{
@@ -395,6 +402,11 @@ void gpu_step(GPU*pgpu, int tcycles)
 				}	
 			}
 			break;
+	}
+	
+	if(getStatInterruptEnable(pgpu, LYCLY_INT) && (pgpu->LY == pgpu->LYC))
+	{
+		pgpu->statInterruptTriggered = 1;
 	}
 }
 

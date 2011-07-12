@@ -221,6 +221,8 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 			}
 			else
 			{
+				//if(address == 0xffff)
+				//	printf("Reading IE: %x\n", pmmu->zram[address - 0xFF80]);
 				return pmmu->zram[address - 0xFF80];
 			}
 			break;
@@ -234,6 +236,11 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 
 void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 	//printf("Address: %x, Val: %x\n", address, val);
+	#ifdef DEBUG
+		if(address == 0xFFFF)
+			printf("New IE: %x\n", address);
+	#endif
+	
 	switch (address >> 12)
 	{
 		// cartridge / bios
@@ -400,13 +407,17 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 					gpu_wb(&(pmmu->gpu), address, val);
 					return;
 				}
+				else if(address == 0xff04)
+				{
+					pmmu->memory[address] = 0;
+					return;
+				}
+				
 				pmmu->memory[address] = val;
 			}
 			else
 			{
 				pmmu->zram[address - 0xFF80] = val;
-				//if(address == 0xFFFF)
-				//	printf("New IE: %x\n", address);
 			}
 			break;
 			

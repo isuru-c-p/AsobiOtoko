@@ -30,13 +30,19 @@ LCDON
 
 #define getPixel(pgpu, addr, x) (((pgpu)->vram[(addr)] >> (7-(x))) & 0x01)
 
-#define updateStat(pgpu) ((pgpu)->STAT = (((pgpu)->STAT & 0xfc) | (pgpu)->mode))
+
 
 #define getSpriteAttr(pgpu, sprite, attr) (((pgpu)->oam[(sprite*4) + 3] >> (attr)) & 0x1)
 #define getSpriteX(pgpu, sprite) ((pgpu)->oam[(sprite)*4])
 #define getSpriteY(pgpu, sprite) ((pgpu)->oam[((sprite)*4) + 1])
 #define getSpriteTile(pgpu, sprite) ((pgpu)->oam[((sprite)*4) + 2])
 
+#define LYCLY_INT 6
+#define MODE_2_INT 5
+#define MODE_1_INT 4
+#define MODE_0_INT 3
+
+#define getStatInterruptEnable(pgpu, interrupt) (((pgpu)->STAT >> (interrupt)) & 0x01)
 
 // data types
 
@@ -64,6 +70,7 @@ typedef struct _gpu {
 	uint8_t WX;
 	uint8_t buffer[SCREEN_BUFF_SIZE];
 	uint8_t sprite_line[160];
+	uint8_t statInterruptTriggered;
 	int clock;
 	int vblankPending;
 } GPU;

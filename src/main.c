@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "debug.h"
+#include "SDL_Helper.h"
 
 int loadROM(z80* pz80, char* path)
 {
@@ -106,6 +107,14 @@ main (int argc, char *argv[]){
 		executeNextInstruction(&z80_cpu);
 		updateCPUTime(&z80_cpu);
 		ProcessInput(&Continue);
+		if(button_irq)
+		{
+			#ifdef DEBUG
+				printf("Button interrupt pending.\n");
+			#endif
+			setInterruptPending(&z80_cpu,P0_P13_INT);
+			button_irq = 0;
+		}
 	}
 	
 	free(z80_cpu.mmu.cartridge);

@@ -13,7 +13,15 @@ void
 updateCPUTime(z80*pz80){
 	uint8_t timerControl = rb(&(pz80->mmu),0xff07);
 	static uint32_t tickCounter = 0;
+	static uint32_t divTickCounter = 0;
 	int shouldTick = 0;
+	
+	divTickCounter += pz80->tcycles;
+	if(divTickCounter >= 256)
+	{
+		pz80->mmu.memory[0xff04] += 1;
+		divTickCounter = 0;
+	}
 	
 	if(!(timerControl&(1<<2))){ //if timer disabled
 		tickCounter = 0; // TODO should this be reset?
@@ -98,6 +106,12 @@ checkAndTriggerInterrupts(z80* pz80){
 		pz80->mmu.gpu.vblankPending = 0;
 		setInterruptPending(pz80,VBLANKINT);
 	}
+	
+	if(pz80->mmu.gpu.statInterruptTriggered){
+		pz80->mmu.gpu.statInterruptTriggered = 0;
+		setInterruptPending(pz80, LCDCINT);
+	}
+	
 	/*TODO set all pending interrupts*/
 	//unsure of whether the pending flag if should be set
 	//when the ime or enabled flags are not set
@@ -116,10 +130,33 @@ checkAndTriggerInterrupts(z80* pz80){
 		return;
 	}
 	
+	if(getInterruptPending(pz80,LCDCINT) && getInterruptEnabled(pz80,LCDCINT)){
+		#ifdef DEBUG
+			printf("stat interrupt");
+		#endif
+		triggerInterrupt(pz80,LCDCINT);
+		return;
+	}
+	
 	if(getInterruptPending(pz80,TOVF) && getInterruptEnabled(pz80,TOVF)){
 		triggerInterrupt(pz80,TOVF);
 		return;
 	}
+	
+	if(getInterruptPending(pz80,P0_P13_INT) && getInterruptEnabled(pz80,P0_P13_INT)){
+		#ifdef DEBUG
+			printf("triggered button irq");
+		#endif
+		triggerInterrupt(pz80,P0_P13_INT);
+		return;
+	}
+	#ifdef DEBUG
+		else if(getInterruptPending(pz80,P0_P13_INT))
+		{
+			printf("Button interrupt not triggered as not enabled.\n");
+			printf("IE: %x\n", rb(&(pz80->mmu), 0xffff));
+		}
+	#endif
 
 
 

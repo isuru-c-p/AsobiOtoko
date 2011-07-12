@@ -3,6 +3,7 @@
 
 SDL_Surface *screen;
 uint8_t pressed_buttons[8];
+uint8_t button_irq = 0;
 
 int init_graphics()
 {
@@ -56,6 +57,7 @@ void ProcessInput(int * cont){
 		switch(event.type){
 			case SDL_KEYDOWN:
 				upordown = 0;
+				button_irq = 1;
 				goto keyswitch;
 			case SDL_KEYUP:
 				upordown = 1;
