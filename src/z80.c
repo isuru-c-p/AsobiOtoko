@@ -63,10 +63,11 @@ updateCPUTime(z80*pz80){
 		tickCounter = 0;
 		timerVal = rb(&(pz80->mmu),0xff05); // timer counter
 		if(timerVal == 255){//max in uint overflow will happen
+			setInterruptPending(pz80,TOVF);
 			#ifdef DEBUG
 				printf("Timer OVF!\n");
+				printf("Pending timer interrupt: %x\n", getInterruptPending(pz80, TOVF));
 			#endif
-			setInterruptPending(pz80,TOVF);
 			timerVal = rb(&(pz80->mmu),0xff06); //timerOverflow val 
 			wb(&(pz80->mmu),0xff05,timerVal); // set timer counter to timer modulo
 		}else{
@@ -142,6 +143,12 @@ checkAndTriggerInterrupts(z80* pz80){
 		triggerInterrupt(pz80,TOVF);
 		return;
 	}
+	#ifdef DEBUG
+		else if(getInterruptPending(pz80,TOVF))
+		{
+			printf("Timer interrupt not triggered as not enabled. IE: %x\n", rb(&(pz80->mmu), 0xffff));
+		}
+	#endif
 	
 	if(getInterruptPending(pz80,P0_P13_INT) && getInterruptEnabled(pz80,P0_P13_INT)){
 		#ifdef DEBUG
@@ -209,6 +216,7 @@ triggerInterrupt(z80*pz80,int interrupt){
 	push(pz80, (pz80->registers16[PC]) >> 8);
 	push(pz80, (pz80->registers16[PC]) & 255);
 	pz80->registers16[PC] = address;
+	pz80->interrupt_serviced = 1;
 
 }
 
@@ -3517,6 +3525,16 @@ LD_nn_mem_n(pz80, REGH, REGL, REGL);
 /* Halt processor */
 void
 i_HALT(z80 * pz80){
+	if(!pz80->ime)
+	{
+		incPC(pz80, 2);
+	}
+	
+	if(pz80->interrupt_serviced)
+	{
+		pz80->interrupt_serviced = 0;
+		incPC(pz80, 1);
+	}
 }
 /* Copy A to address pointed by HL */
 void

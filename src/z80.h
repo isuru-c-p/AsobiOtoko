@@ -45,6 +45,7 @@ typedef struct _z80 {
 	MMU mmu;
 	uint8_t ime; // interrupt enable
 	int tcycles;
+	int interrupt_serviced;
 	//int doSecondaryOpcode;
 } z80;
 
