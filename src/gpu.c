@@ -7,8 +7,8 @@
 void updateStat(GPU*pgpu)
 {
 	pgpu->STAT = (pgpu->STAT & 0xfc) | pgpu->mode;
-	if(getStatInterruptEnable(pgpu, pgpu->mode + 3))
-		pgpu->statInterruptTriggered = 1;
+	//if(getStatInterruptEnable(pgpu, pgpu->mode + 3))
+	//	pgpu->statInterruptTriggered = 1;
 }
 
 uint8_t gpu_rb(GPU*pgpu, uint16_t addr) {
@@ -19,7 +19,7 @@ uint8_t gpu_rb(GPU*pgpu, uint16_t addr) {
 			return pgpu->LCDC;
 		// LCDC status
 		case 0xFF41:
-			return (pgpu->STAT & 3) | ((pgpu->LY == pgpu->LYC) << 2);
+			return (pgpu->STAT & 0x7b) | ((pgpu->LY == pgpu->LYC) << 2);
 		// SCY
 		case 0xFF42:
 			return pgpu->SCY;
@@ -62,6 +62,7 @@ void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val) {
 		// LCDC status
 		case 0xFF41:
 			pgpu->STAT = val;
+			printf("New STAT: %x\n", pgpu->STAT);
 			return;
 		// SCY
 		case 0xFF42:
@@ -71,6 +72,7 @@ void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val) {
 		// SCX
 		case 0xFF43:
 			pgpu->SCX = val;
+			//printf("ScrollX: %d\n", pgpu->SCX);
 			return;
 		// LY
 		case 0xFF44:
@@ -78,6 +80,7 @@ void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val) {
 			return;
 		// LYC
 		case 0xFF45:
+			printf("LYC: %x\n", val);
 			pgpu->LYC = val;
 			return;
 		// Palette
@@ -95,12 +98,12 @@ void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val) {
 		// WY
 		case 0xFF4A:
 		  pgpu->WY = val;
-		  printf("WY: %d\n", pgpu->WY);
+		  //printf("WY: %d\n", pgpu->WY);
 		  return;
 		// WX
 		case 0xFF4B:
 		  pgpu->WX = val-7;
-		  printf("WX: %d\n", pgpu->WX);
+		  //printf("WX: %d\n", pgpu->WX);
 		  return;
 	}
 	printf("wb: Unimplemented GPU control register: %x\n", addr);
@@ -178,14 +181,20 @@ void writeScanline(GPU*pgpu)
 	
 	readOAM(pgpu);
 	
-	/*int windowEnabled = getLCDCBit(pgpu, WDISP);
+	int windowEnabled = getLCDCBit(pgpu, WDISP) && (pgpu->LY >= pgpu->WY);
 
-	uint16_t windowTileAddr = !getLCDCBit(pgpu, BGMAP) ? 
-
-	if(windowEnabled)
+	uint16_t windowTileAddr = !getLCDCBit(pgpu, BGMAP) ? 0x9800 : 0x9C00;
+	windowTileAddr += ((pgpu->WY << 5) + pgpu->WX);
+	uint16_t windowTile = pgpu->vram[windowTileAddr - 0x8000];
+	uint16_t windowStartX = pgpu->WX & 0x7;
+	uint16_t windowStartY = pgpu->WY & 0x7;
+	uint16_t windowRowAddr = windowTile*16 + 2*windowStartY;
+	
+	
+	if(!getLCDCBit(pgpu, BGWDATASEL) && windowTile < 128)
 	{
-		
-	}*/
+		windowTile += 256;
+	}
 
 	int x = pgpu->SCX % 256;
 	int y = (pgpu->LY + pgpu->SCY) % 256;
@@ -226,18 +235,37 @@ void writeScanline(GPU*pgpu)
 		{
 			pgpu->buffer[pgpu->LY*160 + xOffset] = GetColor(pgpu,(pgpu->sprite_line[xOffset] >> 1));
 		}
-		else if(pixel == 255)
+		else if((pixel == 255) & !windowEnabled)
 		{
 			pgpu->buffer[pgpu->LY*160 + xOffset] = GetColor(pgpu,pgpu->sprite_line[xOffset]);
 		}
 		else
 		{
-			
-			pgpu->buffer[pgpu->LY*160 + xOffset] = pixel;//GetPixelVal(pixel);//pixel;
+			if(!windowEnabled)
+			{
+				pgpu->buffer[pgpu->LY*160 + xOffset] = pixel;//GetPixelVal(pixel);//pixel;
+			}
+			else if(xOffset >= pgpu->WX)
+			{
+				uint8_t windowPixel = (getPixel(pgpu, windowRowAddr + 1, (start_x+xOffset) & 0x7 ) << 1) + getPixel(pgpu, windowRowAddr, (start_x+xOffset) & 0x7);
+				windowPixel = getPixelColor(pgpu, windowPixel);
+				pgpu->buffer[pgpu->LY*160 + xOffset] = windowPixel;
+			}
 		}
 		
 		if(((start_x+xOffset) & 0x7) == 7)
 		{
+			if(windowEnabled)
+			{
+				windowTileAddr++;
+				windowTile = pgpu->vram[windowTileAddr - 0x8000];
+				if(!getLCDCBit(pgpu, BGWDATASEL) && windowTile < 128)
+				{
+					windowTile += 256;
+				}
+				windowRowAddr = windowTile*16 + 2*windowStartY;
+			}
+		
 			tileMapAddr++;
 			tileNo = pgpu->vram[tileMapAddr - 0x8000];
 			if(!getLCDCBit(pgpu, BGWDATASEL) && tileNo < 128)
@@ -364,6 +392,11 @@ void gpu_step(GPU*pgpu, int tcycles)
 				updateStat(pgpu);
 				pgpu->clock = 0;
 				pgpu->LY++;
+				if(getStatInterruptEnable(pgpu, LYCLY_INT) && (pgpu->LY == pgpu->LYC))
+				{
+					pgpu->statInterruptTriggered = 1;
+				}
+
 				//printf("LY: %d\n", pgpu->LY);
 				writeScanline(pgpu);
 			}
@@ -394,6 +427,11 @@ void gpu_step(GPU*pgpu, int tcycles)
 				//printf("LY: %d\n", pgpu->LY);
 				pgpu->clock = 0;
 				
+				if(getStatInterruptEnable(pgpu, LYCLY_INT) && (pgpu->LY == pgpu->LYC))
+				{
+					pgpu->statInterruptTriggered = 1;
+				}
+				
 				if(pgpu->LY == 153)
 				{
 					pgpu->LY = 0;
@@ -404,10 +442,7 @@ void gpu_step(GPU*pgpu, int tcycles)
 			break;
 	}
 	
-	if(getStatInterruptEnable(pgpu, LYCLY_INT) && (pgpu->LY == pgpu->LYC))
-	{
-		pgpu->statInterruptTriggered = 1;
-	}
+	
 }
 
 void initGPU(GPU*pgpu)

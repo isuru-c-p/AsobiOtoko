@@ -131,13 +131,13 @@ checkAndTriggerInterrupts(z80* pz80){
 		return;
 	}
 	
-	/*if(getInterruptPending(pz80,LCDCINT) && getInterruptEnabled(pz80,LCDCINT)){
+	if(getInterruptPending(pz80,LCDCINT) && getInterruptEnabled(pz80,LCDCINT)){
 		#ifdef DEBUG
 			printf("stat interrupt");
 		#endif
 		triggerInterrupt(pz80,LCDCINT);
 		return;
-	}*/
+	}
 	
 	if(getInterruptPending(pz80,TOVF) && getInterruptEnabled(pz80,TOVF)){
 		triggerInterrupt(pz80,TOVF);
