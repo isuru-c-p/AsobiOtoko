@@ -257,9 +257,9 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 					pmmu->ram_bank_enable = 0;
 				}
 				
-				//#ifdef DEBUG
+				#ifdef DEBUG
 					printf("Setting ext RAM enable: %d (%d)\n", pmmu->ram_bank_enable, val);
-				//#endif
+				#endif
 				return;
 			}
 			printf("ERROR1! Attempting to write to ROM. Address: %x, Val: %x\n", address, val);
@@ -279,9 +279,9 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 				
 				pmmu->rom_bank = ( pmmu->rom_bank & 0xc0 ) | ( newVal );
 				
-				//#ifdef DEBUG
+				#ifdef DEBUG
 					printf("Selecting ROM bank: %d (val: %d, newVal:%d)\n", pmmu->rom_bank, val, newVal);
-				//#endif
+				#endif
 	
 				return;
 			}
@@ -299,17 +299,17 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 			if((pmmu->rom_type == MBC1) && (pmmu->mbc1_mode == MBC1_4_32_MODE))
 			{
 				pmmu->ram_bank = val & 0x3;
-				//#ifdef DEBUG
+				#ifdef DEBUG
 					printf("Selecting RAM bank: %d\n", pmmu->ram_bank);
-				//#endif
+				#endif
 				return;
 			}
 			else if((pmmu->rom_type == MBC1) && (pmmu->mbc1_mode == MBC1_16_8_MODE))
 			{
 				pmmu->rom_bank = (pmmu->rom_bank & 0x3f) || (val << 6);
-				//#ifdef DEBUG
+				#ifdef DEBUG
 					printf("Selecting Rom bank: %d\n", pmmu->rom_bank);
-				//#endif
+				#endif
 				return;
 			}
 			printf("ERROR1! Attempting to write to ROM. Address: %x, Val: %x\n", address, val);
@@ -320,9 +320,9 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 			if(pmmu->rom_type == MBC1)
 			{
 				pmmu->mbc1_mode = val & 0x01;
-				//#ifdef DEBUG
+				#ifdef DEBUG
 					printf("Setting MBC1 Mode to: %d\n",pmmu->mbc1_mode);
-				//#endif
+				#endif
 				return;
 			}
 			//pmmu->cartridge[address] = val;
