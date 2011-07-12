@@ -301,7 +301,7 @@ void readOAM(GPU*pgpu)
 			{
 				if(pgpu->sprite_line[j] == 0)
 				{
-					if(getSpriteAttr(pgpu, i, XFLIP))
+					if(!getSpriteAttr(pgpu, i, XFLIP))
 					{
 						pgpu->sprite_line[j] = ((pgpu->vram[sprite_addr] >> (7-(j-spriteX))) & 0x1) + (((pgpu->vram[sprite_addr+1] >> (7-(j-spriteX))) & 0x1) << 1);
 					}
