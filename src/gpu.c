@@ -201,6 +201,7 @@ void writeScanline(GPU*pgpu)
 	int tileX = (x >> 3); // divide by 8
 	int tileY = (y >> 3); // divide by 8
 	uint16_t tileMapAddr = !getLCDCBit(pgpu, BGMAP) ? 0x9800 : 0x9C00;
+	uint16_t rowStartTileMapAddr = tileMapAddr + (tileY << 5);
 	
 	tileMapAddr += ((tileY << 5) + tileX); // tileY*32 + tileX
 	int tileNo = pgpu->vram[tileMapAddr - 0x8000];
@@ -267,6 +268,10 @@ void writeScanline(GPU*pgpu)
 			}
 		
 			tileMapAddr++;
+			
+			if(tileMapAddr >= (rowStartTileMapAddr + 32))
+				tileMapAddr = rowStartTileMapAddr;
+			
 			tileNo = pgpu->vram[tileMapAddr - 0x8000];
 			if(!getLCDCBit(pgpu, BGWDATASEL) && tileNo < 128)
 			{
