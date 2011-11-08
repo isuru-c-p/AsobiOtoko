@@ -58,6 +58,7 @@ void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val) {
 		// LCDC
 		case 0xFF40:
 			pgpu->LCDC = val;
+			printf("New LCDC: %x\n", pgpu->LCDC);
 			return;
 		// LCDC status
 		case 0xFF41:
@@ -86,6 +87,7 @@ void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val) {
 		// Palette
 		case 0xFF47:
 			pgpu->BGP = val;
+			printf("New BGP: %x\n", pgpu->BGP);
 			return;
 		// OBP0
 		case 0xFF48:
@@ -98,12 +100,12 @@ void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val) {
 		// WY
 		case 0xFF4A:
 		  pgpu->WY = val;
-		  //printf("WY: %d\n", pgpu->WY);
+		  printf("WY: %d\n", pgpu->WY);
 		  return;
 		// WX
 		case 0xFF4B:
 		  pgpu->WX = val-7;
-		  //printf("WX: %d\n", pgpu->WX);
+		  printf("WX: %d\n", pgpu->WX);
 		  return;
 	}
 	printf("wb: Unimplemented GPU control register: %x\n", addr);
@@ -179,28 +181,28 @@ void writeScanline(GPU*pgpu)
 		return;
 	}
 	
-	readOAM(pgpu);
+	//readOAM(pgpu);
 	
 	int windowEnabled = getLCDCBit(pgpu, WDISP) && (pgpu->LY >= pgpu->WY);
 
-	uint16_t windowTileAddr = !getLCDCBit(pgpu, BGMAP) ? 0x9800 : 0x9C00;
-	windowTileAddr += ((pgpu->WY << 5) + pgpu->WX);
+	uint16_t windowTileAddr = !getLCDCBit(pgpu, WMAP) ? 0x9800 : 0x9C00;
+	//uint16_t windowDataAddr = !getLCDCBit(pgpu, BGWDATASEL) ? 0x8800 : 0x8000;
+	uint16_t windowStartTileAddr = windowTileAddr;
 	uint16_t windowTile = pgpu->vram[windowTileAddr - 0x8000];
-	uint16_t windowStartX = pgpu->WX & 0x7;
-	uint16_t windowStartY = pgpu->WY & 0x7;
-	uint16_t windowRowAddr = windowTile*16 + 2*windowStartY;
 	
-	
-	if(!getLCDCBit(pgpu, BGWDATASEL) && windowTile < 128)
+	if(!getLCDCBit(pgpu, BGWDATASEL) && (windowTile < 128))
 	{
 		windowTile += 256;
 	}
+	
+	uint16_t windowRowAddr = windowTile*16;
 
 	int x = pgpu->SCX % 256;
 	int y = (pgpu->LY + pgpu->SCY) % 256;
 	int tileX = (x >> 3); // divide by 8
 	int tileY = (y >> 3); // divide by 8
 	uint16_t tileMapAddr = !getLCDCBit(pgpu, BGMAP) ? 0x9800 : 0x9C00;
+	uint16_t tileDataAddr = !getLCDCBit(pgpu, BGWDATASEL) ? 0x8800 : 0x8000;
 	uint16_t rowStartTileMapAddr = tileMapAddr + (tileY << 5);
 	
 	tileMapAddr += ((tileY << 5) + tileX); // tileY*32 + tileX
@@ -222,16 +224,6 @@ void writeScanline(GPU*pgpu)
 		uint8_t pixel = (getPixel(pgpu, rowAddress + 1, (start_x+xOffset) & 0x7 ) << 1) + getPixel(pgpu, rowAddress, (start_x+xOffset) & 0x7);
 		pixel = getPixelColor(pgpu, pixel);
 		
-		// lols CLI printout
-		/*if (pixel != 255)
-		{
-			printf("*");
-		}
-		else
-		{
-			printf(" ");
-		}*/
-		//DrawPixel(xOffset, pgpu->LY, pixel);
 		if(pgpu->sprite_line[xOffset] > 0x3)
 		{
 			pgpu->buffer[pgpu->LY*160 + xOffset] = GetColor(pgpu,(pgpu->sprite_line[xOffset] >> 1));
@@ -242,29 +234,34 @@ void writeScanline(GPU*pgpu)
 		}
 		else
 		{
-			if(!windowEnabled)
+			if(windowEnabled && (xOffset >= (pgpu->WX-7))) 
 			{
-				pgpu->buffer[pgpu->LY*160 + xOffset] = pixel;//GetPixelVal(pixel);//pixel;
-			}
-			else if(xOffset >= pgpu->WX)
-			{
-				uint8_t windowPixel = (getPixel(pgpu, windowRowAddr + 1, (start_x+xOffset) & 0x7 ) << 1) + getPixel(pgpu, windowRowAddr, (start_x+xOffset) & 0x7);
+				//printf("Drawing window\n");
+				uint8_t windowPixel = (getPixel(pgpu, windowRowAddr + 1, (xOffset-pgpu->WX) & 0x7 ) << 1) + getPixel(pgpu, windowRowAddr, (xOffset-pgpu->WX) & 0x7);
 				windowPixel = getPixelColor(pgpu, windowPixel);
 				pgpu->buffer[pgpu->LY*160 + xOffset] = windowPixel;
+			}
+			else
+			{
+				pgpu->buffer[pgpu->LY*160 + xOffset] = pixel;
 			}
 		}
 		
 		if(((start_x+xOffset) & 0x7) == 7)
 		{
-			if(windowEnabled)
+			if(windowEnabled && (xOffset >= (pgpu->WX-7)))
 			{
 				windowTileAddr++;
+				
+				if(windowTileAddr > (windowStartTileAddr + 32))
+					windowTileAddr = windowStartTileAddr;
+				
 				windowTile = pgpu->vram[windowTileAddr - 0x8000];
 				if(!getLCDCBit(pgpu, BGWDATASEL) && windowTile < 128)
 				{
 					windowTile += 256;
 				}
-				windowRowAddr = windowTile*16 + 2*windowStartY;
+				windowRowAddr = windowTile*16;
 			}
 		
 			tileMapAddr++;
@@ -273,18 +270,15 @@ void writeScanline(GPU*pgpu)
 				tileMapAddr = rowStartTileMapAddr;
 			
 			tileNo = pgpu->vram[tileMapAddr - 0x8000];
+			
 			if(!getLCDCBit(pgpu, BGWDATASEL) && tileNo < 128)
 			{
 				tileNo += 256;
 			}
-			//printf("tileNo: %d\n", tileNo);
+			
 			rowAddress = tileNo*16 + start_y*2;
-			//printf("rowAddress: %d\n", rowAddress);
 		}
 	}
-	
-	// lols CLI printout
-	//printf("\n");
 	
 	return;
 }
@@ -387,6 +381,7 @@ void gpu_step(GPU*pgpu, int tcycles)
 				pgpu->mode = 3;
 				updateStat(pgpu);
 				pgpu->clock = 0;
+				readOAM(pgpu);
 			}
 			break;
 		// VRAM access 
@@ -410,6 +405,8 @@ void gpu_step(GPU*pgpu, int tcycles)
 		case 0:
 			if(pgpu->clock >= 204)
 			{
+				pgpu->clock = 0;
+				
 				if(pgpu->LY == 143)
 				{
 					renderScreen(pgpu);
@@ -457,5 +454,6 @@ void initGPU(GPU*pgpu)
 		printf("Init graphics failed.\n");
 	}
 	bzero((void*)pgpu,sizeof(pgpu));
+	pgpu->mode = 0;
 	return;
 }

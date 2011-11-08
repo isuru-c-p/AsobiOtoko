@@ -5,7 +5,7 @@
 
 /* CONSTANTS */
 #define MEMORYSIZE 65536
-#define EXT_RAM_SIZE (8192*3) //8192 TODO: dynamically resize to RAM size of cart
+#define EXT_RAM_SIZE (8192*4) //8192 TODO: dynamically resize to RAM size of cart
 #define WORKING_RAM_SIZE 8192
 #define ZERO_PAGE_RAM_SIZE 128
 #define BIOS_SIZE 256
