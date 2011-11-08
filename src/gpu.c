@@ -46,7 +46,7 @@ uint8_t gpu_rb(GPU*pgpu, uint16_t addr) {
 		  return pgpu->WY;
 		// WX
 		case 0xFF4B:
-		  return (pgpu->WX+7);
+		  return pgpu->WX;
 	}
 	printf("rb : Unimplemented GPU control register: %x\n", addr);
 }
@@ -104,7 +104,7 @@ void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val) {
 		  return;
 		// WX
 		case 0xFF4B:
-		  pgpu->WX = val-7;
+		  pgpu->WX = val;
 		  printf("WX: %d\n", pgpu->WX);
 		  return;
 	}
