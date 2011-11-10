@@ -75,7 +75,7 @@ main (int argc, char *argv[]){
 	
 	int Continue = 1;
 
-	while(z80_cpu.registers16[PC] < 0x100 && Continue)
+	/*while(z80_cpu.registers16[PC] < 0x100 && Continue)
 	{
 		checkAndTriggerInterrupts(&z80_cpu);
 		executeNextInstruction(&z80_cpu);
@@ -85,11 +85,11 @@ main (int argc, char *argv[]){
 	//printCPU(&z80_cpu);
 	if(z80_cpu.registers[REGF] != 0xb0)
 		printf("WARNING, possible error in bios or emulator - flags not as expected after bios\n");
-
+	*/
 	disableBios(&(z80_cpu.mmu));
 
 	printf("Finished executing BIOS\n");
-	/*
+	
 	z80_cpu.registers16[PC]=0x100;
 	z80_cpu.registers16[SP]=0xFFFE;
 	z80_cpu.registers[REGH] = 0x01;
@@ -98,7 +98,7 @@ main (int argc, char *argv[]){
 	z80_cpu.registers[REGE] = 0xD8;
 	z80_cpu.registers[REGA] = 0x01;
 	wb(&(z80_cpu.mmu),0xff40, 0x91);
-	*/
+	
 	
 	while(Continue){
 		

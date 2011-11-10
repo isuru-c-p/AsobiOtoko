@@ -7,8 +7,6 @@
 
 //#define DEBUG
 
-//TODO two choices, realtime or emulation time based on emulated clock?
-// which is better?
 void
 updateCPUTime(z80*pz80){
 	uint8_t timerControl = rb(&(pz80->mmu),0xff07);
@@ -24,11 +22,13 @@ updateCPUTime(z80*pz80){
 	}
 	
 	if(!(timerControl&(1<<2))){ //if timer disabled
-		tickCounter = 0; // TODO should this be reset?
+		tickCounter = 0; 
 		return;
 	}
 		
 	tickCounter += pz80->tcycles;
+	
+	int overflowCount = 0;
 	
 	switch(timerControl&0x03){ //timer scale bits
 		//all the following comparisons are matching the tcycle clock
@@ -36,21 +36,25 @@ updateCPUTime(z80*pz80){
 		case 0x00: //4.096 KHz
 			if(tickCounter >= 1024 ){
 				shouldTick = 1;
+				overflowCount = 1024;
 			}
 			break;
 		case 0x01: //262.144 KHz
 			if(tickCounter >= 16 ){
 				shouldTick = 1;
+				overflowCount = 16;
 			}
 			break;
 		case 0x02: //65.536 KHz
 			if(tickCounter >= 64 ){
 				shouldTick = 1;
+				overflowCount = 64;
 			}
 			break;
 		case 0x03: //16.384 KHz
 			if(tickCounter >= 256){
 				shouldTick = 1;
+				overflowCount = 256;
 			}
 			break;
 	}
@@ -60,20 +64,32 @@ updateCPUTime(z80*pz80){
 		#ifdef DEBUG
 			printf("timer tick!\n");
 		#endif
-		tickCounter = 0;
+		tickCounter = tickCounter - overflowCount;
 		timerVal = rb(&(pz80->mmu),0xff05); // timer counter
 		if(timerVal == 255){//max in uint overflow will happen
 			setInterruptPending(pz80,TOVF);
 			#ifdef DEBUG
 				printf("Timer OVF!\n");
 				printf("Pending timer interrupt: %x\n", getInterruptPending(pz80, TOVF));
+				printf("IF: %x\n", rb(&(pz80->mmu),0xff0f));
 			#endif
 			timerVal = rb(&(pz80->mmu),0xff06); //timerOverflow val 
 			wb(&(pz80->mmu),0xff05,timerVal); // set timer counter to timer modulo
 		}else{
 			wb(&(pz80->mmu),0xff05,timerVal+1);//inc timer counter
 		}
-	}		
+		
+		#ifdef DEBUG
+			timerVal = rb(&(pz80->mmu),0xff05); // timer counter
+			printf("Timer val: %x\n", timerVal);
+		#endif
+	}	
+	
+	if((tickCounter >= overflowCount) && (overflowCount > 0))
+	{
+		pz80->tcycles = 0;
+		updateCPUTime(pz80);
+	}
 }
 
 
@@ -101,7 +117,7 @@ initZ80(z80*pz80){
 
 void 
 checkAndTriggerInterrupts(z80* pz80){
-	//puts("check and trigger\n");
+	
 	if(pz80->mmu.gpu.vblankPending){
 		//puts("pending vblank interupt\n");
 		pz80->mmu.gpu.vblankPending = 0;
@@ -112,18 +128,11 @@ checkAndTriggerInterrupts(z80* pz80){
 		pz80->mmu.gpu.statInterruptTriggered = 0;
 		setInterruptPending(pz80, LCDCINT);
 	}
-	
-	/*TODO set all pending interrupts*/
-	//unsure of whether the pending flag if should be set
-	//when the ime or enabled flags are not set
 
 	if(!pz80->ime){
-		//puts("ints disabled\n");
 		return; /* interrupts globally disabled */
 	}	
 
-
-	//puts("ints enabled\n");
 	//priorities are in page 40 of GBCPU manual
 
 	if(getInterruptPending(pz80,VBLANKINT) && getInterruptEnabled(pz80,VBLANKINT)){
@@ -681,7 +690,7 @@ void LD_SP_nn(z80*pz80)
 void JP_nn(z80*pz80)
 {
 	pz80->registers16[PC] = getImmediate16(pz80);	
-	pz80->tcycles = 12;
+	pz80->tcycles = 16; 
 }
 
 void JP_NZ_nn(z80*pz80)
@@ -689,6 +698,7 @@ void JP_NZ_nn(z80*pz80)
 	if(!getFlag(pz80->registers[REGF], ZERO))
 	{
 		JP_nn(pz80);
+		pz80->tcycles = 16;
 	}
 	else
 	{
@@ -702,6 +712,7 @@ void JP_Z_nn(z80*pz80)
 	if(getFlag(pz80->registers[REGF], ZERO))
 	{
 		JP_nn(pz80);
+		pz80->tcycles = 16;
 	}
 	else
 	{
@@ -715,6 +726,7 @@ void JP_NC_nn(z80*pz80)
 	if(!getFlag(pz80->registers[REGF], CARRY))
 	{
 		JP_nn(pz80);
+		pz80->tcycles = 16; 
 	}
 	else
 	{
@@ -728,6 +740,7 @@ void JP_C_nn(z80*pz80)
 	if(getFlag(pz80->registers[REGF], CARRY))
 	{
 		JP_nn(pz80);
+		pz80->tcycles = 16; 
 	}
 	else
 	{
@@ -750,7 +763,7 @@ void JR_n(z80*pz80)
 		rjump = -((~rjump + 1) & 255);
 	}
 	pz80->registers16[PC] += rjump;
-	pz80->tcycles = 8;
+	pz80->tcycles = 12;
 	incPC(pz80, 2);
 }
 
@@ -759,6 +772,7 @@ void JR_NZ_n(z80*pz80)
 	if(!getFlag(pz80->registers[REGF], ZERO))
 	{
 		JR_n(pz80);
+		pz80->tcycles = 12; 
 	}
 	else
 	{
@@ -772,6 +786,7 @@ void JR_Z_n(z80*pz80)
 	if(getFlag(pz80->registers[REGF], ZERO))
 	{
 		JR_n(pz80);
+		pz80->tcycles = 12; 
 	}
 	else
 	{
@@ -785,6 +800,7 @@ void JR_NC_n(z80*pz80)
 	if(!getFlag(pz80->registers[REGF], CARRY))
 	{
 		JR_n(pz80);
+		pz80->tcycles = 12;
 	}
 	else
 	{
@@ -798,6 +814,7 @@ void JR_C_n(z80*pz80)
 	if(getFlag(pz80->registers[REGF], CARRY))
 	{
 		JR_n(pz80);
+		pz80->tcycles = 12; 
 	}
 	else
 	{
@@ -826,7 +843,7 @@ void CALL_nn(z80*pz80)
 	push(pz80, (pz80->registers16[PC]+3) >> 8);
 	push(pz80, (pz80->registers16[PC]+3) & 255);
 	pz80->registers16[PC] = getImmediate16(pz80);
-	pz80->tcycles = 12;
+	pz80->tcycles = 24;
 	#ifdef DEBUG
 		//printf("CALL_nn, address: %x\n", pz80->registers16[PC]);
 	#endif
@@ -837,6 +854,7 @@ void CALL_NZ_nn(z80*pz80)
 	if(!getFlag(pz80->registers[REGF], ZERO))
 	{
 		CALL_nn(pz80);
+		pz80->tcycles = 24; 
 	}
 	else
 	{
@@ -850,6 +868,7 @@ void CALL_Z_nn(z80*pz80)
 	if(getFlag(pz80->registers[REGF], ZERO))
 	{
 		CALL_nn(pz80);
+		pz80->tcycles = 24;
 	}
 	else
 	{
@@ -863,6 +882,7 @@ void CALL_NC_nn(z80*pz80)
 	if(!getFlag(pz80->registers[REGF], CARRY))
 	{
 		CALL_nn(pz80);
+		pz80->tcycles = 24;
 	}
 	else
 	{
@@ -876,6 +896,7 @@ void CALL_C_nn(z80*pz80)
 	if(getFlag(pz80->registers[REGF], CARRY))
 	{
 		CALL_nn(pz80);
+		pz80->tcycles = 24;
 	}
 	else
 	{
@@ -890,13 +911,13 @@ void RST_n(z80*pz80, int n)
 	push(pz80, pz80->registers16[PC] >> 8);
 	push(pz80, pz80->registers16[PC] & 255);
 	pz80->registers16[PC] = n;
-	pz80->tcycles = 32;
+	pz80->tcycles = 16; 
 }
 
 void RET(z80*pz80)
 {
 	pz80->registers16[PC] = (uint16_t)pop(pz80) + (((uint16_t)pop(pz80)) << 8) ;
-	pz80->tcycles = 8;
+	pz80->tcycles = 16;
 }
 
 void RET_NZ(z80*pz80)
@@ -904,10 +925,11 @@ void RET_NZ(z80*pz80)
 	if(!getFlag(pz80->registers[REGF], ZERO))
 	{
 		RET(pz80);
+		pz80->tcycles = 20;
 	}
 	else
 	{
-		pz80->tcycles = 8; // ?
+		pz80->tcycles = 8; 
 		incPC(pz80, 1);
 	}
 }
@@ -917,10 +939,11 @@ void RET_Z(z80*pz80)
 	if(getFlag(pz80->registers[REGF], ZERO))
 	{
 		RET(pz80);
+		pz80->tcycles = 20;
 	}
 	else
 	{
-		pz80->tcycles = 8; // ?
+		pz80->tcycles = 8; 
 		incPC(pz80, 1);
 	}
 }
@@ -930,10 +953,11 @@ void RET_NC(z80*pz80)
 	if(!getFlag(pz80->registers[REGF], CARRY))
 	{
 		RET(pz80);
+		pz80->tcycles = 20;
 	}
 	else
 	{
-		pz80->tcycles = 8; // ?
+		pz80->tcycles = 8; 
 		incPC(pz80, 1);
 	}
 }
@@ -943,10 +967,11 @@ void RET_C(z80*pz80)
 	if(getFlag(pz80->registers[REGF], CARRY))
 	{
 		RET(pz80);
+		pz80->tcycles = 20;
 	}
 	else
 	{
-		pz80->tcycles = 8; // ?
+		pz80->tcycles = 8; 
 		incPC(pz80, 1);
 	}
 }
@@ -1060,7 +1085,7 @@ void RRA(z80*pz80){
 		setFlag(newFlag,CARRY);
 	pz80->registers[REGF] = newFlag;
 	pz80->registers[REGA] = newbyte;
-	pz80->tcycles = 8;
+	pz80->tcycles = 4;
 	incPC(pz80, 1);
 }
 
@@ -1099,7 +1124,7 @@ void RRCA(z80*pz80){
 	}
 	pz80->registers[REGF] = newFlag;
 	pz80->registers[REGA] = newbyte;
-	pz80->tcycles = 8;
+	pz80->tcycles = 4;
 	incPC(pz80, 1);
 }
 
@@ -1138,7 +1163,7 @@ void RLA(z80*pz80){
 		setFlag(newFlag,CARRY);
 	pz80->registers[REGF] = newFlag;
 	pz80->registers[REGA] = newbyte;
-	pz80->tcycles = 8;
+	pz80->tcycles = 4;
 	incPC(pz80, 1);
 }
 
@@ -1177,7 +1202,7 @@ void RLCA(z80*pz80){
 	}
 	pz80->registers[REGF] = newFlag;
 	pz80->registers[REGA] = newbyte;
-	pz80->tcycles = 8;
+	pz80->tcycles = 4;
 	incPC(pz80, 1);	
 }
 
@@ -1218,7 +1243,7 @@ void Test_Bit(z80*pz80, int reg,int bit){
 void Test_HLBit(z80*pz80,int bit){ 
 	loadRegMemFromHL(pz80);
 	Test_Bit(pz80,REGMEM,bit);
-	pz80->tcycles = 16;
+	pz80->tcycles = 12;
 	//DO not incPC as sub function does this
 }
 
@@ -3961,6 +3986,7 @@ JP_Z_nn(pz80);
 void
 i_Ext_ops(z80 * pz80){
 	//printf("i_Ext_ops\n");
+	
 	incPC(pz80, 1);
 	uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]);
 
@@ -4183,6 +4209,7 @@ LD_A_C_mem(pz80);
 void
 i_DI(z80 * pz80){
 	pz80->tcycles = 4;
+	updateCPUTime(pz80); 
 	incPC(pz80, 1);
 	
 	// Execute next instruction and then disable interrupts
@@ -4255,6 +4282,7 @@ LD_n_immediate_mem(pz80, REGA);
 void
 i_EI(z80 * pz80){
 	pz80->tcycles = 4;
+	updateCPUTime(pz80); 
 	incPC(pz80, 1);
 	
 	// Execute next instruction and then enable interrupts

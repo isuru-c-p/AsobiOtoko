@@ -173,18 +173,18 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 		
 		// External RAM
 		case 0xA : case 0xB :
-			if(pmmu->ram_bank_enable)
-			{	
-				printf("RAM access address: %d\n", (pmmu->ram_bank*0x2000) + (address - 0xA000));
+			//if(pmmu->ram_bank_enable)
+			//{	
+			//	printf("RAM access address: %d\n", (pmmu->ram_bank*0x2000) + (address - 0xA000));
 				return pmmu->eram[(pmmu->ram_bank*0x2000) + (address - 0xA000)];
 				
-			}
+			/*}
 			else
 			{
 				printf("RAM access address: %d\n", (pmmu->ram_bank*0x2000) + (address - 0xA000));
 				printf("Read Error! External RAM bank not enabled.\n");
 				return 0;
-			}
+			}*/
 			break;
 		
 		// Working RAM
@@ -215,6 +215,10 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 				if(address == 0xff00)
 				{
 					return readP1();
+				}
+				else if(address > 0xff4b)
+				{
+					return pmmu->memory[address];
 				}
 				else if((address & 0xf0) == 0x40)
 				{
@@ -326,9 +330,9 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 			if(pmmu->rom_type == MBC1)
 			{
 				pmmu->mbc1_mode = val & 0x01;
-				//#ifdef DEBUG
+				#ifdef DEBUG
 					printf("Setting MBC1/3 Mode to: %d\n",pmmu->mbc1_mode);
-				//#endif
+				#endif
 				return;
 			}
 			//pmmu->cartridge[address] = val;
@@ -348,14 +352,14 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 		
 		// External RAM
 		case 0xA : case 0xB :
-			if(pmmu->ram_bank_enable)
-			{
+			//if(pmmu->ram_bank_enable)
+			//{
 				pmmu->eram[(pmmu->ram_bank*0x2000) + (address - 0xA000)] = val;
-			}
+			/*}
 			else
 			{
 				printf("Write Error! RAM Bank is not enabled.\n");
-			}
+			}*/
 			break;
 		
 		// Working RAM
@@ -391,6 +395,10 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 				{
 					writeP1(val);
 					return;
+				}
+				else if(address > 0xff4b)
+				{
+					pmmu->memory[address] = val;
 				}
 				else if(address == 0xff46)
 				{
@@ -457,7 +465,7 @@ void initMMU(MMU * pmmu)
 	memcpy(pmmu->bios, bios, BIOS_SIZE);
 	pmmu->bios_enabled = 1;
 	pmmu->rom_bank = 1;
-	pmmu->ram_bank_enable = 0;
+	pmmu->ram_bank_enable = 1;
 	pmmu->mbc1_mode = MBC1_16_8_MODE;
 	initGPU(&(pmmu->gpu));
 	#ifdef USE_ADDRESS_LUT
