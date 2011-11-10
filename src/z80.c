@@ -85,11 +85,11 @@ updateCPUTime(z80*pz80){
 		#endif
 	}	
 	
-	/*if((tickCounter >= overflowCount) && (overflowCount > 0))
+	if((tickCounter >= overflowCount) && (overflowCount > 0))
 	{
 		pz80->tcycles = 0;
 		updateCPUTime(pz80);
-	}*/
+	}
 }
 
 
