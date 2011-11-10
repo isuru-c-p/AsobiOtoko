@@ -3551,10 +3551,24 @@ LD_nn_mem_n(pz80, REGH, REGL, REGL);
 /* Halt processor */
 void
 i_HALT(z80 * pz80){
+	// if interrupts are disabled then the next instruction is executed without incrementing the PC counter
+	// then the PC is incremented
 	if(!pz80->ime)
 	{
-		incPC(pz80, 2);
+		uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]+1);
+
+		#ifdef DEBUG
+			static uint16_t lastPC;
+			lastPC = pz80->registers16[PC];
+			printf("%x : %s", pz80->registers16[PC], dissasemble(op, 0));
+		#endif
+	
+		dispatchInstruction(pz80,op,0);		
+		incPC(pz80, 1);
+		printf("HALT\n");
 	}
+	
+	//printf("HALT\n");
 	
 	if(pz80->interrupt_serviced)
 	{
