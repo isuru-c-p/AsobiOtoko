@@ -85,11 +85,11 @@ updateCPUTime(z80*pz80){
 		#endif
 	}	
 	
-	if((tickCounter >= overflowCount) && (overflowCount > 0))
+	/*if((tickCounter >= overflowCount) && (overflowCount > 0))
 	{
 		pz80->tcycles = 0;
 		updateCPUTime(pz80);
-	}
+	}*/
 }
 
 
@@ -127,6 +127,15 @@ checkAndTriggerInterrupts(z80* pz80){
 	if(pz80->mmu.gpu.statInterruptTriggered){
 		pz80->mmu.gpu.statInterruptTriggered = 0;
 		setInterruptPending(pz80, LCDCINT);
+	}
+	
+	if(rb(&(pz80)->mmu,0xff0f) > 0)
+	{
+		pz80->interrupt_serviced = 1;
+	}
+	else
+	{
+		pz80->interrupt_serviced = 0;
 	}
 
 	if(!pz80->ime){
@@ -225,7 +234,7 @@ triggerInterrupt(z80*pz80,int interrupt){
 	push(pz80, (pz80->registers16[PC]) >> 8);
 	push(pz80, (pz80->registers16[PC]) & 255);
 	pz80->registers16[PC] = address;
-	pz80->interrupt_serviced = 1;
+	//pz80->interrupt_serviced = 1;
 
 }
 
@@ -3553,8 +3562,10 @@ void
 i_HALT(z80 * pz80){
 	// if interrupts are disabled then the next instruction is executed without incrementing the PC counter
 	// then the PC is incremented
-	if(!pz80->ime)
+	if(!pz80->ime && pz80->interrupt_serviced)
 	{
+		pz80->interrupt_serviced = 0;
+		
 		uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]+1);
 
 		#ifdef DEBUG
@@ -3568,9 +3579,7 @@ i_HALT(z80 * pz80){
 		printf("HALT\n");
 	}
 	
-	//printf("HALT\n");
-	
-	if(pz80->interrupt_serviced)
+	else if(pz80->ime && pz80->interrupt_serviced)
 	{
 		pz80->interrupt_serviced = 0;
 		incPC(pz80, 1);
