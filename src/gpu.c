@@ -326,6 +326,9 @@ void readOAM(GPU*pgpu)
 			
 			for(j= spriteX; j <= (spriteX+8); j++)
 			{
+				if(j >= 160)
+					continue;
+				
 				if(pgpu->sprite_line[j] == 0)
 				{
 					if(!getSpriteAttr(pgpu, i, XFLIP))
@@ -380,7 +383,7 @@ void gpu_step(GPU*pgpu, int tcycles)
 			{
 				pgpu->mode = 3;
 				updateStat(pgpu);
-				pgpu->clock = 0;
+				pgpu->clock = pgpu->clock - 80;
 				readOAM(pgpu);
 			}
 			break;
@@ -390,7 +393,7 @@ void gpu_step(GPU*pgpu, int tcycles)
 			{
 				pgpu->mode = 0;
 				updateStat(pgpu);
-				pgpu->clock = 0;
+				pgpu->clock = pgpu->clock - 172;
 				pgpu->LY++;
 				if(getStatInterruptEnable(pgpu, LYCLY_INT) && (pgpu->LY == pgpu->LYC))
 				{
@@ -405,7 +408,7 @@ void gpu_step(GPU*pgpu, int tcycles)
 		case 0:
 			if(pgpu->clock >= 204)
 			{
-				pgpu->clock = 0;
+				pgpu->clock = pgpu->clock - 204;
 				
 				if(pgpu->LY == 143)
 				{
@@ -427,7 +430,7 @@ void gpu_step(GPU*pgpu, int tcycles)
 			{
 				pgpu->LY++;
 				//printf("LY: %d\n", pgpu->LY);
-				pgpu->clock = 0;
+				pgpu->clock = pgpu->clock - 456;
 				
 				if(getStatInterruptEnable(pgpu, LYCLY_INT) && (pgpu->LY == pgpu->LYC))
 				{
@@ -453,7 +456,7 @@ void initGPU(GPU*pgpu)
 	{
 		printf("Init graphics failed.\n");
 	}
-	bzero((void*)pgpu,sizeof(pgpu));
+	bzero((void*)pgpu,sizeof(GPU));
 	pgpu->mode = 0;
 	return;
 }

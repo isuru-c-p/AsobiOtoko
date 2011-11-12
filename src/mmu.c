@@ -153,7 +153,14 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 			{
 				if(pmmu->rom_bank)
 				{
-					return pmmu->cartridge[(pmmu->rom_bank*0x4000)+(address - 0x4000)];
+					uint32_t accessAddr = (pmmu->rom_bank*0x4000)+(address - 0x4000);
+					
+					if(accessAddr > (pmmu->cartridge_size))
+					{
+						printf("ERROR Cartridge access out of range! Access addr: %d, Cartridge size: %d, Rom bank: %d\n", accessAddr, pmmu->cartridge_size, pmmu->rom_bank);
+					}
+					
+					return pmmu->cartridge[accessAddr];
 				}
 				else
 				{
@@ -173,18 +180,18 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 		
 		// External RAM
 		case 0xA : case 0xB :
-			if(pmmu->ram_bank_enable)
-			{	
-				printf("RAM access address: %d\n", (pmmu->ram_bank*0x2000) + (address - 0xA000));
+			//if(pmmu->ram_bank_enable)
+			//{	
+			//	printf("RAM access address: %d\n", (pmmu->ram_bank*0x2000) + (address - 0xA000));
 				return pmmu->eram[(pmmu->ram_bank*0x2000) + (address - 0xA000)];
 				
-			}
+			/*}
 			else
 			{
 				printf("RAM access address: %d\n", (pmmu->ram_bank*0x2000) + (address - 0xA000));
 				printf("Read Error! External RAM bank not enabled.\n");
 				return 0;
-			}
+			}*/
 			break;
 		
 		// Working RAM
@@ -284,7 +291,17 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 					newVal = 1;
 				}
 				
-				pmmu->rom_bank = ( pmmu->rom_bank & /*0xc0*/0xe0 ) | ( newVal );
+				if(pmmu->mbc1_mode == MBC1_16_8_MODE)
+				{
+					pmmu->rom_bank = (( pmmu->rom_bank & 0xc0 ) | ( newVal )) & pmmu->rom_bank_size;
+			
+				}
+				else
+				{
+					pmmu->rom_bank = newVal & pmmu->rom_bank_size;
+				}
+				
+				//pmmu->rom_bank = ( pmmu->rom_bank & /*0xc0*/0xe0 ) | ( newVal );
 				
 				#ifdef DEBUG
 					printf("Selecting ROM bank: %d (val: %d, newVal:%d)\n", pmmu->rom_bank, val, newVal);
@@ -307,7 +324,7 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 		case 0x5 : 
 			if(((pmmu->rom_type == MBC1) && (pmmu->mbc1_mode == MBC1_4_32_MODE)) || (pmmu->rom_type == MBC3))
 			{
-				pmmu->ram_bank = val & 0x3;
+				pmmu->ram_bank = val & pmmu->ram_bank_size;//0x3;
 				#ifdef DEBUG
 					printf("Selecting RAM bank: %d\n", pmmu->ram_bank);
 				#endif
@@ -315,7 +332,7 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 			}
 			else if((pmmu->rom_type == MBC1) && (pmmu->mbc1_mode == MBC1_16_8_MODE))
 			{
-				pmmu->rom_bank = (pmmu->rom_bank & 0x3f) | ((val << 6) & 0xff);
+				pmmu->rom_bank = ((pmmu->rom_bank & 0x3f) | ((val << 6) & 0xff)) & pmmu->rom_bank_size;
 				#ifdef DEBUG
 					printf("Selecting Rom bank: %d\n", pmmu->rom_bank);
 				#endif
@@ -330,9 +347,9 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 			if(pmmu->rom_type == MBC1)
 			{
 				pmmu->mbc1_mode = val & 0x01;
-				//#ifdef DEBUG
-					printf("Setting MBC1/3 Mode to: %d\n",pmmu->mbc1_mode);
-				//#endif
+				#ifdef DEBUG
+					printf("Setting MBC1 Mode to: %d\n",pmmu->mbc1_mode);
+				#endif
 				return;
 			}
 			//pmmu->cartridge[address] = val;
@@ -352,14 +369,14 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 		
 		// External RAM
 		case 0xA : case 0xB :
-			if(pmmu->ram_bank_enable)
-			{
+			//if(pmmu->ram_bank_enable)
+			//{
 				pmmu->eram[(pmmu->ram_bank*0x2000) + (address - 0xA000)] = val;
-			}
+			/*}
 			else
 			{
 				printf("Write Error! RAM Bank is not enabled.\n");
-			}
+			}*/
 			break;
 		
 		// Working RAM

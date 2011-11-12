@@ -3,6 +3,7 @@
 
 #include "string.h" //bzero
 #include "debug.h"
+#include "assert.h"
 #include <stdio.h>
 
 //#define DEBUG
@@ -10,7 +11,7 @@
 void
 updateCPUTime(z80*pz80){
 	uint8_t timerControl = rb(&(pz80->mmu),0xff07);
-	static uint32_t tickCounter = 0;
+	static int tickCounter = 0;
 	static uint32_t divTickCounter = 0;
 	int shouldTick = 0;
 	
@@ -27,6 +28,10 @@ updateCPUTime(z80*pz80){
 	}
 		
 	tickCounter += pz80->tcycles;
+	//if(tickCounter > 100000000)
+	//{
+	//	printf("ERROR, tickCounter: %d, tcycles: %d, opcode: %x, PC: %x\n", tickCounter, pz80->tcycles, rb(&(pz80->mmu), pz80->registers16[PC]), pz80->registers16[PC]);
+	//}
 	
 	int overflowCount = 0;
 	
@@ -64,6 +69,7 @@ updateCPUTime(z80*pz80){
 		#ifdef DEBUG
 			printf("timer tick!\n");
 		#endif
+		int tickCounterOld = tickCounter;
 		tickCounter = tickCounter - overflowCount;
 		timerVal = rb(&(pz80->mmu),0xff05); // timer counter
 		if(timerVal == 255){//max in uint overflow will happen
@@ -83,13 +89,17 @@ updateCPUTime(z80*pz80){
 			timerVal = rb(&(pz80->mmu),0xff05); // timer counter
 			printf("Timer val: %x\n", timerVal);
 		#endif
+		
+		if((tickCounter >= overflowCount) && (overflowCount > 0))
+		{
+			#ifdef DEBUG
+				printf("TickCounter residue: %d. Old tick Counter: %d, overflowCount: %d \n", tickCounter, tickCounterOld, overflowCount);
+			#endif
+			pz80->tcycles = 0;
+			updateCPUTime(pz80);
+		}
 	}	
 	
-	if((tickCounter >= overflowCount) && (overflowCount > 0))
-	{
-		pz80->tcycles = 0;
-		updateCPUTime(pz80);
-	}
 }
 
 
@@ -119,73 +129,112 @@ void
 checkAndTriggerInterrupts(z80* pz80){
 	
 	if(pz80->mmu.gpu.vblankPending){
-		//puts("pending vblank interupt\n");
 		pz80->mmu.gpu.vblankPending = 0;
 		setInterruptPending(pz80,VBLANKINT);
 	}
 	
 	if(pz80->mmu.gpu.statInterruptTriggered){
+		//printf("Pending stat interrupt\n");
 		pz80->mmu.gpu.statInterruptTriggered = 0;
 		setInterruptPending(pz80, LCDCINT);
 	}
 	
-	if(rb(&(pz80)->mmu,0xff0f) > 0)
+	if((rb(&(pz80->mmu), 0xff0f) > 0) && pz80->halt_waiting_state)
 	{
+		#ifdef DEBUG
+			printf("interrupt serviced\n");
+		#endif
 		pz80->interrupt_serviced = 1;
 	}
-	else
-	{
-		pz80->interrupt_serviced = 0;
-	}
-
-	if(!pz80->ime){
-		return; /* interrupts globally disabled */
-	}	
 
 	//priorities are in page 40 of GBCPU manual
 
 	if(getInterruptPending(pz80,VBLANKINT) && getInterruptEnabled(pz80,VBLANKINT)){
-		triggerInterrupt(pz80,VBLANKINT);
+		if(pz80->halt_waiting_state)
+		{
+			pz80->interrupt_serviced = 1;
+		}
+		
+		if(pz80->ime)
+		{
+			triggerInterrupt(pz80,VBLANKINT);
+		}
 		return;
 	}
 	
 	if(getInterruptPending(pz80,LCDCINT) && getInterruptEnabled(pz80,LCDCINT)){
-		#ifdef DEBUG
-			printf("stat interrupt");
-		#endif
-		triggerInterrupt(pz80,LCDCINT);
+		if(pz80->halt_waiting_state)
+		{
+			pz80->interrupt_serviced = 1;
+		}
+		
+		if(pz80->ime)
+		{		
+			#ifdef DEBUG
+				printf("stat interrupt\n");
+			#endif
+			triggerInterrupt(pz80,LCDCINT);
+		}
 		return;
 	}
 	
 	if(getInterruptPending(pz80,TOVF) && getInterruptEnabled(pz80,TOVF)){
-		triggerInterrupt(pz80,TOVF);
+		if(pz80->halt_waiting_state)
+		{
+			pz80->interrupt_serviced = 1;
+		}
+		
+		if(pz80->ime)
+		{			
+			triggerInterrupt(pz80,TOVF);
+		}
 		return;
 	}
-	#ifdef DEBUG
-		else if(getInterruptPending(pz80,TOVF))
-		{
+	else if(getInterruptPending(pz80,TOVF))
+	{
+		#ifdef DEBUG
 			printf("Timer interrupt not triggered as not enabled. IE: %x\n", rb(&(pz80->mmu), 0xffff));
+		#endif
+	}
+	
+	
+	if(getInterruptPending(pz80,SERIALINT) && getInterruptEnabled(pz80,SERIALINT))
+	{
+		if(pz80->halt_waiting_state)
+		{
+			pz80->interrupt_serviced = 1;
 		}
-	#endif
+		
+		if(pz80->ime)
+		{
+			triggerInterrupt(pz80,SERIALINT);
+		}
+		return;
+	}
 	
 	if(getInterruptPending(pz80,P0_P13_INT) && getInterruptEnabled(pz80,P0_P13_INT)){
 		#ifdef DEBUG
 			printf("triggered button irq");
 		#endif
-		triggerInterrupt(pz80,P0_P13_INT);
+		if(pz80->halt_waiting_state)
+		{
+			pz80->interrupt_serviced = 1;
+		}
+		
+		if(pz80->ime)
+		{				
+			triggerInterrupt(pz80,P0_P13_INT);
+		}
 		return;
 	}
-	#ifdef DEBUG
-		else if(getInterruptPending(pz80,P0_P13_INT))
-		{
+	else if(getInterruptPending(pz80,P0_P13_INT))
+	{
+		#ifdef DEBUG
 			printf("Button interrupt not triggered as not enabled.\n");
 			printf("IE: %x\n", rb(&(pz80->mmu), 0xffff));
-		}
-	#endif
-
-
-
-	//TODO other interrupts
+		#endif
+	}
+	
 }
 
 
@@ -194,10 +243,12 @@ triggerInterrupt(z80*pz80,int interrupt){
 	#ifdef DEBUG
 		printf("Interrupt triggered\n");
 	#endif
+	
 	pz80->ime = 0; //must reset master interrupt flag
 
-	uint8_t interruptStatus = rb(&(pz80->mmu),0xFF0F); //address 0xFF0F  corresponding bit
-											   //must be cleared.
+	uint8_t interruptStatus = rb(&(pz80->mmu),0xFF0F); 
+	
+	// corresponding bit in interrupt request flag register (0xff0f) must be reset
 	wb(&(pz80->mmu),0xFF0F,interruptStatus&~(1<<interrupt));
 
 	//interrupt service routine addresses are in page 40 of GBCPU manual
@@ -205,12 +256,8 @@ triggerInterrupt(z80*pz80,int interrupt){
 	switch(interrupt){
 		case VBLANKINT:
 			#ifdef DEBUG
-			//if(logging_enabled==1)
-			printf("vblankint\n");
+				printf("vblankint\n");
 			#endif
-			//pz80->mmu.gpu.vblankPending = 0; //this gets set in gpu step
-										//we must disable it here to 
-										//avoid serving it twice
 			address = 0x0040;
 			break;
 		case LCDCINT:
@@ -223,6 +270,9 @@ triggerInterrupt(z80*pz80,int interrupt){
 			address = 0x0050;
 			break;
 		case SERIALINT:
+			#ifdef DEBUG
+				printf("SERIAL Interrupt\n");
+			#endif
 			address = 0x0058;
 			break;
 		case P0_P13_INT:
@@ -230,11 +280,17 @@ triggerInterrupt(z80*pz80,int interrupt){
 			break;
 	}
 
+	uint16_t returnAddress = pz80->registers16[PC];
 	
-	push(pz80, (pz80->registers16[PC]) >> 8);
-	push(pz80, (pz80->registers16[PC]) & 255);
+	if(pz80->halt_waiting_state)
+	{
+		pz80->halt_waiting_state = 0;
+		returnAddress += 1;
+	}
+	
+	push(pz80, returnAddress >> 8);
+	push(pz80, returnAddress & 255);
 	pz80->registers16[PC] = address;
-	//pz80->interrupt_serviced = 1;
 
 }
 
@@ -837,6 +893,11 @@ void push(z80*pz80, uint8_t val)
 	pz80->registers16[SP]--;
 	wb(&(pz80->mmu), pz80->registers16[SP], val);
 	//printf("Push: writing: %d at addr: %x\n", val, pz80->registers16[SP]);
+
+	#ifdef DEBUG
+		printf("SP: %x\n", pz80->registers16[SP]);
+	#endif
+
 }
 
 uint8_t pop(z80*pz80)
@@ -1336,6 +1397,7 @@ void executeNextInstruction(z80 * pz80){
 	
 	//printf("Instruction dispatched\n");
 	gpu_step(&(pz80->mmu.gpu), pz80->tcycles);
+	assert(pz80->tcycles < 40);
 }
 
 void 
@@ -2907,7 +2969,9 @@ dispatchInstruction(z80 * pz80,uint8_t opcode, int secondary){
 			return;
 	}
 
-
+	
+	
+	assert(pz80->tcycles < 40);
 }
 
 
@@ -3560,10 +3624,17 @@ LD_nn_mem_n(pz80, REGH, REGL, REGL);
 /* Halt processor */
 void
 i_HALT(z80 * pz80){
+	pz80->halt_waiting_state = 1;
+	pz80->tcycles = 4;
+	updateCPUTime(pz80);
+	gpu_step(&(pz80->mmu.gpu), pz80->tcycles);
+	pz80->tcycles = 0;
+	
 	// if interrupts are disabled then the next instruction is executed without incrementing the PC counter
 	// then the PC is incremented
 	if(!pz80->ime && pz80->interrupt_serviced)
 	{
+		pz80->halt_waiting_state = 0;
 		pz80->interrupt_serviced = 0;
 		
 		uint8_t op = rb(&(pz80->mmu), pz80->registers16[PC]+1);
@@ -3576,12 +3647,12 @@ i_HALT(z80 * pz80){
 	
 		dispatchInstruction(pz80,op,0);		
 		incPC(pz80, 1);
-		printf("HALT\n");
+		//printf("HALT\n");
 	}
-	
 	else if(pz80->ime && pz80->interrupt_serviced)
 	{
 		pz80->interrupt_serviced = 0;
+		pz80->halt_waiting_state = 0;
 		incPC(pz80, 1);
 	}
 }

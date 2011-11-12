@@ -46,6 +46,7 @@ typedef struct _z80 {
 	uint8_t ime; // interrupt enable
 	int tcycles;
 	int interrupt_serviced;
+	int halt_waiting_state;
 	//int doSecondaryOpcode;
 } z80;
 

@@ -16,6 +16,7 @@ int loadROM(z80* pz80, char* path)
 	int fileSize = ftell(fp);	
 	fseek(fp, 0L, SEEK_SET);
 	pz80->mmu.cartridge = (uint8_t*)malloc(fileSize);
+	pz80->mmu.cartridge_size = fileSize;
 	int byte;
 	int byteNo = 0;
 	
@@ -23,6 +24,29 @@ int loadROM(z80* pz80, char* path)
 	{
 		pz80->mmu.cartridge[byteNo] = byte;
 	}
+	
+	int romSize = pz80->mmu.cartridge[0x0148];
+	int romByteSize = 32000;
+	
+	for(;romSize > 0; romSize--)
+	{
+		romByteSize = romByteSize*2;
+	}
+	
+	pz80->mmu.rom_bank_size = romByteSize/ROM_BANK_SIZE;
+	printf("Cartridge ROM banks: %d\n", pz80->mmu.rom_bank_size);
+	
+	int ramSize = pz80->mmu.cartridge[0x0149];
+	int ramByteSize = 32000;
+	
+	for(;ramSize > 0; ramSize--)
+	{
+		ramByteSize = ramByteSize*2;
+	}
+	
+	pz80->mmu.ram_bank_size = ramByteSize/RAM_BANK_SIZE;
+	printf("Cartridge RAM banks: %d\n", pz80->mmu.ram_bank_size);	
+	
 	
 	switch(pz80->mmu.cartridge[0x0147])
 	{
