@@ -312,7 +312,7 @@ void readOAM(GPU*pgpu)
 		//if(i == 39)
 		//	printf("oam[%d], LY: %d, SpriteX: %d, SpriteY: %d, SpriteYSize:%d\n", i*4, pgpu->LY, spriteX, spriteY, spriteYSize);
 			
-		if((pgpu->LY >= spriteY) && (pgpu->LY <= (spriteY + spriteYSize)))
+		if((pgpu->LY >= spriteY) && (pgpu->LY < (spriteY + spriteYSize)))
 		{
 			//printf("i: %d, LY: %d, Sprite at: %d,%d\n", i, pgpu->LY, spriteX, spriteY);
 			uint8_t sprite_no = getLCDCBit(pgpu,OBJSIZE) ? (getSpriteTile(pgpu, i) & 0xfe) : getSpriteTile(pgpu, i);
@@ -320,12 +320,13 @@ void readOAM(GPU*pgpu)
 			
 			if(getSpriteAttr(pgpu, i, YFLIP))
 			{
-				sprite_addr = ((uint16_t)sprite_no * spriteYSize * 2) + ((7 - (pgpu->LY-spriteY)/*(pgpu->LY % spriteYSize)*/) * 2);
+				sprite_addr = ((uint16_t)sprite_no * spriteYSize * 2) + ((spriteYSize - 1 - (pgpu->LY-spriteY)/*(pgpu->LY % spriteYSize)*/) * 2);
 			}
 			else
 			{
 				sprite_addr = ((uint16_t)sprite_no * spriteYSize * 2) + ((pgpu->LY-spriteY)/*(pgpu->LY % spriteYSize)*/ * 2);
 			}
+			
 			
 			for(j= spriteX; j <= (spriteX+8); j++)
 			{

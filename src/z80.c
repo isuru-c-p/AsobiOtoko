@@ -1397,7 +1397,7 @@ void executeNextInstruction(z80 * pz80){
 	
 	//printf("Instruction dispatched\n");
 	gpu_step(&(pz80->mmu.gpu), pz80->tcycles);
-	assert(pz80->tcycles < 40);
+	//assert(pz80->tcycles < 40);
 }
 
 void 
