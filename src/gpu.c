@@ -303,6 +303,9 @@ void readOAM(GPU*pgpu)
 		uint8_t spriteX = (pgpu->oam[(i*4)+1]) - 8;//getSpriteX(pgpu, i) - 8;
 		uint8_t spriteY = (pgpu->oam[(i*4)]) - 16;//getSpriteY(pgpu, i) - 16;
 		
+		if((spriteX+8) > 160)
+			continue;
+		
 		//if((spriteX == -8) && (spriteY == -8))
 		//	continue;
 		
@@ -317,17 +320,15 @@ void readOAM(GPU*pgpu)
 			
 			if(getSpriteAttr(pgpu, i, YFLIP))
 			{
-				sprite_addr = ((uint16_t)sprite_no * spriteYSize * 2) + ((7 - (pgpu->LY % spriteYSize)) * 2);
+				sprite_addr = ((uint16_t)sprite_no * spriteYSize * 2) + ((7 - (pgpu->LY-spriteY)/*(pgpu->LY % spriteYSize)*/) * 2);
 			}
 			else
 			{
-				sprite_addr = ((uint16_t)sprite_no * spriteYSize * 2) + ((pgpu->LY % spriteYSize) * 2);
+				sprite_addr = ((uint16_t)sprite_no * spriteYSize * 2) + ((pgpu->LY-spriteY)/*(pgpu->LY % spriteYSize)*/ * 2);
 			}
 			
 			for(j= spriteX; j <= (spriteX+8); j++)
 			{
-				if(j >= 160)
-					continue;
 				
 				if(pgpu->sprite_line[j] == 0)
 				{
