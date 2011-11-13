@@ -226,7 +226,7 @@ void writeScanline(GPU*pgpu)
 		
 		if(pgpu->sprite_line[xOffset] > 0x3)
 		{
-			pgpu->buffer[pgpu->LY*160 + xOffset] = GetColor(pgpu,(pgpu->sprite_line[xOffset] >> 1));
+			pgpu->buffer[pgpu->LY*160 + xOffset] = GetColor(pgpu,(pgpu->sprite_line[xOffset] >> 2));
 		}
 		else if((pixel == 255) & !windowEnabled)
 		{
@@ -328,7 +328,7 @@ void readOAM(GPU*pgpu)
 			}
 			
 			
-			for(j= spriteX; j <= (spriteX+8); j++)
+			for(j= spriteX; j < (spriteX+8); j++)
 			{
 				
 				if(pgpu->sprite_line[j] == 0)
@@ -345,7 +345,7 @@ void readOAM(GPU*pgpu)
 					
 					if(!getSpriteAttr(pgpu, i, PRIORITY))
 					{
-						pgpu->sprite_line[j] = (pgpu->sprite_line[j] << 1);
+						pgpu->sprite_line[j] = (pgpu->sprite_line[j] << 2);
 					}
 					//printf("Sprite Line(%d): %x\n", j, pgpu->sprite_line[j]);
 				
