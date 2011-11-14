@@ -186,20 +186,33 @@ void writeScanline(GPU*pgpu)
 	}
 	
 	//readOAM(pgpu);
+	int windowEnabled = getLCDCBit(pgpu, WDISP) && (pgpu->LY >= pgpu->WY_current) && (pgpu->WX <= 166);
+	static int windowEnabledCount = 0;
 	
-	int windowEnabled = getLCDCBit(pgpu, WDISP) && (pgpu->LY >= pgpu->WY);
+	if(pgpu->LY == 0)
+	{
+		windowEnabledCount = 0;
+	}	
 
-	uint16_t windowTileAddr = !getLCDCBit(pgpu, WMAP) ? 0x9800 : 0x9C00;
-	//uint16_t windowDataAddr = !getLCDCBit(pgpu, BGWDATASEL) ? 0x8800 : 0x8000;
-	uint16_t windowStartTileAddr = windowTileAddr;
-	uint16_t windowTile = pgpu->vram[windowTileAddr - 0x8000];
+	pgpu->windowTileAddr = !getLCDCBit(pgpu, WMAP) ? 0x9800 : 0x9C00;
+	int windowY = (pgpu->LY - pgpu->WY_current)/*windowEnabledCount*/ >> 3;
+	int windowStartY = (pgpu->LY - pgpu->WY_current) & 0x7;
+	pgpu->windowTileAddr += (windowY << 5);
+	pgpu->windowStartTileAddr = pgpu->windowTileAddr;
+	
+	if(windowEnabled)
+	{
+		windowEnabledCount++;
+	}
+	
+	uint16_t windowTile = pgpu->vram[pgpu->windowTileAddr - 0x8000];
 	
 	if(!getLCDCBit(pgpu, BGWDATASEL) && (windowTile < 128))
 	{
 		windowTile += 256;
 	}
 	
-	uint16_t windowRowAddr = windowTile*16;
+	uint16_t windowRowAddr = windowTile*16+windowStartY*2;
 
 	int x = pgpu->SCX % 256;
 	int y = (pgpu->LY + pgpu->SCY) % 256;
@@ -231,6 +244,11 @@ void writeScanline(GPU*pgpu)
 		uint8_t sprite_pixel_original = pgpu->sprite_line[xOffset];
 		uint8_t sprite_pixel = GetColor(pgpu,pgpu->sprite_line[xOffset]);
 		int window_x = xOffset - pgpu->WX - 7;
+		
+		if(window_x < 0)
+		{
+			window_x = 0;
+		}
 		
 		if(sprite_pixel_original > 0x3)
 		{
@@ -264,19 +282,19 @@ void writeScanline(GPU*pgpu)
 			pgpu->buffer[pgpu->LY*160 + xOffset] = pixel;
 		}
 		
-		if(((window_x & 0x7) == 7))
+		if(windowEnabled && ((window_x & 0x7) == 7))
 		{
-			windowTileAddr++;
+			pgpu->windowTileAddr++;
 			
-			if(windowTileAddr > (windowStartTileAddr + 32))
-				windowTileAddr = windowStartTileAddr;
+			if(pgpu->windowTileAddr > (pgpu->windowStartTileAddr + 32))
+				pgpu->windowTileAddr = pgpu->windowStartTileAddr;
 			
-			windowTile = pgpu->vram[windowTileAddr - 0x8000];
+			windowTile = pgpu->vram[pgpu->windowTileAddr - 0x8000];
 			if(!getLCDCBit(pgpu, BGWDATASEL) && windowTile < 128)
 			{
 				windowTile += 256;
 			}
-			windowRowAddr = windowTile*16;
+			windowRowAddr = windowTile*16+windowStartY*2;
 		}
 		
 		if(((start_x+xOffset) & 0x7) == 7)
@@ -431,6 +449,7 @@ void gpu_step(GPU*pgpu, int tcycles)
 				
 				if(pgpu->LY == 143)
 				{
+					pgpu->WY_current = pgpu->WY;
 					renderScreen(pgpu);
 					pgpu->mode = 1;
 					pgpu->vblankPending = 1;

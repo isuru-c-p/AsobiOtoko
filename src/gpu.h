@@ -67,10 +67,13 @@ typedef struct _gpu {
 	uint8_t OBP0;
 	uint8_t OBP1;
 	uint8_t WY;
+	uint8_t WY_current;
 	uint8_t WX;
 	uint8_t buffer[SCREEN_BUFF_SIZE];
 	uint8_t sprite_line[160];
 	uint8_t statInterruptTriggered;
+	uint16_t windowTileAddr;
+	uint16_t windowStartTileAddr;
 	int clock;
 	int vblankPending;
 } GPU;
