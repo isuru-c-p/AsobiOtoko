@@ -239,7 +239,15 @@ void writeScanline(GPU*pgpu)
 				//printf("Drawing window\n");
 				uint8_t windowPixel = (getPixel(pgpu, windowRowAddr + 1, (xOffset-pgpu->WX) & 0x7 ) << 1) + getPixel(pgpu, windowRowAddr, (xOffset-pgpu->WX) & 0x7);
 				windowPixel = getPixelColor(pgpu, windowPixel);
-				pgpu->buffer[pgpu->LY*160 + xOffset] = windowPixel;
+				
+				if(windowPixel == 255)
+				{
+					pgpu->buffer[pgpu->LY*160 + xOffset] = GetColor(pgpu,pgpu->sprite_line[xOffset]);
+				} 
+				else
+				{
+					pgpu->buffer[pgpu->LY*160 + xOffset] = windowPixel;
+				}
 			}
 			else
 			{
