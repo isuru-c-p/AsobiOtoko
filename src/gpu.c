@@ -100,12 +100,12 @@ void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val) {
 		// WY
 		case 0xFF4A:
 		  pgpu->WY = val;
-		  printf("WY: %d\n", pgpu->WY);
+		  //printf("WY: %d\n", pgpu->WY);
 		  return;
 		// WX
 		case 0xFF4B:
 		  pgpu->WX = val;
-		  printf("WX: %d\n", pgpu->WX);
+		  //printf("WX: %d\n", pgpu->WX);
 		  return;
 	}
 	printf("wb: Unimplemented GPU control register: %x\n", addr);
@@ -212,7 +212,7 @@ void writeScanline(GPU*pgpu)
 		windowTile += 256;
 	}
 	
-	uint16_t windowRowAddr = windowTile*16+windowStartY*2;
+	uint16_t windowRowAddr = windowTile*16 + windowStartY*2;
 
 	int x = pgpu->SCX % 256;
 	int y = (pgpu->LY + pgpu->SCY) % 256;
@@ -243,7 +243,7 @@ void writeScanline(GPU*pgpu)
 		pixel = getPixelColor(pgpu, pixel);
 		uint8_t sprite_pixel_original = pgpu->sprite_line[xOffset];
 		uint8_t sprite_pixel = GetColor(pgpu,pgpu->sprite_line[xOffset]);
-		int window_x = xOffset - pgpu->WX - 7;
+		int window_x = xOffset - pgpu->WX + 7;
 		
 		if(window_x < 0)
 		{
@@ -257,7 +257,7 @@ void writeScanline(GPU*pgpu)
 		else if(windowEnabled && (xOffset >= (pgpu->WX-7)))
 		{
 			//printf("Drawing window\n");
-			uint8_t windowPixel = (getPixel(pgpu, windowRowAddr + 1, (xOffset-pgpu->WX-7) & 0x7 ) << 1) + getPixel(pgpu, windowRowAddr, (xOffset-pgpu->WX-7) & 0x7);
+			uint8_t windowPixel = (getPixel(pgpu, windowRowAddr + 1, (xOffset-pgpu->WX+7) & 0x7 ) << 1) + getPixel(pgpu, windowRowAddr, (xOffset-pgpu->WX+7) & 0x7);
 			uint8_t window_pixel_original = windowPixel;
 			windowPixel = getPixelColor(pgpu, windowPixel);
 			
@@ -282,7 +282,7 @@ void writeScanline(GPU*pgpu)
 			pgpu->buffer[pgpu->LY*160 + xOffset] = pixel;
 		}
 		
-		if(windowEnabled && ((window_x & 0x7) == 7))
+		if(((window_x & 0x7) == 7))
 		{
 			pgpu->windowTileAddr++;
 			
