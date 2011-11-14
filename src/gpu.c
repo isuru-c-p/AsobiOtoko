@@ -170,6 +170,10 @@ uint8_t MapSpritePixel(GPU*pgpu, uint8_t pixel, uint8_t palette_sel)
 	else if(palette_sel == 1)
 		palette = pgpu->OBP1;
 	uint8_t mappedPixel = (palette >> (2*pixel)) & 0x3;
+	
+	if(pixel == 0)
+		mappedPixel = 0;
+	
 	return mappedPixel;
 }
 
@@ -222,56 +226,61 @@ void writeScanline(GPU*pgpu)
 	for(xOffset = 0; xOffset < 160; xOffset++)
 	{
 		uint8_t pixel = (getPixel(pgpu, rowAddress + 1, (start_x+xOffset) & 0x7 ) << 1) + getPixel(pgpu, rowAddress, (start_x+xOffset) & 0x7);
+		uint8_t pixel_original = pixel;
 		pixel = getPixelColor(pgpu, pixel);
+		uint8_t sprite_pixel_original = pgpu->sprite_line[xOffset];
+		uint8_t sprite_pixel = GetColor(pgpu,pgpu->sprite_line[xOffset]);
+		int window_x = xOffset - pgpu->WX - 7;
 		
-		if(pgpu->sprite_line[xOffset] > 0x3)
+		if(sprite_pixel_original > 0x3)
 		{
 			pgpu->buffer[pgpu->LY*160 + xOffset] = GetColor(pgpu,(pgpu->sprite_line[xOffset] >> 2));
 		}
-		else if((pixel == 255) & !windowEnabled)
+		else if(windowEnabled && (xOffset >= (pgpu->WX-7)))
 		{
-			pgpu->buffer[pgpu->LY*160 + xOffset] = GetColor(pgpu,pgpu->sprite_line[xOffset]);
+			//printf("Drawing window\n");
+			uint8_t windowPixel = (getPixel(pgpu, windowRowAddr + 1, (xOffset-pgpu->WX-7) & 0x7 ) << 1) + getPixel(pgpu, windowRowAddr, (xOffset-pgpu->WX-7) & 0x7);
+			uint8_t window_pixel_original = windowPixel;
+			windowPixel = getPixelColor(pgpu, windowPixel);
+			
+			if((window_pixel_original == 0) && (sprite_pixel_original != 0))
+			{
+				pgpu->buffer[pgpu->LY*160 + xOffset] = sprite_pixel;
+			} 
+			else
+			{
+				pgpu->buffer[pgpu->LY*160 + xOffset] = windowPixel;
+			}
+		}
+		else if(pixel_original == 0)
+		{
+			if(sprite_pixel_original != 0)
+				pgpu->buffer[pgpu->LY*160 + xOffset] = GetColor(pgpu,pgpu->sprite_line[xOffset]);
+			else
+				pgpu->buffer[pgpu->LY*160 + xOffset] = pixel;
 		}
 		else
 		{
-			if(windowEnabled && (xOffset >= (pgpu->WX-7))) 
+			pgpu->buffer[pgpu->LY*160 + xOffset] = pixel;
+		}
+		
+		if(((window_x & 0x7) == 7))
+		{
+			windowTileAddr++;
+			
+			if(windowTileAddr > (windowStartTileAddr + 32))
+				windowTileAddr = windowStartTileAddr;
+			
+			windowTile = pgpu->vram[windowTileAddr - 0x8000];
+			if(!getLCDCBit(pgpu, BGWDATASEL) && windowTile < 128)
 			{
-				//printf("Drawing window\n");
-				uint8_t windowPixel = (getPixel(pgpu, windowRowAddr + 1, (xOffset-pgpu->WX) & 0x7 ) << 1) + getPixel(pgpu, windowRowAddr, (xOffset-pgpu->WX) & 0x7);
-				windowPixel = getPixelColor(pgpu, windowPixel);
-				
-				if(windowPixel == 255)
-				{
-					pgpu->buffer[pgpu->LY*160 + xOffset] = GetColor(pgpu,pgpu->sprite_line[xOffset]);
-				} 
-				else
-				{
-					pgpu->buffer[pgpu->LY*160 + xOffset] = windowPixel;
-				}
+				windowTile += 256;
 			}
-			else
-			{
-				pgpu->buffer[pgpu->LY*160 + xOffset] = pixel;
-			}
+			windowRowAddr = windowTile*16;
 		}
 		
 		if(((start_x+xOffset) & 0x7) == 7)
 		{
-			if(windowEnabled && (xOffset >= (pgpu->WX-7)))
-			{
-				windowTileAddr++;
-				
-				if(windowTileAddr > (windowStartTileAddr + 32))
-					windowTileAddr = windowStartTileAddr;
-				
-				windowTile = pgpu->vram[windowTileAddr - 0x8000];
-				if(!getLCDCBit(pgpu, BGWDATASEL) && windowTile < 128)
-				{
-					windowTile += 256;
-				}
-				windowRowAddr = windowTile*16;
-			}
-		
 			tileMapAddr++;
 			
 			if(tileMapAddr >= (rowStartTileMapAddr + 32))
