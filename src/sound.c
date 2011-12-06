@@ -106,13 +106,12 @@ int get_sweep_time_tcycles(uint8_t sweep_time_raw)
 
 void update_square_timer(Square_wave * square_wave, int tcycles)
 {
-	int original_count = square_wave->internal_freq_counter;
 	square_wave->internal_freq_counter -= tcycles;
 	
 	if(square_wave->internal_freq_counter <= 0)
 	{
 		square_wave->output = 1;
-		square_wave->internal_freq_counter = GB_TO_TCYCLES(square_wave->frequency) - (tcycles - original_count);
+		square_wave->internal_freq_counter = GB_TO_TCYCLES(square_wave->frequency) + square_wave->internal_freq_counter;
 	}
 	
 	return;
@@ -122,14 +121,13 @@ void update_square_duty(Square_wave * square_wave, int tcycles)
 {
 	if(square_wave->output == 0)
 		return;
-	
-	int original_count = square_wave->duty_counter;
+
 	square_wave->duty_counter -= tcycles;
 	
 	if(square_wave->duty_counter <= 0)
 	{
 		square_wave->output = 0;
-		square_wave->duty_counter = get_duty_time_tcycles(square_wave->duty_cycle, square_wave->frequency) - (tcycles - original_count);
+		square_wave->duty_counter = get_duty_time_tcycles(square_wave->duty_cycle, square_wave->frequency) + square_wave->duty_counter;
 	}
 	
 	return;
@@ -138,20 +136,114 @@ void update_square_duty(Square_wave * square_wave, int tcycles)
 // 256Hz counter
 void update_length_counter(Square_wave * square_wave, int tcycles)
 {	
-	int original_length_counter_int = square_wave->length_counter_internal;
+	if(square_wave->length_counter == 0)
+		return;
+
 	square_wave->length_counter_internal -= tcycles;
 	
 	if(square_wave->length_counter_internal <= 0)
 	{
-		square_wave->length_counter_internal = 0;
-		square_wave->enabled = 0;
+		square_wave->length_counter_internal = HZ_TO_TCYCLES(256) + square_wave->length_counter_internal;
+		square_wave->length_counter--;
+		
+		if(square_wave->length_counter == 0)
+		{
+			square_wave->enabled = 0;
+			square_wave->output = 0;
+		}	
 	}
+}
+
+// 64Hz
+void update_volume_envelope(Square_wave * square_wave, int tcycles)
+{
+	square_wave->envelope_counter-= tcycles;
+	
+	if(square_wave->envelope_counter <= 0)
+	{
+		square_wave->envelope_counter = HZ_TO_TCYCLES(64) + square_wave->envelope_counter;
+		
+		if(square_wave->sweep_mode)
+		{
+			square_wave->volume--;
+		}
+		else
+		{
+			square_wave->volume++;
+		}
+		
+		if(square_wave->volume > 15)
+		{
+			square_wave->volume = 15;
+		}
+		else if(square_wave->volume < 0)
+		{
+			square_wave->volume = 0;
+		}
+	}
+}
+
+void update_frequency_sweep(Square_wave * square_wave, int tcycles)
+{
+	square_wave->sweep_counter += tcycles;
+	
+	if(square_wave->sweep_counter >= get_sweep_time_tcycles(square_wave->sweep_period))
+	{
+		square_wave->sweep_counter -= get_sweep_time_tcycles(square_wave->sweep_period);
+		
+		if(square_wave->sweep_mode)
+		{
+			square_wave->frequency--;
+		}
+		else
+		{
+			square_wave->frequency++;
+		}
+		
+	}
+	
+}
+
+void update_sound_buffer(Square_wave * square_wave, int tcycles)
+{	
+	// wait for buffer to be cleared
+	while(square_wave->audio_len > 0);
+
+	int sampleNo = tcycles * 4196000 * SAMPLES_PER_SECOND;
+	
+	if(sampleNo > SOUND_BUFFER_LEN)
+	{
+		printf("Error, sound buffer overflow. tcycles: %d\n", tcycles);
+		return;
+	}
+	
+	int i;
+	
+	for(i = 0 ; i < sampleNo; i++)
+	{
+		if(square_wave->enabled)
+			square_wave->data[i] = square_wave->output;
+		else
+			square_wave->data[i] = 0;
+		// TODO check for transition (1->0 or 0->1) here
+	}
+	
+	square_wave->audio_len = sampleNo;
 }
 
 void update_waveforms(Sound * pSound, int tcycles)
 {
+	// update square waves
 	update_square_timer(&pSound->square_waves[0], tcycles);
 	update_square_duty(&pSound->square_waves[0], tcycles);
 	update_square_timer(&pSound->square_waves[1], tcycles);
 	update_square_duty(&pSound->square_waves[1], tcycles);
+	
+	update_volume_envelope(&pSound->square_waves[0], tcycles);
+	update_volume_envelope(&pSound->square_waves[1], tcycles);
+	
+	update_sound_buffer(&pSound->square_waves[0], tcycles);
+	update_sound_buffer(&pSound->square_waves[1], tcycles);	
+	
+	
 }

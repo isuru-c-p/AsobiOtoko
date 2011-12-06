@@ -7,6 +7,7 @@
 
 #define SOUND_RAM_SIZE 48
 #define SOUND_BUFFER_LEN 100
+#define SAMPLES_PER_SECOND 0
 
 typedef struct _Square_wave {
 	uint8_t data[SOUND_BUFFER_LEN];
@@ -14,10 +15,11 @@ typedef struct _Square_wave {
 	uint8_t sweep_period;
 	uint8_t sweep_shift;
 	uint8_t sweep_mode; // 0 = increase, 1 = decrease
+	int sweep_counter;
 	uint8_t duty_cycle;
-	uint8_t duty_counter;
+	int duty_counter;
 	uint8_t length_counter;
-	uint8_t length_counter_internal;
+	int length_counter_internal;
 	uint8_t length_counter_enabled;
 	uint8_t initial_volume;
 	uint8_t envelope_mode; // 0 = up, 1 = down
@@ -26,7 +28,10 @@ typedef struct _Square_wave {
 	uint8_t counter_consecutive_selection;
 	uint8_t output;
 	uint8_t enabled;
+	uint8_t volume;
+	int envelope_counter;
 	int internal_freq_counter;
+	int audio_len;
 } Square_wave;
 
 typedef struct _Sound {
@@ -53,7 +58,10 @@ void sdl_disable_audio();
 
 void update_square_timer(Square_wave * square_wave, int tcycles);
 void update_square_duty(Square_wave * square_wave, int tcycles);
+void update_volume_envelope(Square_wave * square_wave, int tcycles);
+void update_sound_buffer(Square_wave * square_wave, int tcycles);
 void update_waveforms(Sound * pSound, int tcycles);
+
 
 int get_duty_time_tcycles(uint8_t duty_time_raw, uint8_t frequency_raw);
 int get_sweep_time_tcycles(uint8_t sweep_time_raw);
