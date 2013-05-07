@@ -8,6 +8,25 @@
 
 //#define DEBUG
 
+void loadState(z80*pz80) {
+	uint8_t* oldCartridge = pz80->mmu.cartridge;
+	FILE* file = fopen("state.dat", "rb");
+	if(fread(pz80, sizeof(uint8_t), sizeof(z80), file) != sizeof(z80))
+	{
+		fprintf(stderr, "Error loading state.");
+	}
+	pz80->mmu.cartridge = oldCartridge;
+	fclose(file);
+	return;
+}
+
+void writeState(z80*pz80) {
+	FILE* file = fopen("state.dat", "wb");
+	fwrite(pz80, sizeof(uint8_t), sizeof(z80), file);
+	fclose(file);
+	return;
+}
+
 void
 updateCPUTime(z80*pz80){
 	uint8_t timerControl = rb(&(pz80->mmu),0xff07);

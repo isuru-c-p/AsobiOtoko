@@ -4,6 +4,7 @@
 SDL_Surface *screen;
 uint8_t pressed_buttons[8];
 uint8_t button_irq = 0;
+uint8_t saveState = 0;
 
 int init_graphics()
 {
@@ -87,6 +88,12 @@ void ProcessInput(int * cont){
 						break;
 					case SDLK_RSHIFT:
 						pressed_buttons[SELECT_KEY] = upordown;
+						break;
+					case SDLK_F1:
+						saveState = 1;
+						break;
+					case SDLK_F5:
+						saveState = 2;
 						break;
 					default:
 						break;

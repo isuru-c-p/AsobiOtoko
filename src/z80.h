@@ -100,6 +100,9 @@ saveRegMemToHL(z80*pz80);
 
 void push(z80*pz80, uint8_t val);
 
+void writeState(z80*pz80);
+void loadState(z80*pz80);
+
 void
 updateCPUTime(z80*pz80);
 

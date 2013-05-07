@@ -5,6 +5,7 @@
 extern SDL_Surface *screen;
 extern uint8_t pressed_buttons[8];
 extern uint8_t button_irq;
+extern uint8_t saveState;
 
 int init_graphics();
 void RenderScreen();

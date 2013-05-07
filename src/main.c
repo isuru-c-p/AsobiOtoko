@@ -139,6 +139,19 @@ main (int argc, char *argv[]){
 			setInterruptPending(&z80_cpu,P0_P13_INT);
 			button_irq = 0;
 		}
+
+		if(saveState == 1)
+		{
+			printf("Saved state from state.dat\n");
+			writeState(&z80_cpu);
+			saveState = 0;
+		}
+		else if(saveState == 2)
+		{
+			printf("Loaded state from state.dat\n");
+			loadState(&z80_cpu);
+			saveState = 0;
+		}
 	}
 	
 	free(z80_cpu.mmu.cartridge);
