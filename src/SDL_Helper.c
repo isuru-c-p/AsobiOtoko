@@ -6,28 +6,42 @@ uint8_t pressed_buttons[8];
 uint8_t button_irq = 0;
 uint8_t saveState = 0;
 
+uint32_t get_timer_val(int reset)
+{
+  static uint32_t start = 0;
+
+  if(reset == 1)
+  {
+     start = SDL_GetTicks();
+  }
+
+  uint32_t now = SDL_GetTicks();
+
+  return (now-start);
+}
+
 int init_graphics()
 {
 	if( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO) < 0) {
 		printf("Unable to init SDL: %s\n", SDL_GetError());
 		return 0;
 	}
-	
+
 	screen = SDL_SetVideoMode(160, 144, 8, SDL_HWSURFACE);
 	if ( screen == NULL ) {
         printf("Unable to set 160x144 video: %s\n", SDL_GetError());
         return 0;
     }
-	
+
 	int i;
 	for(i = 0; i < 8; i++)
 		pressed_buttons[i] = 1;
-	
+
 	return 1;
 }
 
 uint8_t GetPixelVal(int pixel)
-{	
+{
 	return (uint8_t)SDL_MapRGB(screen->format, pixel, pixel, pixel);
 }
 
@@ -47,7 +61,7 @@ void Flip(uint8_t* buffer)
 
 void RenderScreen()
 {
-	SDL_UpdateRect(screen, 0, 0, 0, 0);	
+	SDL_UpdateRect(screen, 0, 0, 0, 0);
 }
 
 void ProcessInput(int * cont){

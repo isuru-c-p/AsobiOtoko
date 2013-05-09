@@ -14,6 +14,8 @@ void Flip(uint8_t* buffer);
 void ProcessInput(int * cont);
 uint8_t GetPixelVal(int pixel);
 
+uint32_t get_timer_val(int reset);
+
 
 #define START_KEY 0
 #define SELECT_KEY 1

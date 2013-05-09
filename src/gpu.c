@@ -87,7 +87,7 @@ void gpu_wb(GPU*pgpu, uint16_t addr, uint8_t val) {
 		// Palette
 		case 0xFF47:
 			pgpu->BGP = val;
-			printf("New BGP: %x\n", pgpu->BGP);
+			//printf("New BGP: %x\n", pgpu->BGP);
 			return;
 		// OBP0
 		case 0xFF48:

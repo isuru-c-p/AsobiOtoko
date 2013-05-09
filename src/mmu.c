@@ -7,11 +7,11 @@
 
 #ifdef USE_ADDRESS_LUT
 void fillAddressLUTEntry(MMU * pmmu,uint16_t address) {
-	
+
 	switch (address >> 12)
 	{
 		// cartridge / bios
-		case 0x0: 
+		case 0x0:
 			if((address <= 0x00ff) && (pmmu->bios_enabled == 1))
 			{
 				pmmu->addressLUT[address] = &(pmmu->bios[address]);
@@ -23,41 +23,41 @@ void fillAddressLUTEntry(MMU * pmmu,uint16_t address) {
 				return;
 			}
 			break;
-			
-		// cartridge	
+
+		// cartridge
 		case 0x1 :
 		case 0x2 :
 		case 0x3 :
 		case 0x4 :
-		case 0x5 : 
+		case 0x5 :
 		case 0x6 :
 		case 0x7 :
 			pmmu->addressLUT[address] = &(pmmu->cartridge[address]);
 			return;
-		
+
 		// VRAM
 		case 0x8 : case 0x9 :
 			pmmu->addressLUT[address] = &(pmmu->gpu.vram[address - 0x8000]);
 			return;
-		
+
 		// External RAM
 		case 0xA : case 0xB :
 			pmmu->addressLUT[address] = &(pmmu->eram[address - 0xA000]);
 			return;
-		
+
 		// Working RAM
-		case 0xC : case 0xD : 
+		case 0xC : case 0xD :
 			pmmu->addressLUT[address] = &(pmmu->wram[address - 0xC000]);
 			return;
-		
+
 		// Working RAM shadow
-		case 0xE : 
+		case 0xE :
 			pmmu->addressLUT[address] = &(pmmu->wram[address - 0xE000]);
 			return;
-			
+
 		case 0xF :
 			// Working RAM shadow
-			if (address <= 0xFDFF) 
+			if (address <= 0xFDFF)
 			{
 				pmmu->addressLUT[address] = &(pmmu->wram[address - 0xE000]);
 				return;
@@ -92,7 +92,7 @@ void fillAddressLUTEntry(MMU * pmmu,uint16_t address) {
 				return;
 			}
 			break;
-			
+
 	}
 
 	assert(0); // Should never execute.
@@ -114,7 +114,7 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 	#ifdef USE_ADDRESS_LUT
 	//if((address >= 0xFE00) && (address <= 0xFE9F))
 	//	printf("OAM Read: %x\n", address);
-	
+
 	uint8_t * b = pmmu->addressLUT[address];
 	if(b)
 		return *b;
@@ -131,7 +131,7 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 	{
 		// cartridge / bios
 		case 0x0:
-		case 0x1 : 
+		case 0x1 :
 		case 0x2 :
 		case 0x3 :
 			if((address <= 0x00ff) && (pmmu->bios_enabled == 1))
@@ -143,10 +143,10 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 				return pmmu->cartridge[address];
 			}
 			break;
-			
-		// cartridge	
+
+		// cartridge
 		case 0x4 :
-		case 0x5 : 
+		case 0x5 :
 		case 0x6 :
 		case 0x7 :
 			if((pmmu->rom_type != ROM_ONLY))
@@ -154,12 +154,12 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 				if(pmmu->rom_bank)
 				{
 					uint32_t accessAddr = (pmmu->rom_bank*0x4000)+(address - 0x4000);
-					
+
 					if(accessAddr > (pmmu->cartridge_size))
 					{
 						printf("ERROR Cartridge access out of range! Access addr: %d, Cartridge size: %d, Rom bank: %d\n", accessAddr, pmmu->cartridge_size, pmmu->rom_bank);
 					}
-					
+
 					return pmmu->cartridge[accessAddr];
 				}
 				else
@@ -170,21 +170,21 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 			else
 				return pmmu->cartridge[address];
 			break;
-		
+
 		// VRAM
 		case 0x8 : case 0x9 :
 			// TODO: GPU
 			//return gpu.vram;
 			return pmmu->gpu.vram[address - 0x8000];
 			break;
-		
+
 		// External RAM
 		case 0xA : case 0xB :
 			//if(pmmu->ram_bank_enable)
-			//{	
+			//{
 			//	printf("RAM access address: %d\n", (pmmu->ram_bank*0x2000) + (address - 0xA000));
 				return pmmu->eram[(pmmu->ram_bank*0x2000) + (address - 0xA000)];
-				
+
 			/*}
 			else
 			{
@@ -193,20 +193,20 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 				return 0;
 			}*/
 			break;
-		
+
 		// Working RAM
-		case 0xC : case 0xD : 
+		case 0xC : case 0xD :
 			return pmmu->wram[address - 0xC000];
 			break;
-		
+
 		// Working RAM shadow
-		case 0xE : 
+		case 0xE :
 			return pmmu->wram[address - 0xE000];
 			break;
-			
+
 		case 0xF :
 			// Working RAM shadow
-			if (address <= 0xFDFF) 
+			if (address <= 0xFDFF)
 			{
 				return pmmu->wram[address - 0xE000];
 			}
@@ -231,6 +231,10 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 				{
 					return gpu_rb(&(pmmu->gpu), address);
 				}
+        else if((address >= 0xff10) && (address <= 0xff3f))
+        {
+          return read_sound_reg(&(pmmu->sound), address);
+        }
 				return pmmu->memory[address];
 			}
 			else
@@ -240,7 +244,7 @@ uint8_t rb(MMU * pmmu,uint16_t address) {
 				return pmmu->zram[address - 0xFF80];
 			}
 			break;
-			
+
 	}
 
 	assert(0); // should never execute
@@ -254,11 +258,11 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 		if(address == 0xFFFF)
 			printf("New IE: %x\n", address);
 	#endif
-	
+
 	switch (address >> 12)
 	{
 		// cartridge / bios
-		case 0x0: 
+		case 0x0:
 		case 0x1 :
 			if((pmmu->rom_type == MBC3) || (pmmu->rom_type == MBC1))
 			{
@@ -270,7 +274,7 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 				{
 					pmmu->ram_bank_enable = 0;
 				}
-				
+
 				#ifdef DEBUG
 					printf("Setting ext RAM enable: %d (%d)\n", pmmu->ram_bank_enable, val);
 				#endif
@@ -278,35 +282,35 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 			}
 			printf("ERROR1! Attempting to write to ROM. Address: %x, Val: %x\n", address, val);
 			break;
-			
-		
+
+
 		case 0x2 :
 		case 0x3 :
 			if(pmmu->rom_type == MBC1)
 			{
 				uint8_t newVal = ( val & 0x1f );
-				
+
 				if( !newVal )
 				{
 					newVal = 1;
 				}
-				
+
 				if(pmmu->mbc1_mode == MBC1_16_8_MODE)
 				{
 					pmmu->rom_bank = (( pmmu->rom_bank & 0xc0 ) | ( newVal )) & pmmu->rom_bank_size;
-			
+
 				}
 				else
 				{
 					pmmu->rom_bank = newVal & pmmu->rom_bank_size;
 				}
-				
+
 				//pmmu->rom_bank = ( pmmu->rom_bank & /*0xc0*/0xe0 ) | ( newVal );
-				
+
 				#ifdef DEBUG
 					printf("Selecting ROM bank: %d (val: %d, newVal:%d)\n", pmmu->rom_bank, val, newVal);
 				#endif
-	
+
 				return;
 			}
 			else if (pmmu->rom_type == MBC3)
@@ -316,12 +320,12 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 				//printf("Selecting ROM bank: %d (val: %d, newVal:%d)\n", pmmu->rom_bank, val, newVal);
 				return;
 			}
-			
+
 			printf("ERROR1! Attempting to write to ROM. Address: %x, Val: %x\n", address, val);
 			return;
-		
+
 		case 0x4 :
-		case 0x5 : 
+		case 0x5 :
 			if(((pmmu->rom_type == MBC1) && (pmmu->mbc1_mode == MBC1_4_32_MODE)) || (pmmu->rom_type == MBC3))
 			{
 				pmmu->ram_bank = val & pmmu->ram_bank_size;//0x3;
@@ -338,10 +342,10 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 				#endif
 				return;
 			}
-			
+
 			printf("ERROR1! Attempting to write to ROM. Address: %x, Val: %x\n", address, val);
 			return;
-		
+
 		case 0x6 :
 		case 0x7 :
 			if(pmmu->rom_type == MBC1)
@@ -355,7 +359,7 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 			//pmmu->cartridge[address] = val;
 			printf("ERROR1! Attempting to write to ROM. Address: %x, Val: %x\n", address, val);
 			return;
-			
+
 		// VRAM
 		case 0x8 : case 0x9 :
 			// TODO: GPU
@@ -366,7 +370,7 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 				printf("Tilemap update: %x, val: %d\n", address, val);*/
 			pmmu->gpu.vram[address - 0x8000] = val;
 			break;
-		
+
 		// External RAM
 		case 0xA : case 0xB :
 			//if(pmmu->ram_bank_enable)
@@ -378,20 +382,20 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 				printf("Write Error! RAM Bank is not enabled.\n");
 			}*/
 			break;
-		
+
 		// Working RAM
-		case 0xC : case 0xD : 
+		case 0xC : case 0xD :
 			pmmu->wram[address - 0xC000] = val;
 			break;
-		
+
 		// Working RAM shadow
-		case 0xE : 
+		case 0xE :
 			pmmu->wram[address - 0xE000] = val;
 			break;
-			
+
 		case 0xF :
 			// Working RAM shadow
-			if (address <= 0xFDFF) 
+			if (address <= 0xFDFF)
 			{
 				pmmu->wram[address - 0xE000] = val;
 				return;
@@ -423,7 +427,7 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 					int i;
 					for(i = 0; i < 160; i++)
 					{
-						uint8_t byte = rb(pmmu, (val<<8)+i); 
+						uint8_t byte = rb(pmmu, (val<<8)+i);
 						//printf("Transferring: oam[%d] = %x\n", i, byte);
 						pmmu->gpu.oam[i] = byte;
 					}
@@ -444,7 +448,11 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 					pmmu->memory[address] = 0;
 					return;
 				}
-				
+        else if((address >= 0xff10) && (address <= 0xff3f))
+        {
+          write_sound_reg(&(pmmu->sound), address, val);
+        }
+
 				pmmu->memory[address] = val;
 			}
 			else
@@ -452,7 +460,7 @@ void wb(MMU * pmmu,uint16_t address, uint8_t val) {
 				pmmu->zram[address - 0xFF80] = val;
 			}
 			break;
-			
+
 	}
 }
 
@@ -485,6 +493,7 @@ void initMMU(MMU * pmmu)
 	pmmu->ram_bank_enable = 1;
 	pmmu->mbc1_mode = MBC1_16_8_MODE;
 	initGPU(&(pmmu->gpu));
+  initSound(&(pmmu->sound));
 	#ifdef USE_ADDRESS_LUT
 	fillAddressLUT(pmmu);
 	#endif

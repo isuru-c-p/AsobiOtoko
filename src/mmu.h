@@ -2,6 +2,7 @@
 #define __mmu__
 #include "stdint.h"
 #include "gpu.h"
+#include "sound.h"
 
 /* CONSTANTS */
 #define MEMORYSIZE 65536
@@ -33,7 +34,7 @@
   0x21, 0x04, 0x01, 0x11, 0xA8, 0x00, 0x1A, 0x13, 0xBE, 0x20, 0xFE, 0x23, 0x7D, 0xFE, 0x34, 0x20,\
   0xF5, 0x06, 0x19, 0x78, 0x86, 0x23, 0x05, 0x20, 0xFB, 0x86, 0x20, 0xFE, 0x3E, 0x01, 0xE0, 0x50}
 
-#define MBC1_16_8_MODE 0 
+#define MBC1_16_8_MODE 0
 #define MBC1_4_32_MODE 1
 
 #define ROM_ONLY 0
@@ -60,6 +61,7 @@ typedef struct _mmu {
 	uint32_t rom_bank_size;
 	uint32_t ram_bank_size;
 	GPU gpu;
+  Sound sound;
 	#ifdef USE_ADDRESS_LUT
 	uint8_t * addressLUT[MEMORYSIZE];
 	#endif
