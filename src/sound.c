@@ -143,10 +143,12 @@ void sdl_audio_callback(void *udata, uint8_t * stream, int len)
 
   int overflow = 0;
   //SDL_SemWait(pSound->sound_sem);
+  uint32_t tcyclesPerSample = (4194304/(SAMPLES_PER_SECOND));
+  update_sound_buffer(pSound, NULL, len*tcyclesPerSample);
+  pSound->audio_len = 0;
   for(i = 0; i < len; i++)
   {
     float total = 0;
-    uint32_t tcyclesPerSample = (4194304/(SAMPLES_PER_SECOND));
     for(j = 0; j < tcyclesPerSample; j++)
     {
       /*if((pSound->current_play_count + 1) > (pSound->audio_len))
@@ -154,13 +156,14 @@ void sdl_audio_callback(void *udata, uint8_t * stream, int len)
         overflow = 1;
         break;
       }*/
-      if((pSound->current_play_count + 1) >= SOUND_BUFFER_LEN)
+      /*if((pSound->current_play_count + 1) >= SOUND_BUFFER_LEN)
       {
         //SDL_SemPost(pSound->sound_sem);
         //SDL_SemWait(pSound->sound_writer_sem);
       }
       pSound->current_play_count = (pSound->current_play_count+1) % SOUND_BUFFER_LEN;
-      total += pSound->data[pSound->current_play_count];
+      total += pSound->data[pSound->current_play_count];*/
+      total += pSound->data[i*tcyclesPerSample+j];
     }
 
     /*if(overflow)
@@ -171,7 +174,7 @@ void sdl_audio_callback(void *udata, uint8_t * stream, int len)
 
     float avg = (total / tcyclesPerSample);
     //printf("avg: %f\n", avg);
-    stream[i] = /*(int)avg;*/(avg > (255/2)) ? 255 : 0;
+    stream[i] = (uint8_t)avg;//(avg > (255/2)) ? 255 : 0;
 
       /*if((squareWave1->current_play_count+i) >= squareWave1->audio_len)
       {
@@ -438,7 +441,7 @@ void update_sound_buffer(Sound* pSound, Square_wave * square_wave, int tcycles)
     uint8_t output1 = (squareWave1->enabled) ? squareWave1->output : 0;
     uint8_t output2 = (squareWave2->enabled) ? squareWave2->output : 0;
 
-    uint32_t sampleRaw = (output1*(squareWave1->volume << 12)) + (output2*(squareWave2->volume << 12));
+    uint32_t sampleRaw = (output1*(squareWave1->volume +1)) + (output2*(squareWave2->volume + 1));
     uint8_t sample = (sampleRaw > 255) ? 255 : sampleRaw;
 
     if((pSound->audio_len+i) >= SOUND_BUFFER_LEN)
@@ -488,8 +491,8 @@ void update_waveform_tcycle(Sound*pSound)
 
 void update_waveforms(Sound * pSound, int tcycles)
 {
-
-  update_sound_buffer(pSound, NULL, tcycles);
+  return;
+  //update_sound_buffer(pSound, NULL, tcycles);
   //update_sound_buffer(pSound, &pSound->square_waves[1], tcycles);
 
   /*pSound->sampleCycleCount += tcycles;

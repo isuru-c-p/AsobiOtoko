@@ -143,10 +143,10 @@ main (int argc, char *argv[]){
 
       now = clock();
       int wait_time = 976-(now-lastCycle);
-      /*if(wait_time > 0)
+      if(wait_time > 0)
       {
         usleep(wait_time);
-      }*/
+      }
       /*else
       {
         printf("wait_time: %d\n", wait_time);

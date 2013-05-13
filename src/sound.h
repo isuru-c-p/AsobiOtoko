@@ -7,8 +7,8 @@
 #include <SDL/SDL_thread.h>
 
 #define SOUND_RAM_SIZE 48
-#define SOUND_BUFFER_LEN 1024000
-#define SAMPLES_PER_SECOND /*44050*/2097152
+#define SOUND_BUFFER_LEN 1025000
+#define SAMPLES_PER_SECOND 21000/*440502097152*/
 #define SWEEP_FRAME_128HZ_COUNT 32768
 
 typedef struct _Square_wave {
