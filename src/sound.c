@@ -1,5 +1,9 @@
 #include "sound.h"
 
+
+uint8_t square_waveforms[4][8] = {{0,0,0,0,0,0,0,1}, {1,0,0,0,0,0,0,1}, {1,0,0,0,0,1,1,1}, {0,1,1,1,1,1,1,0}};
+
+
 void config_square_wave(Square_wave* wave, uint16_t offset, uint8_t val)
 {
   switch(offset)
@@ -16,7 +20,7 @@ void config_square_wave(Square_wave* wave, uint16_t offset, uint8_t val)
         break;
 
       case 2:
-        wave->initial_volume = (val >> 4) & 0xf;
+        wave->volume = (val >> 4) & 0xf;
         wave->envelope_mode = (val >> 3) & 0x1;
         wave->envelope_period = val & 0x7;
         break;
@@ -56,8 +60,8 @@ void write_sound_reg(Sound * pSound, uint16_t addr, uint8_t val)
         break;
 
       case 0xff25:
-        pSound->square_waves[0].enabled = ((val &0x1) || ((val >> 4) & 0x1));
-        pSound->square_waves[1].enabled = (((val >> 5) & 0x1) || ((val >> 1) & 0x1));
+        //pSound->square_waves[0].enabled = ((val &0x1) || ((val >> 4) & 0x1));
+        //pSound->square_waves[1].enabled = (((val >> 5) & 0x1) || ((val >> 1) & 0x1));
         break;
 
   }
@@ -77,7 +81,7 @@ void sdl_init_audio(Sound* pSound)
 
     /* Set 16-bit stereo audio at 22Khz */
     fmt.freq = SAMPLES_PER_SECOND;
-    fmt.format = AUDIO_S16;
+    fmt.format = AUDIO_U8;//AUDIO_S16;
     fmt.channels = 0;
     fmt.samples = 512;        /* A good value for games */
     fmt.callback = sdl_audio_callback;
@@ -90,6 +94,7 @@ void sdl_init_audio(Sound* pSound)
     }
 
     pSound->sound_sem = SDL_CreateSemaphore(0);
+    pSound->sound_writer_sem = SDL_CreateSemaphore(0);
     pSound->sampleBufferLength = obtained.samples;
     if(pSound->sound_sem == NULL)
     {
@@ -111,6 +116,8 @@ void sdl_disable_audio()
 void initSound(Sound * pSound)
 {
 	bzero((void*)pSound, sizeof(Sound));
+  pSound->square_waves[0].duty_cycle = 2;
+  pSound->square_waves[1].duty_cycle = 2;
   sdl_init_audio(pSound);
   sdl_play_audio();
 }
@@ -118,9 +125,14 @@ void initSound(Sound * pSound)
 void sdl_audio_callback(void *udata, uint8_t * stream, int len)
 {
   Sound* pSound = (Sound*)udata;
+  int i, j;
   //Square_wave* squareWave1 = &(pSound->square_waves[0]);
-  /*if(squareWave1->audio_len == 0)
+  /*if(pSound->audio_len == 0)
   {
+     for(i = 0; i < len; i++)
+     {
+       stream[i] = 0;
+     }
      return;
   }*/
 
@@ -128,7 +140,8 @@ void sdl_audio_callback(void *udata, uint8_t * stream, int len)
 
   //uint32_t tcyclesPerSample = ((pSound->tcycles_per_ms*1000)/(SAMPLES_PER_SECOND));
   //printf("tcycles per sample: %d\n", tcyclesPerSample);
-  int i, j;
+
+  int overflow = 0;
   //SDL_SemWait(pSound->sound_sem);
   for(i = 0; i < len; i++)
   {
@@ -136,13 +149,29 @@ void sdl_audio_callback(void *udata, uint8_t * stream, int len)
     uint32_t tcyclesPerSample = (4194304/(SAMPLES_PER_SECOND));
     for(j = 0; j < tcyclesPerSample; j++)
     {
+      /*if((pSound->current_play_count + 1) > (pSound->audio_len))
+      {
+        overflow = 1;
+        break;
+      }*/
+      if((pSound->current_play_count + 1) >= SOUND_BUFFER_LEN)
+      {
+        //SDL_SemPost(pSound->sound_sem);
+        //SDL_SemWait(pSound->sound_writer_sem);
+      }
       pSound->current_play_count = (pSound->current_play_count+1) % SOUND_BUFFER_LEN;
       total += pSound->data[pSound->current_play_count];
     }
 
+    /*if(overflow)
+    {
+      stream[i] = 0;
+      continue;
+    }*/
+
     float avg = (total / tcyclesPerSample);
     //printf("avg: %f\n", avg);
-    stream[i] = (avg > (65535/2)) ? 1 : 0;
+    stream[i] = /*(int)avg;*/(avg > (255/2)) ? 255 : 0;
 
       /*if((squareWave1->current_play_count+i) >= squareWave1->audio_len)
       {
@@ -190,7 +219,8 @@ int get_duty_time_tcycles(uint8_t duty_time_raw, uint8_t frequency_raw)
 
 int get_sweep_time_tcycles(uint8_t sweep_time_raw)
 {
-	// tcycle frequency = 4.196MHz
+	// tcycle frequency = 4.194304MHz
+  // sweep timer = 128Hz
 	switch(sweep_time_raw)
 	{
 		// no change
@@ -199,15 +229,15 @@ int get_sweep_time_tcycles(uint8_t sweep_time_raw)
 
 		// 7.8ms
 		case 0x1:
-			return 32729;
+			return 32768;//32716;
 
 		// 15.6ms
 		case 0x2:
-			return 65458;
+			return 65536;//65431;
 
 		// 23.4ms
 		case 0x3:
-			return 98186;
+			return 98304;//98147;
 
 		// error
 		default:
@@ -219,12 +249,25 @@ int get_sweep_time_tcycles(uint8_t sweep_time_raw)
 
 void update_square_timer(Square_wave * square_wave, int tcycles)
 {
+  if(square_wave->reset_flag == 1)
+  {
+    square_wave->enabled = 1;
+    if(square_wave->length_counter == 0)
+    {
+      square_wave->length_counter = 64;
+    }
+
+    square_wave->reset_flag = 0;
+  }
+
+
 	square_wave->internal_freq_counter -= tcycles;
 
 	if(square_wave->internal_freq_counter <= 0)
 	{
-		square_wave->output = 1;
-		square_wave->internal_freq_counter = GB_TO_TCYCLES(square_wave->frequency) + square_wave->internal_freq_counter;
+		square_wave->output = square_waveforms[square_wave->duty_cycle][square_wave->output_counter];
+    square_wave->output_counter = (square_wave->output_counter + 1) % 8;
+		square_wave->internal_freq_counter += (2048-square_wave->frequency)*4; //= GB_TO_TCYCLES(square_wave->frequency) + square_wave->internal_freq_counter;
     //printf("square 1, internal_freq_counter: %d\n", square_wave->internal_freq_counter);
   }
 
@@ -259,10 +302,17 @@ void update_length_counter(Square_wave * square_wave, int tcycles)
 	if(square_wave->length_counter_internal <= 0)
 	{
 		square_wave->length_counter_internal = HZ_TO_TCYCLES(256) + square_wave->length_counter_internal;
-		square_wave->length_counter--;
 
-		if(square_wave->length_counter == 0)
+    if(square_wave->counter_consecutive_selection == 0)
+    {
+      return;
+    }
+
+    square_wave->length_counter--;
+
+		if(square_wave->length_counter <= 0)
 		{
+      square_wave->length_counter = 0;
 			square_wave->enabled = 0;
 			square_wave->output = 0;
 		}
@@ -278,47 +328,84 @@ void update_volume_envelope(Square_wave * square_wave, int tcycles)
 	{
 		square_wave->envelope_counter = HZ_TO_TCYCLES(64) + square_wave->envelope_counter;
 
-		if(square_wave->sweep_mode)
+    int newVolume = square_wave->volume;
+
+		if(square_wave->envelope_mode)
 		{
-			square_wave->volume--;
+			newVolume--;
 		}
 		else
 		{
-			square_wave->volume++;
+			newVolume++;
 		}
 
-		if(square_wave->volume > 15)
+		if(newVolume > 15)
 		{
-			square_wave->volume = 15;
+			newVolume = 15;
 		}
-		else if(square_wave->volume < 0)
+		else if(newVolume < 0)
 		{
-			square_wave->volume = 0;
+			newVolume = 0;
 		}
+
+    square_wave->volume = newVolume;
 	}
+}
+
+void update_frequency(Square_wave* square_wave, int second_run)
+{
+  uint16_t newFreq = 0;
+  if(square_wave->sweep_mode)
+  {
+    newFreq = square_wave->frequency - (square_wave->frequency_shadow >> square_wave->sweep_shift);
+  }
+  else
+  {
+    newFreq = square_wave->frequency + (square_wave->frequency_shadow >> square_wave->sweep_shift);
+  }
+
+  if(newFreq > 2047)
+  {
+    square_wave->enabled = 0;
+  }
+  else if((square_wave->sweep_shift != 0) && (second_run == 0))
+  {
+    square_wave->frequency = newFreq;
+    square_wave->frequency_shadow = newFreq;
+    update_frequency(square_wave, 1);
+  }
+
+  return;
 }
 
 void update_frequency_sweep(Square_wave * square_wave, int tcycles)
 {
-	square_wave->sweep_counter += tcycles;
+  square_wave->sweep_frame_counter -= tcycles;
 
-  uint32_t sweep_time = get_sweep_time_tcycles(square_wave->sweep_period);
-	if(square_wave->sweep_counter >= sweep_time)
+
+	if(square_wave->sweep_frame_counter <= 0)
 	{
-		square_wave->sweep_counter -= sweep_time;
+    square_wave->sweep_frame_counter += SWEEP_FRAME_128HZ_COUNT;
 
-		if(square_wave->sweep_mode)
-		{
-      square_wave->frequency = square_wave->frequency - (square_wave->frequency >> square_wave->sweep_shift);
-		}
-		else
-		{
-      square_wave->frequency = square_wave->frequency + (square_wave->frequency >> square_wave->sweep_shift);
-		}
+    if(square_wave->sweep_internal_enabled && (square_wave->sweep_period != 0))
+    {
+      update_frequency(square_wave, 0);
+    }
 
-		square_wave->output = 1;
-		square_wave->internal_freq_counter = GB_TO_TCYCLES(square_wave->frequency);
-    square_wave->duty_counter = get_duty_time_tcycles(square_wave->duty_cycle, square_wave->frequency);
+    square_wave->sweep_counter--;
+
+    if(square_wave->sweep_counter <= 0)
+    {
+      square_wave->frequency_shadow = square_wave->frequency;
+      square_wave->sweep_counter = square_wave->sweep_period;
+      square_wave->sweep_internal_enabled = ((square_wave->sweep_period > 0) || (square_wave->sweep_shift > 0)) ? 1 : 0;
+
+      if(square_wave->sweep_shift > 0)
+      {
+        update_frequency(square_wave, 0);
+      }
+    }
+    //square_wave->duty_counter = get_duty_time_tcycles(square_wave->duty_cycle, square_wave->frequency);
 	}
 
 }
@@ -352,7 +439,13 @@ void update_sound_buffer(Sound* pSound, Square_wave * square_wave, int tcycles)
     uint8_t output2 = (squareWave2->enabled) ? squareWave2->output : 0;
 
     uint32_t sampleRaw = (output1*(squareWave1->volume << 12)) + (output2*(squareWave2->volume << 12));
-    uint16_t sample = (sampleRaw > 65535) ? 65535 : sampleRaw;
+    uint8_t sample = (sampleRaw > 255) ? 255 : sampleRaw;
+
+    if((pSound->audio_len+i) >= SOUND_BUFFER_LEN)
+    {
+      //SDL_SemWait(pSound->sound_sem);
+      //SDL_SemPost(pSound->sound_writer_sem);
+    }
 
     pSound->data[(pSound->audio_len+i) % SOUND_BUFFER_LEN] = sample;
 
@@ -380,12 +473,14 @@ void update_sound_buffer(Sound* pSound, Square_wave * square_wave, int tcycles)
 
 void update_waveform_tcycle(Sound*pSound)
 {
-	// update square waves
+ 	// update square waves
 	update_square_timer(&pSound->square_waves[0], 1);
-	update_square_duty(&pSound->square_waves[0], 1);
+	//update_square_duty(&pSound->square_waves[0], 1);
   update_frequency_sweep(&pSound->square_waves[0], 1);
+  update_length_counter(&pSound->square_waves[0], 1);
   update_square_timer(&pSound->square_waves[1], 1);
-	update_square_duty(&pSound->square_waves[1], 1);
+  update_length_counter(&pSound->square_waves[1], 1);
+	//update_square_duty(&pSound->square_waves[1], 1);
 
 	update_volume_envelope(&pSound->square_waves[0], 1);
 	update_volume_envelope(&pSound->square_waves[1], 1);

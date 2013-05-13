@@ -127,7 +127,7 @@ main (int argc, char *argv[]){
 
   static uint32_t total_tcycles = 0;
   static int sample_measuring_done = 0;
-  clock_t lastCycle, now;
+  clock_t lastCycle, now, lastTick;
   printf("Clocks per sec: %d\n", CLOCKS_PER_SEC);
   lastCycle = clock();
 
@@ -135,8 +135,23 @@ main (int argc, char *argv[]){
 
 	while(Continue){
 		static int keyCheckCount = 0;
-    if((sync_timer & 0xFFFF) == 0)
+    if(sync_timer >= 0xfff)
     {
+      //update_waveforms(&(z80_cpu.mmu.sound), /*z80_cpu.tcycles*/sync_timer);
+      sync_timer = 0;
+
+
+      now = clock();
+      int wait_time = 976-(now-lastCycle);
+      /*if(wait_time > 0)
+      {
+        usleep(wait_time);
+      }*/
+      /*else
+      {
+        printf("wait_time: %d\n", wait_time);
+      }*/
+
 			ProcessInput(&Continue);
 
       if(button_irq)
@@ -161,44 +176,59 @@ main (int argc, char *argv[]){
         saveState = 0;
       }
 
-
-
-      now = clock();
-      int wait_time = 15625-(now-lastCycle);
-      if(wait_time > 0)
-      {
-        usleep(wait_time);
-      }
-      else
-      {
-        printf("wait_time: %d\n", wait_time);
-      }
-
-      lastCycle = now;
+      lastCycle = clock();
     }
 
 
 		//printf("PC: %d\n", z80_cpu.registers16[PC]);
+    //lastTick = clock();
 		checkAndTriggerInterrupts(&z80_cpu);
 		executeNextInstruction(&z80_cpu);
 		updateCPUTime(&z80_cpu);
     total_tcycles += z80_cpu.tcycles;
     sync_timer += z80_cpu.tcycles;
+    //now = clock();
 
-    if((get_timer_val(0) > 10) /*&& (sample_measuring_done <= 2)*/)
+    //printf("tick time: %d\n", (now-lastTick));
+
+    /*if((get_timer_val(0) > 10))
     {
       sample_measuring_done++;
       z80_cpu.mmu.sound.tcycles_per_ms = total_tcycles/10;
       //printf("cycles per ms: %d\n", z80_cpu.mmu.sound.tcycles_per_ms);
       total_tcycles = 0;
       get_timer_val(1);
-    }
+    }*/
 
-		keyCheckCount++;
+		/*keyCheckCount++;
 		if(keyCheckCount == 10000)
 		{
 			keyCheckCount = 0;
-		}
+
+			ProcessInput(&Continue);
+
+      if(button_irq)
+      {
+        #ifdef DEBUG
+          printf("Button interrupt pending.\n");
+        #endif
+        setInterruptPending(&z80_cpu,P0_P13_INT);
+        button_irq = 0;
+      }
+
+      if(saveState == 1)
+      {
+        printf("Saved state from state.dat\n");
+        writeState(&z80_cpu);
+        saveState = 0;
+      }
+      else if(saveState == 2)
+      {
+        printf("Loaded state from state.dat\n");
+        loadState(&z80_cpu);
+        saveState = 0;
+      }
+		}*/
     update_waveforms(&(z80_cpu.mmu.sound), z80_cpu.tcycles);
 	}
 
