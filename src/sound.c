@@ -16,7 +16,7 @@ void config_noise_channel(Noise_channel* wave, uint16_t offset, uint8_t val)
         break;
 
       case 2:
-        wave->volume = (val >> 4) & 0xf;
+        wave->initial_volume = (val >> 4) & 0xf;
         wave->envelope_mode = (val >> 3) & 0x1;
         wave->envelope_period = val & 0x7;
         break;
@@ -50,7 +50,7 @@ void config_square_wave(Square_wave* wave, uint16_t offset, uint8_t val)
         break;
 
       case 2:
-        wave->volume = (val >> 4) & 0xf;
+        wave->initial_volume = (val >> 4) & 0xf;
         wave->envelope_mode = (val >> 3) & 0x1;
         wave->envelope_period = val & 0x7;
         break;
@@ -114,6 +114,16 @@ void write_sound_reg(Sound * pSound, uint16_t addr, uint8_t val)
 
 uint8_t read_sound_reg(Sound * pSound, uint16_t addr)
 {
+  switch(addr)
+  {
+      case 0xff20:
+      case 0xff21:
+      case 0xff22:
+      case 0xff23:
+      case 0xff26:
+        printf("read sound reg: %x\n", addr);
+        break;
+  }
   //printf("read sound reg: %x\n", addr);
 	return pSound->sound_ram[addr-0xFF10];
 }
@@ -126,7 +136,7 @@ void sdl_init_audio(Sound* pSound)
     fmt.freq = SAMPLES_PER_SECOND;
     fmt.format = AUDIO_U8;//AUDIO_S16;
     fmt.channels = 0;
-    fmt.samples = 512;        /* A good value for games */
+    fmt.samples = 256;        /* A good value for games */
     fmt.callback = sdl_audio_callback;
     fmt.userdata = (void*)pSound;
 
@@ -354,12 +364,22 @@ void update_noise_timer(Noise_channel* noise_wave, int tcycles)
 {
   if(noise_wave->reset_flag == 1)
   {
+     noise_wave->reset_flag = 0;
      noise_wave->enabled = 1;
      if(noise_wave->length_counter == 0)
      {
        noise_wave->length_counter = 64;
      }
-     noise_wave->reset_flag = 0;
+     noise_wave->lfsr = 0xffff;
+     noise_wave->internal_freq_counter = 4*(noise_wave->divisor_code+1)*(1 << (noise_wave->clock_shift+1));/*get_divisor_from_code(noise_wave->divisor_code) << (noise_wave->clock_shift+1);*///
+     uint8_t old_volume = noise_wave->volume;
+
+     noise_wave->volume = noise_wave->initial_volume;
+
+     if((old_volume == 0) && (noise_wave->envelope_mode == 0))
+     {
+       noise_wave->enabled = 0;
+     }
   }
 
   noise_wave->internal_freq_counter -= tcycles;
@@ -374,6 +394,13 @@ void update_noise_timer(Noise_channel* noise_wave, int tcycles)
       noise_wave->lfsr = (noise_wave->lfsr & 0xffbf) | (xor << 6);
     }
 
+
+	  if((noise_wave->length_counter == 0) && (noise_wave->counter_consecutive_selection == 1))
+    {
+      noise_wave->output = 0;
+		  return;
+    }
+
     noise_wave->output = (~(noise_wave->lfsr & 0x1)) & 0x1;
   }
 }
@@ -381,8 +408,6 @@ void update_noise_timer(Noise_channel* noise_wave, int tcycles)
 // 256Hz counter
 void update_noise_length_counter(Noise_channel * wave, int tcycles)
 {
-	if(wave->length_counter == 0)
-		return;
 
 	wave->length_counter_internal -= tcycles;
 
@@ -394,6 +419,10 @@ void update_noise_length_counter(Noise_channel * wave, int tcycles)
     {
       return;
     }
+
+
+	  if(wave->length_counter == 0)
+		  return;
 
     wave->length_counter--;
 
@@ -450,6 +479,8 @@ void update_square_timer(Square_wave * square_wave, int tcycles)
     }
 
     square_wave->reset_flag = 0;
+    square_wave->volume = square_wave->initial_volume;
+    square_wave->duty_cycle = 2;
   }
 
 
@@ -632,7 +663,7 @@ void update_sound_buffer(Sound* pSound, Square_wave * square_wave, int tcycles)
     uint8_t output2 = (squareWave2->enabled && (squareWave2->left_channel || squareWave2->right_channel)) ? squareWave2->output : 0;
     uint8_t output4 = (noiseChannel->enabled && (noiseChannel->left_channel || noiseChannel->right_channel)) ? noiseChannel->output : 0;
 
-    uint32_t sampleRaw = (output1*(squareWave1->volume +1)) + (output2*(squareWave2->volume + 1))+ (output4*(noiseChannel->volume+1));
+    uint32_t sampleRaw = (output1*(squareWave1->volume +1)) + (output2*(squareWave2->volume + 1));//+ (output4*(noiseChannel->volume+1));
     uint8_t sample = (sampleRaw > 255) ? 255 : sampleRaw;
 
     /*if((pSound->audio_len+i) >= SOUND_BUFFER_LEN)

@@ -29,6 +29,7 @@ typedef struct _Square_wave {
 	uint8_t output;
 	uint8_t enabled;
 	uint8_t volume;
+  uint8_t initial_volume;
 	int envelope_counter;
 	int internal_freq_counter;
   uint16_t frequency_shadow;
@@ -52,6 +53,7 @@ typedef struct _Noise_channel {
 	uint8_t output;
 	uint8_t enabled;
 	uint8_t volume;
+  uint8_t initial_volume;
 	int envelope_counter;
 	int internal_freq_counter;
   uint8_t lfsr_width_mode;
