@@ -4,6 +4,36 @@
 uint8_t square_waveforms[4][8] = {{0,0,0,0,0,0,0,1}, {1,0,0,0,0,0,0,1}, {1,0,0,0,0,1,1,1}, {0,1,1,1,1,1,1,0}};
 
 
+void config_noise_channel(Noise_channel* wave, uint16_t offset, uint8_t val)
+{
+  switch(offset)
+  {
+      case 0:
+        break;
+
+      case 1:
+        wave->length_counter = val & 0x3f;
+        break;
+
+      case 2:
+        wave->volume = (val >> 4) & 0xf;
+        wave->envelope_mode = (val >> 3) & 0x1;
+        wave->envelope_period = val & 0x7;
+        break;
+
+      case 3:
+        wave->clock_shift = (val >> 4) & 0xf;
+        wave->lfsr_width_mode = (val >> 3) & 0x1;
+        wave->divisor_code = val & 0x7;
+        break;
+
+      case 4:
+        wave->reset_flag = (val >> 7) & 0x1;
+        wave->counter_consecutive_selection = (val >> 6) & 0x1;
+        break;
+  }
+}
+
 void config_square_wave(Square_wave* wave, uint16_t offset, uint8_t val)
 {
   switch(offset)
@@ -59,7 +89,20 @@ void write_sound_reg(Sound * pSound, uint16_t addr, uint8_t val)
         config_square_wave(&pSound->square_waves[1], addr-0xff15, val);
         break;
 
+      case 0xff20:
+      case 0xff21:
+      case 0xff22:
+      case 0xff23:
+        config_noise_channel(&pSound->noise_channel, addr-0xff1f, val);
+        break;
+
       case 0xff25:
+        pSound->square_waves[0].left_channel = (val >> 4) & 0x1;
+        pSound->square_waves[0].right_channel = (val & 0x1);
+        pSound->square_waves[1].left_channel = (val >> 5) & 0x1;
+        pSound->square_waves[1].right_channel = (val >> 1) & 0x1;
+        pSound->noise_channel.left_channel = (val >> 6) & 0x1;
+        pSound->noise_channel.right_channel = (val >> 2) & 0x1;
         //pSound->square_waves[0].enabled = ((val &0x1) || ((val >> 4) & 0x1));
         //pSound->square_waves[1].enabled = (((val >> 5) & 0x1) || ((val >> 1) & 0x1));
         break;
@@ -93,14 +136,7 @@ void sdl_init_audio(Sound* pSound)
         exit(1);
     }
 
-    pSound->sound_sem = SDL_CreateSemaphore(0);
-    pSound->sound_writer_sem = SDL_CreateSemaphore(0);
     pSound->sampleBufferLength = obtained.samples;
-    if(pSound->sound_sem == NULL)
-    {
-      fprintf(stderr, "Error creating sound semaphore!\n");
-      exit(1);
-    }
 }
 
 void sdl_play_audio()
@@ -120,6 +156,19 @@ void initSound(Sound * pSound)
   pSound->square_waves[1].duty_cycle = 2;
   sdl_init_audio(pSound);
   sdl_play_audio();
+  pSound->noise_channel.lfsr = 0xde;
+  initPointers(pSound);
+}
+
+void initPointers(Sound* pSound)
+{
+    pSound->sound_sem = SDL_CreateSemaphore(0);
+    pSound->sound_writer_sem = SDL_CreateSemaphore(0);
+    if(pSound->sound_sem == NULL)
+    {
+      fprintf(stderr, "Error creating sound semaphore!\n");
+      exit(1);
+    }
 }
 
 void sdl_audio_callback(void *udata, uint8_t * stream, int len)
@@ -143,7 +192,7 @@ void sdl_audio_callback(void *udata, uint8_t * stream, int len)
 
   int overflow = 0;
   //SDL_SemWait(pSound->sound_sem);
-  uint32_t tcyclesPerSample = (4194304/(SAMPLES_PER_SECOND));
+  uint32_t tcyclesPerSample = (4194304/(2*SAMPLES_PER_SECOND));
   update_sound_buffer(pSound, NULL, len*tcyclesPerSample);
   pSound->audio_len = 0;
   for(i = 0; i < len; i++)
@@ -248,7 +297,147 @@ int get_sweep_time_tcycles(uint8_t sweep_time_raw)
 	}
 }
 
+uint8_t get_divisor_from_code(uint8_t code)
+{
+  switch(code)
+  {
+    case 0:
+      return 4;
 
+    case 1:
+      return 8;
+
+    case 2:
+      return 16;
+
+    case 3:
+      return 24;
+
+    case 4:
+      return 32;
+
+    case 5:
+      return 40;
+
+    case 6:
+      return 48;
+
+    case 7:
+      return 56;
+
+    /*case 0:
+    case 1:
+    case 2:
+      return (1<< (3+code));
+
+    case 3:
+      return 48;
+
+    case 4:
+      return 64;
+
+    case 5:
+      return 80;
+
+    case 6:
+      return 96;
+
+    case 7:
+      return 112;*/
+
+    default:
+      return 0;
+  }
+}
+
+void update_noise_timer(Noise_channel* noise_wave, int tcycles)
+{
+  if(noise_wave->reset_flag == 1)
+  {
+     noise_wave->enabled = 1;
+     if(noise_wave->length_counter == 0)
+     {
+       noise_wave->length_counter = 64;
+     }
+     noise_wave->reset_flag = 0;
+  }
+
+  noise_wave->internal_freq_counter -= tcycles;
+
+  if(noise_wave->internal_freq_counter <= 0)
+  {
+    noise_wave->internal_freq_counter += 4*(noise_wave->divisor_code+1)*(1 << (noise_wave->clock_shift+1));/*get_divisor_from_code(noise_wave->divisor_code) << (noise_wave->clock_shift+1);*///
+    uint8_t xor = (noise_wave->lfsr & 0x1) ^ ((noise_wave->lfsr >> 1) & 0x1);
+    noise_wave->lfsr = (noise_wave->lfsr >> 1) | (xor << 15);
+    if(noise_wave->lfsr_width_mode == 1)
+    {
+      noise_wave->lfsr = (noise_wave->lfsr & 0xffbf) | (xor << 6);
+    }
+
+    noise_wave->output = (~(noise_wave->lfsr & 0x1)) & 0x1;
+  }
+}
+
+// 256Hz counter
+void update_noise_length_counter(Noise_channel * wave, int tcycles)
+{
+	if(wave->length_counter == 0)
+		return;
+
+	wave->length_counter_internal -= tcycles;
+
+	if(wave->length_counter_internal <= 0)
+	{
+		wave->length_counter_internal = HZ_TO_TCYCLES(256) + wave->length_counter_internal;
+
+    if(wave->counter_consecutive_selection == 0)
+    {
+      return;
+    }
+
+    wave->length_counter--;
+
+		if(wave->length_counter <= 0)
+		{
+      wave->length_counter = 0;
+			wave->enabled = 0;
+			wave->output = 0;
+		}
+	}
+}
+
+// 64Hz
+void update_noise_volume_envelope(Noise_channel * wave, int tcycles)
+{
+	wave->envelope_counter-= tcycles;
+
+	if(wave->envelope_counter <= 0)
+	{
+		wave->envelope_counter = HZ_TO_TCYCLES(64) + wave->envelope_counter;
+
+    int newVolume = wave->volume;
+
+		if(wave->envelope_mode)
+		{
+			newVolume--;
+		}
+		else
+		{
+			newVolume++;
+		}
+
+		if(newVolume > 15)
+		{
+			newVolume = 15;
+		}
+		else if(newVolume < 0)
+		{
+			newVolume = 0;
+		}
+
+    wave->volume = newVolume;
+	}
+}
 
 void update_square_timer(Square_wave * square_wave, int tcycles)
 {
@@ -433,22 +622,24 @@ void update_sound_buffer(Sound* pSound, Square_wave * square_wave, int tcycles)
 
   Square_wave* squareWave1 = &(pSound->square_waves[0]);
   Square_wave* squareWave2 = &(pSound->square_waves[1]);
+  Noise_channel* noiseChannel = &(pSound->noise_channel);
 
 
 	for(i = 0 ; i < tcycles; i++)
 	{
     update_waveform_tcycle(pSound);
-    uint8_t output1 = (squareWave1->enabled) ? squareWave1->output : 0;
-    uint8_t output2 = (squareWave2->enabled) ? squareWave2->output : 0;
+    uint8_t output1 = (squareWave1->enabled && (squareWave1->left_channel || squareWave1->right_channel)) ? squareWave1->output : 0;
+    uint8_t output2 = (squareWave2->enabled && (squareWave2->left_channel || squareWave2->right_channel)) ? squareWave2->output : 0;
+    uint8_t output4 = (noiseChannel->enabled && (noiseChannel->left_channel || noiseChannel->right_channel)) ? noiseChannel->output : 0;
 
-    uint32_t sampleRaw = (output1*(squareWave1->volume +1)) + (output2*(squareWave2->volume + 1));
+    uint32_t sampleRaw = (output1*(squareWave1->volume +1)) + (output2*(squareWave2->volume + 1))+ (output4*(noiseChannel->volume+1));
     uint8_t sample = (sampleRaw > 255) ? 255 : sampleRaw;
 
-    if((pSound->audio_len+i) >= SOUND_BUFFER_LEN)
+    /*if((pSound->audio_len+i) >= SOUND_BUFFER_LEN)
     {
       //SDL_SemWait(pSound->sound_sem);
       //SDL_SemPost(pSound->sound_writer_sem);
-    }
+    }*/
 
     pSound->data[(pSound->audio_len+i) % SOUND_BUFFER_LEN] = sample;
 
@@ -484,6 +675,10 @@ void update_waveform_tcycle(Sound*pSound)
   update_square_timer(&pSound->square_waves[1], 1);
   update_length_counter(&pSound->square_waves[1], 1);
 	//update_square_duty(&pSound->square_waves[1], 1);
+
+  update_noise_timer(&pSound->noise_channel, 1);
+  update_noise_length_counter(&pSound->noise_channel, 1);
+  update_noise_volume_envelope(&pSound->noise_channel, 1);
 
 	update_volume_envelope(&pSound->square_waves[0], 1);
 	update_volume_envelope(&pSound->square_waves[1], 1);

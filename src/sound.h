@@ -8,7 +8,7 @@
 
 #define SOUND_RAM_SIZE 48
 #define SOUND_BUFFER_LEN 1025000
-#define SAMPLES_PER_SECOND 21000/*440502097152*/
+#define SAMPLES_PER_SECOND 44000/*440502097152*/
 #define SWEEP_FRAME_128HZ_COUNT 32768
 
 typedef struct _Square_wave {
@@ -22,8 +22,6 @@ typedef struct _Square_wave {
 	int duty_counter;
 	uint8_t length_counter;
 	int length_counter_internal;
-	uint8_t length_counter_enabled;
-	uint8_t initial_volume;
 	uint8_t envelope_mode; // 0 = up, 1 = down
 	uint8_t envelope_period;
 	uint8_t reset_flag;
@@ -36,7 +34,33 @@ typedef struct _Square_wave {
   uint16_t frequency_shadow;
   uint8_t sweep_internal_enabled;
   int output_counter;
+  uint8_t left_channel;
+  uint8_t right_channel;
 } Square_wave;
+
+typedef struct _Noise_channel {
+	int sweep_counter;
+  int sweep_frame_counter;
+	uint8_t duty_cycle;
+	int duty_counter;
+	uint8_t length_counter;
+	int length_counter_internal;
+	uint8_t envelope_mode; // 0 = up, 1 = down
+	uint8_t envelope_period;
+	uint8_t reset_flag;
+	uint8_t counter_consecutive_selection;
+	uint8_t output;
+	uint8_t enabled;
+	uint8_t volume;
+	int envelope_counter;
+	int internal_freq_counter;
+  uint8_t lfsr_width_mode;
+  uint8_t clock_shift;
+  uint8_t divisor_code;
+  uint16_t lfsr;
+  uint8_t left_channel;
+  uint8_t right_channel;
+} Noise_channel;
 
 typedef struct _Sound {
 	uint8_t sound_ram[SOUND_RAM_SIZE];
@@ -44,8 +68,7 @@ typedef struct _Sound {
   uint32_t current_play_count;
 	int audio_len;
 	Square_wave square_waves[2];
-	uint8_t noise_channel[SOUND_BUFFER_LEN];
-	uint8_t wave_table_channel[SOUND_BUFFER_LEN];
+  Noise_channel noise_channel;
   uint32_t sampleCycleCount;
   SDL_sem* sound_sem;
   SDL_sem* sound_writer_sem;
@@ -63,6 +86,7 @@ void write_sound_reg(Sound * pSound, uint16_t addr, uint8_t val);
 uint8_t read_sound_reg(Sound * pSound, uint16_t addr);
 
 void initSound(Sound * pSound);
+void initPointers(Sound* pSound);
 
 void sdl_audio_callback(void *udata, uint8_t * stream, int len);
 void sdl_enable_audio();
